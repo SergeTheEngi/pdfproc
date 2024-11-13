@@ -6,7 +6,6 @@ Cornwall test:
     - [x] Get headers
     - [x] Assemble headers
     - [x] Collect page data
-        - Not all headers are havested
 - Process data:
     - [ ] Extract owner names
     - [ ] Extract owner address
