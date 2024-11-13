@@ -3,7 +3,7 @@
 Cornwall test:
 - [x] Inspect the data
 - Collect data:
-    - [ ] Get headers
+    - [x] Get headers
     - [ ] Assemble headers
     - [ ] Collect page data
 - Process data:
