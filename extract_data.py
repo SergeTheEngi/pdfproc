@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[79]:
+# In[92]:
 
 
 import time
@@ -11,8 +11,8 @@ import re
 from openpyxl import Workbook
 from pdfproc.as_dict import find_line,normalize_data
 
-data_testing = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
-data_new = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
+bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
+cornwall = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
 
 
 # In[80]:
@@ -39,7 +39,7 @@ print(header)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[87]:
+# In[93]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -47,17 +47,18 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[89]:
+# In[101]:
 
 
-def get_header(page_text):
+def get_header(page_text,verbose=False):
     header_start = None
     for bn,block in enumerate(page_text['blocks']):
-        print(bn,type(block),end="")
-        if type(block) == dict:
-            print(block.keys())
-        else:
-            print()
+        if verbose:
+            print(bn,type(block),end="")
+            if type(block) == dict:
+                print(block.keys())
+            else:
+                print()
         for ln,line in enumerate(block['lines']):
             line_text = line['spans'][0]['text']
             
@@ -109,9 +110,9 @@ def assemble_header(page_text, header_start, header_end):
         return header
 
 # Tests
-page_testing = data_testing.load_page(1)
+page_testing = bronxville.load_page(1)
 page_testing_text = page_testing.get_text('dict')
-page_new = data_new.load_page(0)
+page_new = cornwall.load_page(0)
 page_new_text = page_new.get_text('dict')
 
 ## Test get_header
@@ -161,7 +162,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[90]:
+# In[102]:
 
 
 def get_page_data(page_text,header_end):
@@ -189,72 +190,103 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[91]:
+# In[107]:
 
 
-c = time.time()
-
-data = {}
-failed = []
-
-for p in range(0,data_new.page_count):
-    page = data_new.load_page(p)
-    page_text=page.get_text('dict')
-
-    hs,he = get_header(page_text)
-    #header = assemble_header(page_text,hs,he)
-
-    if hs != None and he != None:
-        page_data = get_page_data(page_text,he)
-        print("page",p,page_data.keys())
-        for id in page_data:
-            data[id] = page_data[id]
-    else:
-        failed.append(p+1)
-        print("page",p)
+def get_data(source,from_page=0,verbose=False,print_failed=True):
+    c = time.time()
     
-print("failed to find headers:",failed)
-d = time.time()
-print(d-c)
+    data = {}
+    failed = []
+    
+    for p in range(from_page,source.page_count):
+        page = source.load_page(p)
+        page_text=page.get_text('dict')
+    
+        hs,he = get_header(page_text)
+        #header = assemble_header(page_text,hs,he)
+    
+        if hs != None and he != None:
+            page_data = get_page_data(page_text,he)
+            if verbose: print("page",p,page_data.keys())
+            for id in page_data:
+                data[id] = page_data[id]
+        else:
+            failed.append(p+1)
+            if verbose: print("page",p)
+        
+    if print_failed: print("failed to find headers:",failed)
+    d = time.time()
+    if verbose: print("completed in",d-c)
+    return data
+
+data_bronxville = get_data(bronxville,1)
+data_cornwall = get_data(cornwall,0)
 
 
 # In[ ]:
 
 
-def get_zoning(entry):
-    lines = [
-        ' '.join(entry[1]),
-        ' '.join(entry[2])
-    ]
-    for item in lines:
-        zoning = re.search('Bronxville Sch  ?\\d{6} ', item)
-        if zoning:
-            return zoning.group()
-        
-    #zoning = entry[2][1]
-    #if zoning == '': zoning = entry[2][2]
-    #if 'Bronxville Sch' in zoning:
-    #    return entry[2][1]
-    #else:
-    #    print(entry[1][0])
+def get_owner_names(entry):
+    col1 = []
+    owner_names_data = normalize_data(entry)
+    for block in owner_names_data:
+        try:
+            if 'PRIOR OWNER' in block[0]: break
+            col1.append(block[0])
+        except: pass
+    col1 = list(filter(None,col1))
+    for block in col1: print(block)
+    owner_names = []
+    owner_names.append(col1[2])
+    for item in col1[3:-2]:
+        owner_names.append(item)
+    for item in col1[-2:]:
+        company = re.search('(l ?l ?c)|(L ?L ?C)',item)
+        if company:
+            owner_names.append(item)
+            company = None
+    for i,name in enumerate(owner_names):
+        if '  ' in owner_names[i]:
+            owner_names[i] = name.split('  ')[0]
+        owner_names[i] = owner_names[i].replace(' FULL MARKET VALUE','')
+        owner_names[i] = owner_names[i].replace('FULL MARKET VALUE','')
+        owner_names[i] = owner_names[i].replace(' Bronxville Sch','')
+        owner_names[i] = owner_names[i].replace('Bronxville Sch','')
+        owner_names[i] = re.sub(' DEED BOOK.+','',owner_names[i])
+        owner_names[i] = re.sub('DEED BOOK.+','',owner_names[i])
+    return owner_names
+    #return
 
-#print(get_zoning(data[key]))
+# Tests
+#print(get_owner_names(data[key]))
+#for block in data['11./5/1.-212']: print(block)
+print(get_owner_names(data['18./1/2']))
+assert get_owner_names(data['18./1/2']) == ['Coffey John', 'Coffey Anne', 'Ameriprise Financial-D.Amoruso']
+assert get_owner_names(data['14./3/4.B']) == ['Hyde Lindsay', 'Hyde Arthur D IV']
+assert get_owner_names(data['11./5/1.-212']) == ['Nagle,Arthur J, Irrevocable Tr', 'Nagle Christopher P', 'Christopher Nagle']
+assert get_owner_names(data['4./5/11']) == ['Nibur 132 Parkway Road Bronxvi', 'George Comfort & Sons, Inc.']
+assert get_owner_names(data['3./3/1.A']) == ['Midland Garden Owners', 'Attn: Barhite & Holzinger']
+assert get_owner_names(data['1./1/1']) == ['Mercer Robert']
+assert get_owner_names(data['1./1/10']) == ['Nuguid Dumalag Marie A']
+assert get_owner_names(data['7.A/3/5']) == ['Copete Andres', 'Copete Margaret M']
+assert get_owner_names(data['4./1/5']) == ['701 Pondfield LLC', 'Pondfield 17 LLC', 'c/o Houlihan-Parnes Realtors']
+assert get_owner_names(data['20./2/1.-5L']) == ['Bonanno Rosario']
+assert get_owner_names(data['15./3/5']) == ['Hannick John D', 'Hannick Elizabeth E']
+assert get_owner_names(data['6.D/2/10.J']) == ['Wolfe Gregory N', 'Wolfe Elana R']
+assert get_owner_names(data['1./1/26']) == ['Maianti Echeverrigaray Juan P', 'Darricarrere Nicole']
+assert get_owner_names(data['1./1/15']) == ['42 Park LLC', 'Mark J. Fonte-Trifont Realty']
+assert get_owner_names(data['2./3/48']) == ['McLean Heights Realty LLC']
+assert get_owner_names(data['2./2/17']) == ['Mosbacher Emil','L L C','c/o Mosbacher Properties Group','LLC']
 
-#for block in data['1./1/10']:
-#    print(block)
-
-all_zoning = []
+all_names = []
 for entry in data:
-    all_zoning.append(get_zoning(data[entry]))
-    if get_zoning(data[entry]) == None:
-        print(entry)
-        for block in data[entry]:
-            print(block)
-    #print(entry,"\t:",get_zoning(data[entry]))
+    all_names.append(get_owner_names(data[entry]))
 
 assert '' in ['', 'test']
-assert '' not in all_zoning
-assert None not in all_zoning
+assert '' not in all_names
+assert [] not in all_names
+assert None not in all_names
 
 
 # In[ ]:
@@ -307,6 +339,45 @@ for entry in data:
 assert '' in ['', 'test']
 assert '' not in all_names
 assert None not in all_names
+
+
+# In[ ]:
+
+
+def get_zoning(entry):
+    lines = [
+        ' '.join(entry[1]),
+        ' '.join(entry[2])
+    ]
+    for item in lines:
+        zoning = re.search('Bronxville Sch  ?\\d{6} ', item)
+        if zoning:
+            return zoning.group()
+        
+    #zoning = entry[2][1]
+    #if zoning == '': zoning = entry[2][2]
+    #if 'Bronxville Sch' in zoning:
+    #    return entry[2][1]
+    #else:
+    #    print(entry[1][0])
+
+#print(get_zoning(data[key]))
+
+#for block in data['1./1/10']:
+#    print(block)
+
+all_zoning = []
+for entry in data:
+    all_zoning.append(get_zoning(data[entry]))
+    if get_zoning(data[entry]) == None:
+        print(entry)
+        for block in data[entry]:
+            print(block)
+    #print(entry,"\t:",get_zoning(data[entry]))
+
+assert '' in ['', 'test']
+assert '' not in all_zoning
+assert None not in all_zoning
 
 
 # In[ ]:
@@ -507,71 +578,6 @@ for entry in data:
 
 assert '' in ['', 'test']
 assert '' not in all_property_addrs
-
-
-# In[ ]:
-
-
-def get_owner_names(entry):
-    col1 = []
-    owner_names_data = normalize_data(entry)
-    for block in owner_names_data:
-        try:
-            if 'PRIOR OWNER' in block[0]: break
-            col1.append(block[0])
-        except: pass
-    col1 = list(filter(None,col1))
-    for block in col1: print(block)
-    owner_names = []
-    owner_names.append(col1[2])
-    for item in col1[3:-2]:
-        owner_names.append(item)
-    for item in col1[-2:]:
-        company = re.search('(l ?l ?c)|(L ?L ?C)',item)
-        if company:
-            owner_names.append(item)
-            company = None
-    for i,name in enumerate(owner_names):
-        if '  ' in owner_names[i]:
-            owner_names[i] = name.split('  ')[0]
-        owner_names[i] = owner_names[i].replace(' FULL MARKET VALUE','')
-        owner_names[i] = owner_names[i].replace('FULL MARKET VALUE','')
-        owner_names[i] = owner_names[i].replace(' Bronxville Sch','')
-        owner_names[i] = owner_names[i].replace('Bronxville Sch','')
-        owner_names[i] = re.sub(' DEED BOOK.+','',owner_names[i])
-        owner_names[i] = re.sub('DEED BOOK.+','',owner_names[i])
-    return owner_names
-    #return
-
-# Tests
-#print(get_owner_names(data[key]))
-#for block in data['11./5/1.-212']: print(block)
-print(get_owner_names(data['18./1/2']))
-assert get_owner_names(data['18./1/2']) == ['Coffey John', 'Coffey Anne', 'Ameriprise Financial-D.Amoruso']
-assert get_owner_names(data['14./3/4.B']) == ['Hyde Lindsay', 'Hyde Arthur D IV']
-assert get_owner_names(data['11./5/1.-212']) == ['Nagle,Arthur J, Irrevocable Tr', 'Nagle Christopher P', 'Christopher Nagle']
-assert get_owner_names(data['4./5/11']) == ['Nibur 132 Parkway Road Bronxvi', 'George Comfort & Sons, Inc.']
-assert get_owner_names(data['3./3/1.A']) == ['Midland Garden Owners', 'Attn: Barhite & Holzinger']
-assert get_owner_names(data['1./1/1']) == ['Mercer Robert']
-assert get_owner_names(data['1./1/10']) == ['Nuguid Dumalag Marie A']
-assert get_owner_names(data['7.A/3/5']) == ['Copete Andres', 'Copete Margaret M']
-assert get_owner_names(data['4./1/5']) == ['701 Pondfield LLC', 'Pondfield 17 LLC', 'c/o Houlihan-Parnes Realtors']
-assert get_owner_names(data['20./2/1.-5L']) == ['Bonanno Rosario']
-assert get_owner_names(data['15./3/5']) == ['Hannick John D', 'Hannick Elizabeth E']
-assert get_owner_names(data['6.D/2/10.J']) == ['Wolfe Gregory N', 'Wolfe Elana R']
-assert get_owner_names(data['1./1/26']) == ['Maianti Echeverrigaray Juan P', 'Darricarrere Nicole']
-assert get_owner_names(data['1./1/15']) == ['42 Park LLC', 'Mark J. Fonte-Trifont Realty']
-assert get_owner_names(data['2./3/48']) == ['McLean Heights Realty LLC']
-assert get_owner_names(data['2./2/17']) == ['Mosbacher Emil','L L C','c/o Mosbacher Properties Group','LLC']
-
-all_names = []
-for entry in data:
-    all_names.append(get_owner_names(data[entry]))
-
-assert '' in ['', 'test']
-assert '' not in all_names
-assert [] not in all_names
-assert None not in all_names
 
 
 # In[ ]:
