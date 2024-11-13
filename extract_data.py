@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[79]:
 
 
 import time
@@ -15,7 +15,7 @@ data_testing = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 data_new = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
 
 
-# In[19]:
+# In[80]:
 
 
 # Inspect the data
@@ -39,15 +39,15 @@ print(header)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[4]:
+# In[87]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
-re_separator = f"\\*+ {re_id} \\*+"
+re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[26]:
+# In[89]:
 
 
 def get_header(page_text):
@@ -111,24 +111,29 @@ def assemble_header(page_text, header_start, header_end):
 # Tests
 page_testing = data_testing.load_page(1)
 page_testing_text = page_testing.get_text('dict')
+page_new = data_new.load_page(0)
+page_new_text = page_new.get_text('dict')
 
 ## Test get_header
 header_start,header_end = get_header(page_testing_text)
-print(header_start,header_end)
-print(page_testing_text['blocks'][header_start[0]]['lines'][header_start[1]]['spans'][0]['text'])
-print(page_testing_text['blocks'][header_end[0]]['lines'][header_end[1]]['spans'][0]['text'])
+header_start_new, header_end_new = get_header(page_new_text)
+#print(header_start,header_end)
+#print(page_testing_text['blocks'][header_start[0]]['lines'][header_start[1]]['spans'][0]['text'])
+#print(page_testing_text['blocks'][header_end[0]]['lines'][header_end[1]]['spans'][0]['text'])
 assert (header_start,header_end) == ((5,2),(7,0))
+assert (header_start_new,header_end_new) == ((1,0),(1,3))
 
 print("\n ###### ")
 
 ## Test assemble_header
-header = assemble_header(page_testing_text, header_start, header_end)
-for bl,block in enumerate(header):
-    print("\nblock",bl)
-    for ln,line in enumerate(block):
-        print(ln,line,end='')
-print(header)
-assert header == [
+header_testing = assemble_header(page_testing_text, header_start, header_end)
+header_new = assemble_header(page_new_text, header_start_new, header_end_new)
+#for bl,block in enumerate(header):
+#    print("\nblock",bl)
+#    for ln,line in enumerate(block):
+#        print(ln,line,end='')
+#print(header)
+assert header_testing == [
     [
         'TAX MAP PARCEL NUMBER        PROPERTY LOCATION & CLASS  ASSESSMENT  EXEMPTION CODE------------------COUNTY--------TOWN------SCHOOL ',
         'CURRENT OWNERS NAME ',
@@ -145,15 +150,22 @@ assert header == [
         ' ACCOUNT NO. '
     ],
 ]
+assert header_new == [
+    [
+        'TAX MAP PARCEL NUMBER          PROPERTY LOCATION & CLASS  ASSESSMENT  EXEMPTION CODE-----VILLAGE------COUNTY--------TOWN------SCHOOL',
+        'CURRENT OWNERS NAME            SCHOOL DISTRICT               LAND      TAX DESCRIPTION            TAXABLE VALUE',
+        'CURRENT OWNERS ADDRESS         PARCEL SIZE/GRID COORD       TOTAL      SPECIAL DISTRICTS                                 ACCOUNT NO.'
+    ]
+]
 
 
 # Create entries by separators, split entries into columns
 
-# In[ ]:
+# In[90]:
 
 
 def get_page_data(page_text,header_end):
-    page_data = {}; new_id = False; n = 0
+    page_data = {}; n = 0; harvest = False
     for bn,block in enumerate(page_text['blocks'][header_end[0]:]):
         for line in block['lines']:
             line_text = line['spans'][0]['text']
@@ -164,6 +176,7 @@ def get_page_data(page_text,header_end):
             if separator:
                 id=re.search(re_id,separator.group()).group()
                 page_data[id] = [[]]
+                harvest = True
                 n = 0
             else:
                 page_end = re.search(
@@ -171,12 +184,12 @@ def get_page_data(page_text,header_end):
                     line_text
                 )
                 if page_end: return page_data
-            page_data[id][n].append(line_text.strip())
-        page_data[id].append([])
+            if harvest: page_data[id][n].append(line_text.strip())
+        if harvest: page_data[id].append([])
         n += 1
 
 
-# In[ ]:
+# In[91]:
 
 
 c = time.time()
@@ -184,8 +197,8 @@ c = time.time()
 data = {}
 failed = []
 
-for p in range(1,data_testing.page_count):
-    page = data_testing.load_page(p)
+for p in range(0,data_new.page_count):
+    page = data_new.load_page(p)
     page_text=page.get_text('dict')
 
     hs,he = get_header(page_text)
