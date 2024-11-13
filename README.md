@@ -4,7 +4,7 @@ Cornwall test:
 - [x] Inspect the data
 - Collect data:
     - [x] Get headers
-    - [ ] Assemble headers
+    - [x] Assemble headers
     - [ ] Collect page data
 - Process data:
     - [ ] Extract owner names

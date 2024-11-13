@@ -11,43 +11,26 @@ import re
 from openpyxl import Workbook
 from pdfproc.as_dict import find_line,normalize_data
 
-doc = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
+data_testing = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
+data_new = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
 
 
-# ## Inspecting the data
-# 
-# Load data sample and tinker with it
-
-# In[2]:
+# In[19]:
 
 
-page = doc.load_page(1)
+# Inspect the data
+page = data_new.load_page(0)
 page_text = page.get_text('dict')
 
 
-# In[3]:
+#for block in page_text['blocks']:
+#    for line in block['lines']:
+#        print(line['spans'][0]['text'])
 
+header_start,header_end = get_header(page_text)
+header = assemble_header(page_text, header_start, header_end)
 
-#print(page_text['blocks'][0]['lines'][0]['spans'][0]['text'])
-def print_lines(text_block):
-    for ln,line in enumerate(text_block['lines']):
-        print([ln,line['spans'][0]['text']])
-
-def print_blocks(page_text):
-    for bn,block in enumerate(page_text['blocks']):
-        print("block",bn)
-        print_lines(block['lines'])
-        print()
-
-page = doc.load_page(205)
-page_text=page.get_text('dict')
-
-hs,he = get_header(page_text)
-print(hs,he)
-
-for block in page_text['blocks'][hs[0]:he[0]]:
-    for line in block['lines']:
-        print(line['spans'][0]['text'])
+print(header)
 
 
 # ## Extracting the data
@@ -56,7 +39,7 @@ for block in page_text['blocks'][hs[0]:he[0]]:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[34]:
+# In[4]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -64,7 +47,7 @@ re_separator = f"\\*+ {re_id} \\*+"
 re_page_end = '\\*+'
 
 
-# In[35]:
+# In[26]:
 
 
 def get_header(page_text):
@@ -103,41 +86,48 @@ def get_header(page_text):
 def assemble_header(page_text, header_start, header_end):
     header = []
     n = 0
-    for bn in range(header_start[0],header_end[0]):
+    if header_start[0] == header_end[0]:
         header.append([])
-        if bn == header_start[0]:
-            for ln in range(header_start[1],len(page_text['blocks'][bn]['lines'])):
-                header[n].append(page_text['blocks'][bn]['lines'][ln]['spans'][0]['text'])
-        elif bn > header_start[0] and bn < header_end[0]:
-            for line in page_text['blocks'][bn]['lines']:
-                header[n].append(line['spans'][0]['text'])
-        elif bn == header_end[0]:
-            for ln in range(header_end[1]):
-                header[n].append(page_text['blocks'][bn]['lines'][ln]['spans'][0]['text'])
-        else:
-            raise ValueError("How did you got here?")
-        n += 1
-    return header
+        for line in page_text['blocks'][header_start[0]]['lines'][header_start[1]:header_end[1]]:
+            header[n].append(line['spans'][0]['text'])
+        return header
+    else:
+        for bn in range(header_start[0],header_end[0]):
+            header.append([])
+            if bn == header_start[0]:
+                for ln in range(header_start[1],len(page_text['blocks'][bn]['lines'])):
+                    header[n].append(page_text['blocks'][bn]['lines'][ln]['spans'][0]['text'])
+            elif bn > header_start[0] and bn < header_end[0]:
+                for line in page_text['blocks'][bn]['lines']:
+                    header[n].append(line['spans'][0]['text'])
+            elif bn == header_end[0]:
+                for ln in range(header_end[1]):
+                    header[n].append(page_text['blocks'][bn]['lines'][ln]['spans'][0]['text'])
+            else:
+                raise ValueError("How did you got here?")
+            n += 1
+        return header
 
 # Tests
-page = doc.load_page(1)
-page_text = page.get_text('dict')
+page_testing = data_testing.load_page(1)
+page_testing_text = page_testing.get_text('dict')
 
 ## Test get_header
-header_start,header_end = get_header(page_text)
+header_start,header_end = get_header(page_testing_text)
 print(header_start,header_end)
-print(page_text['blocks'][header_start[0]]['lines'][header_start[1]]['spans'][0]['text'])
-print(page_text['blocks'][header_end[0]]['lines'][header_end[1]]['spans'][0]['text'])
+print(page_testing_text['blocks'][header_start[0]]['lines'][header_start[1]]['spans'][0]['text'])
+print(page_testing_text['blocks'][header_end[0]]['lines'][header_end[1]]['spans'][0]['text'])
 assert (header_start,header_end) == ((5,2),(7,0))
 
 print("\n ###### ")
 
 ## Test assemble_header
-header = assemble_header(page_text, header_start, header_end)
+header = assemble_header(page_testing_text, header_start, header_end)
 for bl,block in enumerate(header):
     print("\nblock",bl)
     for ln,line in enumerate(block):
         print(ln,line,end='')
+print(header)
 assert header == [
     [
         'TAX MAP PARCEL NUMBER        PROPERTY LOCATION & CLASS  ASSESSMENT  EXEMPTION CODE------------------COUNTY--------TOWN------SCHOOL ',
@@ -153,13 +143,13 @@ assert header == [
         ' ',
         ' ',
         ' ACCOUNT NO. '
-    ]
+    ],
 ]
 
 
 # Create entries by separators, split entries into columns
 
-# In[36]:
+# In[ ]:
 
 
 def get_page_data(page_text,header_end):
@@ -186,7 +176,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[37]:
+# In[ ]:
 
 
 c = time.time()
@@ -194,8 +184,8 @@ c = time.time()
 data = {}
 failed = []
 
-for p in range(1,doc.page_count):
-    page = doc.load_page(p)
+for p in range(1,data_testing.page_count):
+    page = data_testing.load_page(p)
     page_text=page.get_text('dict')
 
     hs,he = get_header(page_text)
@@ -215,7 +205,7 @@ d = time.time()
 print(d-c)
 
 
-# In[38]:
+# In[ ]:
 
 
 def get_zoning(entry):
@@ -254,7 +244,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[39]:
+# In[ ]:
 
 
 def get_owner_address(entry):
@@ -306,7 +296,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[40]:
+# In[ ]:
 
 
 def get_taxable(entry,taxable_name):
@@ -358,7 +348,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[41]:
+# In[ ]:
 
 
 def get_full_market_value(entry):
@@ -411,7 +401,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[42]:
+# In[ ]:
 
 
 def get_acreage(entry):
@@ -452,7 +442,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[43]:
+# In[ ]:
 
 
 def get_property_type(entry):
@@ -475,7 +465,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[44]:
+# In[ ]:
 
 
 def get_property_address(entry,id):
@@ -506,7 +496,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[45]:
+# In[ ]:
 
 
 def get_owner_names(entry):
@@ -571,7 +561,7 @@ assert [] not in all_names
 assert None not in all_names
 
 
-# In[46]:
+# In[ ]:
 
 
 wb = Workbook()
@@ -591,7 +581,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[47]:
+# In[ ]:
 
 
 row = 2
@@ -614,3 +604,10 @@ wb.save('extracted_data.xlsx')
 b = time.time()
 
 print(b-a)
+
+
+# In[ ]:
+
+
+
+
