@@ -114,3 +114,16 @@ def normalize_data(entry):
         n += 1
             
     return data
+
+def remove_spaces(string):
+    string = re.sub( # Remove space groups
+        r'\s{2,}',
+        ' ',
+        string
+    )
+    string = re.sub( # Remove trailing spaces
+        r'(^\s+|\s+$)',
+        '',
+        string
+    )
+    return(string)
