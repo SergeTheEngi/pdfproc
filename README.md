@@ -8,8 +8,8 @@ Cornwall test:
     - [x] Collect page data
 - Process data:
     - [x] Extract owner names
-    - [ ] Extract owner address
-    - [ ] Extract property type
+    - [x] Extract owner address
+    - [x] Extract property type
     - [ ] Extract property address
     - [ ] Extract zoning
     - [ ] Extract acreage
