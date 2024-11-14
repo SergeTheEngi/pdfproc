@@ -273,7 +273,7 @@ for key in data_cornwall:
 print(data_cornwall['101-1-1'])
 
 
-# In[129]:
+# In[143]:
 
 
 def get_owner_names(entry,key):
@@ -287,8 +287,6 @@ def get_owner_names(entry,key):
             col1.append(block[0])
         except: pass
     #print(col1)
-    if 'FULL MARKET VALUE' in col1[-1]:
-        col1 = col1[:-1]
     col1 = list(filter(None,col1))
     #for block in col1: print(block)
     col1_id = max([i for i,item in enumerate(col1) if key in item])
@@ -349,11 +347,13 @@ testset_cornwall = [
     ('101-1-1',['Nguyen Lap','Fowlie Greta'])
 ]
 
-#for key,result in testset_bronxville:
-#    run_test(data_bronxville[key],key,result,get_owner_names)
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_owner_names)
 
 for key,result in testset_cornwall:
-    run_test(data_cornwall[key],key,result,get_owner_names)
+    entry = data_cornwall[key]
+    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_owner_names)
 
 #run_tests(testset,get_owner_names)
 
@@ -364,6 +364,86 @@ for entry in data_bronxville:
 assert '' in ['', 'test']
 assert '' not in all_names
 #assert [] not in all_names
+assert None not in all_names
+
+
+# In[148]:
+
+
+def get_owner_address(entry):
+    col1 = []; company = None
+    owner_address_data=normalize_data(entry)
+    for bn,block in enumerate(owner_address_data):
+        if len(block) > 0:
+            company = re.search('(l ?l ?c)|(L ?L ?C)',block[0])
+            if company:
+                block.pop(0)
+                company = None
+    for block in owner_address_data:
+        #print(block)
+        try:
+            if 'PRIOR OWNER' in block[0]: break
+            col1.append(block[0])
+        except: pass
+    col1 = list(filter(None,col1))
+    owner_addr = col1[-2:]
+    for i,name in enumerate(owner_addr):
+        if '   ' in owner_addr[i]:
+            owner_addr[i] = name.split('   ')[0]
+        
+    return ', '.join(owner_addr)
+
+def run_test(entry,result,function):
+    output = function(entry)
+    assert output == result, f"{key}, {result} != {output}"
+
+# Tests
+#print(get_owner_address(data[key]))
+#
+#for block in data['11./5/17']: print(block)
+#print(get_owner_address(data['2./2/17']))
+assert get_owner_address(data_bronxville['14./3/4.B']) == '5 Edgehill Close, Bronxville, NY 10708'
+assert get_owner_address(data_bronxville['2./2/17']) == '18 E 48th Street 19th Floor, New York, NY 10017'
+assert get_owner_address(data_bronxville['11./5/17']) == '118-35 Queens Blvd.,1710, Forest Hills, NY 11375'
+assert get_owner_address(data_bronxville['11./5/1.-212']) == '906 Mill Creek Dr, Palm Beach Gardens, FL 33410'
+assert get_owner_address(data_bronxville['3./3/1.A']) == '77 Pondfield Road, Bronxville, NY 10708'
+assert get_owner_address(data_bronxville['20./3/2']) == '33 Sagamore Road, Bronxville, NY 10708'
+assert get_owner_address(data_bronxville['1./1/5']) == '60 Parkway Road, Bronxville, NY 10708'
+assert get_owner_address(data_bronxville['1./1/10']) == '50 Parkway Road, Bronxville, NY 10708'
+assert get_owner_address(data_bronxville['1./1/15']) == '1955 Central Park Ave, Yonkers, NY 10710'
+assert get_owner_address(data_bronxville['1./1/15.A']) == '36-38 Parkway Road, Bronxville, NY 10708'
+
+testset_bronxville = [
+    ('14./3/4.B','5 Edgehill Close, Bronxville, NY 10708'),
+    ('2./2/17','18 E 48th Street 19th Floor, New York, NY 10017'),
+    ('11./5/17','118-35 Queens Blvd.,1710, Forest Hills, NY 11375'),
+    ('11./5/1.-212','906 Mill Creek Dr, Palm Beach Gardens, FL 33410'),
+    ('3./3/1.A','77 Pondfield Road, Bronxville, NY 10708'),
+    ('20./3/2','33 Sagamore Road, Bronxville, NY 10708'),
+    ('1./1/5','60 Parkway Road, Bronxville, NY 10708'),
+    ('1./1/10','50 Parkway Road, Bronxville, NY 10708'),
+    ('1./1/15','1955 Central Park Ave, Yonkers, NY 10710'),
+    ('1./1/15.A','36-38 Parkway Road, Bronxville, NY 10708'),
+]
+
+testset_cornwall = [
+    ('101-1-1','303 Shore Rd, Cornwall-On-Hudson, NY 12520')
+]
+
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],result,get_owner_address)
+
+for key,result in testset_cornwall:
+    entry = data_cornwall[key]
+    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,result,get_owner_address)
+
+all_owner_addrs = []
+for entry in data_bronxville:
+    all_owner_addrs.append(get_owner_address(data_bronxville[entry]))
+
+assert '' in ['', 'test']
+assert '' not in all_names
 assert None not in all_names
 
 
@@ -404,58 +484,6 @@ for entry in data:
 assert '' in ['', 'test']
 assert '' not in all_zoning
 assert None not in all_zoning
-
-
-# In[54]:
-
-
-def get_owner_address(entry):
-    col1 = []; company = None
-    owner_address_data=normalize_data(entry)
-    for bn,block in enumerate(owner_address_data):
-        if len(block) > 0:
-            company = re.search('(l ?l ?c)|(L ?L ?C)',block[0])
-            if company:
-                block.pop(0)
-                company = None
-    for block in owner_address_data:
-        #print(block)
-        try:
-            if 'PRIOR OWNER' in block[0]: break
-            col1.append(block[0])
-        except: pass
-    col1 = list(filter(None,col1))
-    owner_addr = col1[-2:]
-    for i,name in enumerate(owner_addr):
-        if '   ' in owner_addr[i]:
-            owner_addr[i] = name.split('   ')[0]
-        
-    return ', '.join(owner_addr)
-    #return
-
-# Tests
-#print(get_owner_address(data[key]))
-#
-#for block in data['11./5/17']: print(block)
-#print(get_owner_address(data['2./2/17']))
-assert get_owner_address(data['14./3/4.B']) == '5 Edgehill Close, Bronxville, NY 10708'
-assert get_owner_address(data['2./2/17']) == '18 E 48th Street 19th Floor, New York, NY 10017'
-assert get_owner_address(data['11./5/17']) == '118-35 Queens Blvd.,1710, Forest Hills, NY 11375'
-assert get_owner_address(data['11./5/1.-212']) == '906 Mill Creek Dr, Palm Beach Gardens, FL 33410'
-assert get_owner_address(data['3./3/1.A']) == '77 Pondfield Road, Bronxville, NY 10708'
-assert get_owner_address(data['20./3/2']) == '33 Sagamore Road, Bronxville, NY 10708'
-assert get_owner_address(data['1./1/5']) == '60 Parkway Road, Bronxville, NY 10708'
-assert get_owner_address(data['1./1/10']) == '50 Parkway Road, Bronxville, NY 10708'
-assert get_owner_address(data['1./1/15']) == '1955 Central Park Ave, Yonkers, NY 10710'
-assert get_owner_address(data['1./1/15.A']) == '36-38 Parkway Road, Bronxville, NY 10708'
-
-all_owner_addrs = []
-for entry in data:
-    all_owner_addrs.append(get_owner_address(data[entry]))
-
-assert '' in ['', 'test']
-assert '' not in all_names
-assert None not in all_names
 
 
 # In[40]:
