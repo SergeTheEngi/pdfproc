@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[1]:
 
 
 import time
@@ -15,7 +15,7 @@ bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
 
 
-# In[8]:
+# In[5]:
 
 
 # Inspect the data
@@ -39,7 +39,7 @@ print(header)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[5]:
+# In[3]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -47,7 +47,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[6]:
+# In[4]:
 
 
 def get_header(page_text,verbose=False):
@@ -162,7 +162,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[9]:
+# In[6]:
 
 
 def get_page_data(page_text,header_end):
@@ -190,7 +190,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[10]:
+# In[7]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -224,10 +224,10 @@ data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 
 
-# In[14]:
+# In[24]:
 
 
-def get_owner_names(entry):
+def get_owner_names(entry,key):
     col1 = []
     owner_names_data = normalize_data(entry)
     for block in owner_names_data:
@@ -237,6 +237,8 @@ def get_owner_names(entry):
         except: pass
     col1 = list(filter(None,col1))
     #for block in col1: print(block)
+    col1_id = max([i for i,item in enumerate(col1) if key in item]) + 1
+    print(col1_id)
     owner_names = []
     owner_names.append(col1[2])
     for item in col1[3:-2]:
@@ -262,27 +264,36 @@ def get_owner_names(entry):
 #print(get_owner_names(data[key]))
 #for block in data['11./5/1.-212']: print(block)
 #print(get_owner_names(data['18./1/2']))
-assert get_owner_names(data_bronxville['18./1/2']) == ['Coffey John', 'Coffey Anne', 'Ameriprise Financial-D.Amoruso']
-assert get_owner_names(data_bronxville['14./3/4.B']) == ['Hyde Lindsay', 'Hyde Arthur D IV']
-assert get_owner_names(data_bronxville['11./5/1.-212']) == ['Nagle,Arthur J, Irrevocable Tr', 'Nagle Christopher P', 'Christopher Nagle']
-assert get_owner_names(data_bronxville['4./5/11']) == ['Nibur 132 Parkway Road Bronxvi', 'George Comfort & Sons, Inc.']
-assert get_owner_names(data_bronxville['3./3/1.A']) == ['Midland Garden Owners', 'Attn: Barhite & Holzinger']
-assert get_owner_names(data_bronxville['1./1/1']) == ['Mercer Robert']
-assert get_owner_names(data_bronxville['1./1/10']) == ['Nuguid Dumalag Marie A']
-assert get_owner_names(data_bronxville['7.A/3/5']) == ['Copete Andres', 'Copete Margaret M']
-assert get_owner_names(data_bronxville['4./1/5']) == ['701 Pondfield LLC', 'Pondfield 17 LLC', 'c/o Houlihan-Parnes Realtors']
-assert get_owner_names(data_bronxville['20./2/1.-5L']) == ['Bonanno Rosario']
-assert get_owner_names(data_bronxville['15./3/5']) == ['Hannick John D', 'Hannick Elizabeth E']
-assert get_owner_names(data_bronxville['6.D/2/10.J']) == ['Wolfe Gregory N', 'Wolfe Elana R']
-assert get_owner_names(data_bronxville['1./1/26']) == ['Maianti Echeverrigaray Juan P', 'Darricarrere Nicole']
-assert get_owner_names(data_bronxville['1./1/15']) == ['42 Park LLC', 'Mark J. Fonte-Trifont Realty']
-assert get_owner_names(data_bronxville['2./3/48']) == ['McLean Heights Realty LLC']
-assert get_owner_names(data_bronxville['2./2/17']) == ['Mosbacher Emil','L L C','c/o Mosbacher Properties Group','LLC']
-assert get_owner_names(data_cornwall['101-1-1']) == ['Nguyen Lap','Fowlie Greta']
+testset = [
+    (data_bronxville,[
+        ('18./1/2',['Coffey John', 'Coffey Anne', 'Ameriprise Financial-D.Amoruso']),
+        ('14./3/4.B',['Hyde Lindsay', 'Hyde Arthur D IV']),
+        ('11./5/1.-212',['Nagle,Arthur J, Irrevocable Tr', 'Nagle Christopher P', 'Christopher Nagle']),
+        ('4./5/11',['Nibur 132 Parkway Road Bronxvi', 'George Comfort & Sons, Inc.']),
+        ('3./3/1.A',['Midland Garden Owners', 'Attn: Barhite & Holzinger']),
+        ('1./1/1',['Mercer Robert']),
+        ('1./1/10',['Nuguid Dumalag Marie A']),
+        ('7.A/3/5',['Copete Andres', 'Copete Margaret M']),
+        ('4./1/5',['701 Pondfield LLC', 'Pondfield 17 LLC', 'c/o Houlihan-Parnes Realtors']),
+        ('20./2/1.-5L',['Bonanno Rosario']),
+        ('15./3/5',['Hannick John D', 'Hannick Elizabeth E']),
+        ('6.D/2/10.J',['Wolfe Gregory N', 'Wolfe Elana R']),
+        ('1./1/26',['Maianti Echeverrigaray Juan P', 'Darricarrere Nicole']),
+        ('1./1/15',['42 Park LLC', 'Mark J. Fonte-Trifont Realty']),
+        ('2./3/48',['McLean Heights Realty LLC']),
+        ('2./2/17',['Mosbacher Emil','L L C','c/o Mosbacher Properties Group','LLC']),
+    ]),
+    (data_cornwall,[
+        ('101-1-1',['Nguyen Lap','Fowlie Greta'])
+    ])
+]
+for dataset,tests in testset:
+    for key,result in tests:
+        assert get_owner_names(dataset[key],key) == result, f"{key} != {result}"
 
 all_names = []
 for entry in data_bronxville:
-    all_names.append(get_owner_names(data_bronxville[entry]))
+    all_names.append(get_owner_names(data_bronxville[entry],entry))
 
 assert '' in ['', 'test']
 assert '' not in all_names
