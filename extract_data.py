@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[5]:
+# In[193]:
 
 
 import time
 
 import pymupdf
 import re
+import copy
 from openpyxl import Workbook
 from pdfproc.as_dict import find_line,normalize_data
 
@@ -190,7 +191,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[123]:
+# In[205]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -224,7 +225,7 @@ data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 
 
-# In[124]:
+# In[206]:
 
 
 def break_lines(entry):
@@ -237,9 +238,10 @@ def break_lines(entry):
 print(break_lines(data_bronxville['11./5/1.-212'][0]))
 
 
-# In[125]:
+# In[207]:
 
 
+# Shape cornwall data
 def unwrap_sublists(var:list):
     assert type(var) == list, "Input value must be a list"
     out = []
@@ -250,7 +252,6 @@ def unwrap_sublists(var:list):
             out.extend(item)
     return out
 
-# Shape cornwall data
 for key in data_cornwall:
     #for item in data_cornwall[key]:
     go = True
@@ -265,12 +266,6 @@ for key in data_cornwall:
 
 for key in data_cornwall:
     data_cornwall[key] = break_lines(data_cornwall[key])
-
-
-# In[126]:
-
-
-print(data_cornwall['101-1-1'])
 
 
 # In[143]:
@@ -365,13 +360,6 @@ assert '' in ['', 'test']
 assert '' not in all_names
 #assert [] not in all_names
 assert None not in all_names
-
-
-# In[170]:
-
-
-for line in data_cornwall['25-1-3']: print(line)
-for line in data_bronxville['14./3/4.B']: print(line)
 
 
 # In[176]:
@@ -489,6 +477,57 @@ for entry in data_bronxville:
 
 assert '' in ['', 'test']
 assert '' not in all_types
+
+
+# In[216]:
+
+
+def get_property_address(entry,key):
+    address = [line for line in entry[0][1:] if line != '']
+    if len(address) > 1:
+        if key in address:
+            print(f"WARN: {key} has no address")
+            return None
+        checks = [
+            len([i for i in address if 'INCLUDLOT' in i]) != 1,
+            len(address) == 2 and address[0] != address[1],
+            '836' not in get_property_type(entry,key)
+        ]
+        if False not in checks:
+            raise ValueError(f"entry {entry[1][0]}: Address len is more than 1")
+    return address[0]
+
+def run_test(entry,key,result,function):
+    output = function(entry,key)
+    assert output == result, f"{key}, {result} != {output}"
+
+# Tests
+testset_bronxville = [
+    ('7.H/2/2','26 Courseview Road'),
+    ('11./5/7', None),
+]
+
+testset_cornwall = [
+    ('101-1-1','303 Shore Rd'),
+    ('16-11-12','13 Bede Ter'),
+    ('30-1-97.1','2 J R Ct'),
+]
+
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_property_address)
+
+for key,result in testset_cornwall:
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    entry[0][0],entry[0][1] = entry[0][1],entry[0][0]
+    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_property_address)
+
+all_property_addrs = []
+for entry in data_bronxville:
+    all_property_addrs.append(get_property_address(data_bronxville[entry],entry))
+
+assert '' in ['', 'test']
+assert '' not in all_property_addrs
 
 
 # In[38]:
@@ -674,37 +713,6 @@ for entry in data:
 
 assert '' in ['', 'test']
 assert '' not in all_acreage
-
-
-# In[44]:
-
-
-def get_property_address(entry,id):
-    address = [line for line in entry[0][1:] if line != '']
-    if len(address) > 1:
-        if id in address:
-            print(f"WARN: {id} has no address")
-            return None
-        checks = [
-            len([i for i in address if 'INCLUDLOT' in i]) != 1,
-            len(address) == 2 and address[0] != address[1],
-            '836' not in get_property_type(entry)
-        ]
-        if False not in checks:
-            raise ValueError(f"entry {entry[1][0]}: Address len is more than 1")
-    return address[0]
-
-# Tests
-#print(get_property_address(data[key]))
-assert get_property_address(data['7.H/2/2'],'7.H/2/2') == '26 Courseview Road'
-assert get_property_address(data['11./5/7'],'11./5/7') == None
-
-all_property_addrs = []
-for entry in data:
-    all_property_addrs.append(get_property_address(data[entry],entry))
-
-assert '' in ['', 'test']
-assert '' not in all_property_addrs
 
 
 # In[46]:
