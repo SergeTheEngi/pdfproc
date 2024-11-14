@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 
 import time
@@ -15,7 +15,7 @@ bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
 
 
-# In[5]:
+# In[7]:
 
 
 # Inspect the data
@@ -39,7 +39,7 @@ print(header)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[3]:
+# In[5]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -47,7 +47,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[4]:
+# In[6]:
 
 
 def get_header(page_text,verbose=False):
@@ -162,7 +162,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[6]:
+# In[8]:
 
 
 def get_page_data(page_text,header_end):
@@ -190,7 +190,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[7]:
+# In[9]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -224,7 +224,7 @@ data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 
 
-# In[24]:
+# In[10]:
 
 
 def get_owner_names(entry,key):
@@ -237,11 +237,11 @@ def get_owner_names(entry,key):
         except: pass
     col1 = list(filter(None,col1))
     #for block in col1: print(block)
-    col1_id = max([i for i,item in enumerate(col1) if key in item]) + 1
-    print(col1_id)
+    col1_id = max([i for i,item in enumerate(col1) if key in item])
+    #print(col1_id)
     owner_names = []
-    owner_names.append(col1[2])
-    for item in col1[3:-2]:
+    #owner_names.append(col1[2])
+    for item in col1[col1_id + 1:-2]:
         owner_names.append(item)
     for item in col1[-2:]:
         company = re.search('(l ?l ?c)|(L ?L ?C)',item)
