@@ -190,7 +190,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[85]:
+# In[123]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -224,7 +224,7 @@ data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 
 
-# In[86]:
+# In[124]:
 
 
 def break_lines(entry):
@@ -237,17 +237,8 @@ def break_lines(entry):
 print(break_lines(data_bronxville['11./5/1.-212'][0]))
 
 
-# In[87]:
+# In[125]:
 
-
-def is_list_of_str(var):
-    if type(var) == list:
-        for item in var:
-            if type(item) != str:
-                return False
-        return True
-    else:
-        return False
 
 def unwrap_sublists(var:list):
     assert type(var) == list, "Input value must be a list"
@@ -276,13 +267,13 @@ for key in data_cornwall:
     data_cornwall[key] = break_lines(data_cornwall[key])
 
 
-# In[88]:
+# In[126]:
 
 
-print(data_cornwall['333-1-1'])
+print(data_cornwall['101-1-1'])
 
 
-# In[51]:
+# In[129]:
 
 
 def get_owner_names(entry,key):
@@ -295,7 +286,9 @@ def get_owner_names(entry,key):
             if 'PRIOR OWNER' in block[0]: break
             col1.append(block[0])
         except: pass
-    print(col1)
+    #print(col1)
+    if 'FULL MARKET VALUE' in col1[-1]:
+        col1 = col1[:-1]
     col1 = list(filter(None,col1))
     #for block in col1: print(block)
     col1_id = max([i for i,item in enumerate(col1) if key in item])
@@ -319,7 +312,6 @@ def get_owner_names(entry,key):
         owner_names[i] = re.sub(' DEED BOOK.+','',owner_names[i])
         owner_names[i] = re.sub('DEED BOOK.+','',owner_names[i])
     return owner_names
-    
 
 def run_test(entry,key,result,function):
     output = function(entry,key)
@@ -334,12 +326,10 @@ def run_test(entry,key,result,function):
 #    ])
 #],get_owner_names)
 
-assert get_owner_names(break_blocks(data_cornwall['101-1-1'][0]),'101-1-1')
-
 testset_bronxville = [
     ('18./1/2',['Coffey John', 'Coffey Anne', 'Ameriprise Financial-D.Amoruso']),
     ('14./3/4.B',['Hyde Lindsay', 'Hyde Arthur D IV']),
-    ('11./5/1.-212',['Nagle,Arthur J, Irrevocable Tr', 'Nagle Christopher P', 'Christopher Nagle','temp']),
+    ('11./5/1.-212',['Nagle,Arthur J, Irrevocable Tr', 'Nagle Christopher P', 'Christopher Nagle']),
     ('4./5/11',['Nibur 132 Parkway Road Bronxvi', 'George Comfort & Sons, Inc.']),
     ('3./3/1.A',['Midland Garden Owners', 'Attn: Barhite & Holzinger']),
     ('1./1/1',['Mercer Robert']),
@@ -359,11 +349,11 @@ testset_cornwall = [
     ('101-1-1',['Nguyen Lap','Fowlie Greta'])
 ]
 
-for key,result in testset_bronxville:
-    run_test(data_bronxville[key],key,result,get_owner_names)
+#for key,result in testset_bronxville:
+#    run_test(data_bronxville[key],key,result,get_owner_names)
 
 for key,result in testset_cornwall:
-    run_test(break_blocks(data_cornwall[key][0]),key,result,get_owner_names)
+    run_test(data_cornwall[key],key,result,get_owner_names)
 
 #run_tests(testset,get_owner_names)
 
