@@ -530,18 +530,21 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[38]:
+# In[226]:
 
 
-def get_zoning(entry):
+def get_zoning(entry,pattern):
     lines = [
         ' '.join(entry[1]),
         ' '.join(entry[2])
     ]
     for item in lines:
-        zoning = re.search('Bronxville Sch  ?\\d{6} ', item)
+        zoning = re.search(pattern, item)
         if zoning:
-            return zoning.group()
+            zoning = zoning.group()
+            zoning = re.sub(' +', ' ',zoning)
+            zoning = zoning.strip()
+            return zoning
         
     #zoning = entry[2][1]
     #if zoning == '': zoning = entry[2][2]
@@ -550,17 +553,35 @@ def get_zoning(entry):
     #else:
     #    print(entry[1][0])
 
-#print(get_zoning(data[key]))
+def run_test(entry,key,result,function,pattern):
+    output = function(entry,pattern)
+    assert output == result, f"{key}, {result} != {output}"
 
-#for block in data['1./1/10']:
-#    print(block)
+# Tests
+testset_bronxville = [
+    ('1./1/15.A','Bronxville Sch 552403'),
+    ('13./4/3', 'Bronxville Sch 552403'),
+]
+
+testset_cornwall = [
+    ('30-1-97.1','Cornwall Csd 332401'),
+    ('24-1-14','Cornwall Csd 332401'),
+]
+
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_zoning,'Bronxville Sch  ?\\d{6} ')
+
+for key,result in testset_cornwall:
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_zoning,'Cornwall Csd  ?\\d{6} ')
 
 all_zoning = []
-for entry in data:
-    all_zoning.append(get_zoning(data[entry]))
-    if get_zoning(data[entry]) == None:
+for entry in data_bronxville:
+    all_zoning.append(get_zoning(data_bronxville[entry],'Bronxville Sch  ?\\d{6} '))
+    if get_zoning(data_bronxville[entry],'Bronxville Sch  ?\\d{6} ') == None:
         print(entry)
-        for block in data[entry]:
+        for block in data_bronxville[entry]:
             print(block)
     #print(entry,"\t:",get_zoning(data[entry]))
 
