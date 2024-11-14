@@ -70,7 +70,7 @@ def find_line(entry,query):
             if query in temp: return bn,ln
     return 1
 
-def normalize_data(entry):
+def normalize_data(entry,verbose=False):
     data = [[]]; n = 0; Skip = False
     for block in entry:
         for ln,line in enumerate(block):
@@ -79,33 +79,33 @@ def normalize_data(entry):
                 continue
             newline = re.search('[a-zA-Z ]+, [A-Z]{2} [0-9]{5}',line)
             if newline and ln > 0:
-                print(f"Found a justification to jump the line: {newline.group()}")
+                if verbose: print(f"Found a justification to jump the line: {newline.group()}")
                 data.append([])
                 n += 1; newline = None
                 data[n].append(line)
                 continue
             if ln < (len(block) - 1) and 'ACRES' in block[ln+1] and ln > 0:
-                print(f"Found a justification to jump the line: {block[ln+1]}")
+                if verbose: print(f"Found a justification to jump the line: {block[ln+1]}")
                 data.append([])
                 n += 1; newline = None
                 data[n].append(line)
                 continue
             if ln < (len(block) - 1) and 'FULL MARKET VALUE' in block[ln+1] and ln > 0:
-                print(f"Found a justification to jump the line: {block[ln+1]}")
+                if verbose: print(f"Found a justification to jump the line: {block[ln+1]}")
                 data.append([])
                 n += 1; newline = None
                 data[n].append(line)
             newline = re.search('TAXABLE VALUE +?[0-9,]+',line)
             if newline and ln < (len(block) - 1):
-                print(f"Found a justification to jump the line: {newline.group()}")
+                if verbose: print(f"Found a justification to jump the line: {newline.group()}")
                 data[n].append(line)
                 data.append([])
                 n += 1; newline = None
                 continue
             newline = re.search('TAXABLE VALUE',line)
             if newline and ln < (len(block) - 2):
-                print(ln, len(block) - 2)
-                print(f"Found a justification to jump the line: {newline.group()}")
+                if verbose: print(ln, len(block) - 2)
+                if verbose: print(f"Found a justification to jump the line: {newline.group()}")
                 data[n].append(block[ln+1])
                 data.append([])
                 n += 1; newline = None; Skip = True
