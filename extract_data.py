@@ -590,7 +590,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[232]:
+# In[234]:
 
 
 def get_acreage(entry):
@@ -620,7 +620,6 @@ def run_test(entry,key,result,function):
     output = function(entry)
     assert output == result, f"{key}, {result} != {output}"
 
-# Tests
 testset_bronxville = [
     ('12./3/13', 0.30),
     ('1./1/14', 0.05),
@@ -652,7 +651,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[41]:
+# In[240]:
 
 
 def get_full_market_value(entry):
@@ -667,7 +666,7 @@ def get_full_market_value(entry):
                     if type(mval) == str:
                         if re.search('[a-zA-Z ]', mval):
                             mval = mval.split()[0]
-                        return float(mval.replace(',','.'))
+                        return float(mval.replace(',',''))
                 else:
                     line = line.split()
                     for sn,subline in enumerate(line):
@@ -682,17 +681,37 @@ def get_full_market_value(entry):
                     if type(mval) == str:
                         if re.search('[a-zA-Z ]', mval):
                             mval = mval.split()[0]
-                        return float(mval.replace(',','.'))
+                        return float(mval.replace(',',''))
                                 
                         
-
 # Tests
-assert get_full_market_value(data['11./5/1.-202']) == 1011.081
-assert get_full_market_value(data['2./1/11']) == 6321.803
+def run_test(entry,key,result,function):
+    output = function(entry)
+    assert output == result, f"{key}, {result} != {output}"
+
+testset_bronxville = [
+    ('11./5/1.-202', 1011081),
+    ('2./1/11', 6321803),
+]
+
+testset_cornwall = [
+    ('102-19-10',424600),
+    ('106-3-36',761400),
+    ('20-6-12',551600),
+    ('624.089-0000-621.700-1881',0)
+]
+
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_full_market_value)
+
+for key,result in testset_cornwall:
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_full_market_value)
 
 all_market_values = []
-for entry in data:
-    mval = get_full_market_value(data[entry])
+for entry in data_bronxville:
+    mval = get_full_market_value(data_bronxville[entry])
     all_market_values.append(mval)
     if mval == None: print(data[entry])
     #try:all_market_values.append(get_full_market_value(data[entry]))
