@@ -590,56 +590,66 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[40]:
+# In[232]:
 
 
-def get_taxable(entry,taxable_name):
-    taxable = find_line(entry,taxable_name)
-    if taxable == 1:
-        #print(f"WARN: {entry[1][0]} doesn't have {taxable_name}")
-        return None
-    else:
-        bn,ln = taxable[0],taxable[1]
-    if taxable_name == entry[bn][ln]: taxable = entry[bn][ln+1]
-    else:
-        taxable = entry[bn][ln].split()
-        for sn,string in enumerate(taxable):
-            if string == 'VALUE':
-                try: taxable = taxable[sn+1]
-                except: taxable = entry[bn][ln+1]
-                break
-    if re.search('[a-zA-Z ]', taxable):
-        taxable = taxable.split()[0]
-    return float(taxable.replace(',','.'))
+def get_acreage(entry):
+    for block in entry:
+        for ln,line in enumerate(block):
+            if 'ACRES' in line:
+                if line == 'ACRES':
+                    acreage = block[ln+1]
+                else:
+                    acreage = line.split()
+                    try:
+                        acreage = [acreage[sn+1] for sn,string in enumerate(acreage) if string == 'ACRES'][0]
+                    except Exception as e:
+                        if re.search('[a-zA-Z ]', block[ln+1]):
+                            acreage = block[ln+1].split()
+                            return float(acreage[0])
+                        else:
+                            acreage = block[ln+1]
+                if re.search('[a-zA-Z ]', acreage):
+                    acreage = acreage.split()
+                    return float(acreage[0])
+                else:
+                    return float(acreage)
 
 # Tests
-def get_all_taxables(entry):
-    taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
-    taxables = []
-    for tn in taxable_names:
-        taxables.append(get_taxable(entry,tn))
-    return taxables
+def run_test(entry,key,result,function):
+    output = function(entry)
+    assert output == result, f"{key}, {result} != {output}"
 
-#print(get_all_taxables(data[key]))
-#print(get_all_taxables(data['11./5/1.-311']))
-assert get_all_taxables(data['1./1/10']) == [None,1100,1100]
-assert get_all_taxables(data['7.E/3/8']) == [None,3500,3500]
-assert get_all_taxables(data['11./5/1.-311']) == [None,869.261,869.261]
-assert get_all_taxables(data['3./3/11']) == [1475,1475,1398.580]
+# Tests
+testset_bronxville = [
+    ('12./3/13', 0.30),
+    ('1./1/14', 0.05),
+    ('7.F/5/2', None),
+]
 
-all_taxables = []
-for entry in data:
-    #print(entry)
-    taxable = get_all_taxables(data[entry])
-    all_taxables.append(taxable)
-    #try:all_market_values.append(get_full_market_value(data[entry]))
-    #except Exception as e:
-        #print(entry,":",e)
-        #print(entry)
+testset_cornwall = [
+    ('2-9-12', 0.15),
+    ('35-1-21.2', 1.00),
+    ('624.089-0000-621.700-1881', None),
+    ('29-1-13.221',15.90),
+    ('106-3-36',0.94),
+]
+
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_acreage)
+
+for key,result in testset_cornwall:
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_acreage)
+
+all_acreage = []
+for entry in data_bronxville:
+    acr = get_acreage(data_bronxville[entry])
+    all_acreage.append(acr)
 
 assert '' in ['', 'test']
-assert ['','',''] not in all_taxables
-assert None not in all_taxables
+assert '' not in all_acreage
 
 
 # In[41]:
@@ -695,45 +705,81 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[42]:
+# In[40]:
 
 
-def get_acreage(entry):
-    for block in entry:
-        for ln,line in enumerate(block):
-            if 'ACRES' in line:
-                if line == 'ACRES':
-                    acreage = block[ln+1]
-                else:
-                    acreage = line.split()
-                    try:
-                        acreage = [acreage[sn+1] for sn,string in enumerate(acreage) if string == 'ACRES'][0]
-                    except Exception as e:
-                        if re.search('[a-zA-Z ]', block[ln+1]):
-                            acreage = block[ln+1].split()
-                            return float(acreage[0])
-                        else:
-                            acreage = block[ln+1]
-                if re.search('[a-zA-Z ]', acreage):
-                    acreage = acreage.split()
-                    return float(acreage[0])
-                else:
-                    return float(acreage)
+def get_taxable(entry,taxable_name):
+    taxable = find_line(entry,taxable_name)
+    if taxable == 1:
+        #print(f"WARN: {entry[1][0]} doesn't have {taxable_name}")
+        return None
+    else:
+        bn,ln = taxable[0],taxable[1]
+    if taxable_name == entry[bn][ln]: taxable = entry[bn][ln+1]
+    else:
+        taxable = entry[bn][ln].split()
+        for sn,string in enumerate(taxable):
+            if string == 'VALUE':
+                try: taxable = taxable[sn+1]
+                except: taxable = entry[bn][ln+1]
+                break
+    if re.search('[a-zA-Z ]', taxable):
+        taxable = taxable.split()[0]
+    return float(taxable.replace(',','.'))
+
+
+def get_all_taxables(entry):
+    taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
+    taxables = []
+    for tn in taxable_names:
+        taxables.append(get_taxable(entry,tn))
+    return taxables
 
 # Tests
-#print(get_acreage(data[key]))
-print(get_acreage(data['1./1/14']))
-assert get_acreage(data['12./3/13']) == 0.30
-assert get_acreage(data['1./1/14']) == 0.05
-assert get_acreage(data['7.F/5/2']) == None
+def run_test(entry,key,result,function):
+    output = function(entry)
+    assert output == result, f"{key}, {result} != {output}"
 
-all_acreage = []
+testset_bronxville = [
+    ('1./1/10',[None,1100,1100]),
+    ('7.E/3/8',[None,3500,3500]),
+    ('11./5/1.-311',[None,869.261,869.261]),
+    ('3./3/11',[1475,1475,1398.580]),
+]
+
+testset_cornwall = [
+    ('30-1-97.1','Cornwall Csd 332401'),
+    ('24-1-14','Cornwall Csd 332401'),
+]
+
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_zoning)
+
+for key,result in testset_cornwall:
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_zoning)
+
+#print(get_all_taxables(data[key]))
+#print(get_all_taxables(data['11./5/1.-311']))
+assert get_all_taxables(data['1./1/10']) == [None,1100,1100]
+assert get_all_taxables(data['7.E/3/8']) == [None,3500,3500]
+assert get_all_taxables(data['11./5/1.-311']) == [None,869.261,869.261]
+assert get_all_taxables(data['3./3/11']) == [1475,1475,1398.580]
+
+all_taxables = []
 for entry in data:
-    acr = get_acreage(data[entry])
-    all_acreage.append(acr)
+    #print(entry)
+    taxable = get_all_taxables(data[entry])
+    all_taxables.append(taxable)
+    #try:all_market_values.append(get_full_market_value(data[entry]))
+    #except Exception as e:
+        #print(entry,":",e)
+        #print(entry)
 
 assert '' in ['', 'test']
-assert '' not in all_acreage
+assert ['','',''] not in all_taxables
+assert None not in all_taxables
 
 
 # In[46]:

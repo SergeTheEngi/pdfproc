@@ -12,7 +12,7 @@ Cornwall test:
     - [x] Extract property type
     - [x] Extract property address
     - [x] Extract zoning
-    - [ ] Extract acreage
+    - [x] Extract acreage
     - [ ] Extract market value
     - [ ] Extract taxables
 - [ ] Review the data, fix the errors
