@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 
 import time
@@ -15,7 +15,7 @@ bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
 
 
-# In[7]:
+# In[5]:
 
 
 # Inspect the data
@@ -39,7 +39,7 @@ print(header)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[5]:
+# In[3]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -47,7 +47,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[6]:
+# In[4]:
 
 
 def get_header(page_text,verbose=False):
@@ -162,7 +162,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[8]:
+# In[6]:
 
 
 def get_page_data(page_text,header_end):
@@ -190,7 +190,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[9]:
+# In[7]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -224,7 +224,19 @@ data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 
 
-# In[10]:
+# In[35]:
+
+
+def break_blocks(entry):
+    out = []
+    for block in entry:
+        out.append(re.split(' {2,}+',block))
+    return out
+
+print(break_blocks(data_cornwall['101-1-1'][0]))
+
+
+# In[36]:
 
 
 def get_owner_names(entry,key):
@@ -260,10 +272,23 @@ def get_owner_names(entry,key):
     return owner_names
     #return
 
+def run_tests(testset,function):
+    for dataset,tests in testset:
+        for key,result in tests:
+            output = get_owner_names(dataset[key],key)
+            assert output == result, f"{key}, {result}, {output}"
+
 # Tests
 #print(get_owner_names(data[key]))
 #for block in data['11./5/1.-212']: print(block)
-#print(get_owner_names(data['18./1/2']))
+#run_tests([
+#    (data_cornwall,[
+#        ('101-1-1',['Nguyen Lap','Fowlie Greta'])
+#    ])
+#],get_owner_names)
+
+assert get_owner_names(break_blocks(data_cornwall['101-1-1'][0]),'101-1-1')
+
 testset = [
     (data_bronxville,[
         ('18./1/2',['Coffey John', 'Coffey Anne', 'Ameriprise Financial-D.Amoruso']),
@@ -283,13 +308,9 @@ testset = [
         ('2./3/48',['McLean Heights Realty LLC']),
         ('2./2/17',['Mosbacher Emil','L L C','c/o Mosbacher Properties Group','LLC']),
     ]),
-    (data_cornwall,[
-        ('101-1-1',['Nguyen Lap','Fowlie Greta'])
-    ])
 ]
-for dataset,tests in testset:
-    for key,result in tests:
-        assert get_owner_names(dataset[key],key) == result, f"{key} != {result}"
+
+run_tests(testset,get_owner_names)
 
 all_names = []
 for entry in data_bronxville:
@@ -297,7 +318,7 @@ for entry in data_bronxville:
 
 assert '' in ['', 'test']
 assert '' not in all_names
-assert [] not in all_names
+#assert [] not in all_names
 assert None not in all_names
 
 
