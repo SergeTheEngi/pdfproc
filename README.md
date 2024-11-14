@@ -7,7 +7,7 @@ Cornwall test:
     - [x] Assemble headers
     - [x] Collect page data
 - Process data:
-    - [ ] Extract owner names
+    - [x] Extract owner names
     - [ ] Extract owner address
     - [ ] Extract property type
     - [ ] Extract property address
