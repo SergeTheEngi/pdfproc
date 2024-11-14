@@ -367,7 +367,14 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[149]:
+# In[170]:
+
+
+for line in data_cornwall['25-1-3']: print(line)
+for line in data_bronxville['14./3/4.B']: print(line)
+
+
+# In[176]:
 
 
 def get_owner_address(entry):
@@ -412,15 +419,22 @@ testset_bronxville = [
 ]
 
 testset_cornwall = [
-    ('101-1-1','303 Shore Rd, Cornwall-On-Hudson, NY 12520')
+    ('101-1-1','303 Shore Rd, Cornwall-On-Hudson, NY 12520'),
+    ('25-1-3','31 Cedar Ln, Cornwall, NY 12518'),
+    ('4-2-8.2','42 Robert Rd, Cornwall, NY 12518'),
+    ('116-1-4','184 Mountain Rd, Cornwall-On-Hudson, NY 12520'),
 ]
 
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],result,get_owner_address)
 
 for key,result in testset_cornwall:
-    entry = data_cornwall[key]
-    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    entry = []
+    for line in data_cornwall[key]:
+        if 'FULL MARKET VALUE' in line[0] or \
+            'DEED BOOK' in line[0] or \
+            'EAST-' in line[0]: break
+        else: entry.append(line)
     run_test(entry,result,get_owner_address)
 
 all_owner_addrs = []
@@ -432,14 +446,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[159]:
-
-
-myentry = data_cornwall['101-1-1']
-for line in myentry: print(line)
-
-
-# In[164]:
+# In[168]:
 
 
 def get_property_type(entry,key):
@@ -463,7 +470,9 @@ testset_bronxville = [
 ]
 
 testset_cornwall = [
-    ('101-1-1','210 1 Family Res')
+    ('101-1-1','210 1 Family Res'),
+    ('25-1-3','220 2 Family Res'),
+    ('39-6-15','250 Estate'),
 ]
 
 for key,result in testset_bronxville:
