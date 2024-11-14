@@ -367,7 +367,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[148]:
+# In[149]:
 
 
 def get_owner_address(entry):
@@ -398,21 +398,6 @@ def run_test(entry,result,function):
     assert output == result, f"{key}, {result} != {output}"
 
 # Tests
-#print(get_owner_address(data[key]))
-#
-#for block in data['11./5/17']: print(block)
-#print(get_owner_address(data['2./2/17']))
-assert get_owner_address(data_bronxville['14./3/4.B']) == '5 Edgehill Close, Bronxville, NY 10708'
-assert get_owner_address(data_bronxville['2./2/17']) == '18 E 48th Street 19th Floor, New York, NY 10017'
-assert get_owner_address(data_bronxville['11./5/17']) == '118-35 Queens Blvd.,1710, Forest Hills, NY 11375'
-assert get_owner_address(data_bronxville['11./5/1.-212']) == '906 Mill Creek Dr, Palm Beach Gardens, FL 33410'
-assert get_owner_address(data_bronxville['3./3/1.A']) == '77 Pondfield Road, Bronxville, NY 10708'
-assert get_owner_address(data_bronxville['20./3/2']) == '33 Sagamore Road, Bronxville, NY 10708'
-assert get_owner_address(data_bronxville['1./1/5']) == '60 Parkway Road, Bronxville, NY 10708'
-assert get_owner_address(data_bronxville['1./1/10']) == '50 Parkway Road, Bronxville, NY 10708'
-assert get_owner_address(data_bronxville['1./1/15']) == '1955 Central Park Ave, Yonkers, NY 10710'
-assert get_owner_address(data_bronxville['1./1/15.A']) == '36-38 Parkway Road, Bronxville, NY 10708'
-
 testset_bronxville = [
     ('14./3/4.B','5 Edgehill Close, Bronxville, NY 10708'),
     ('2./2/17','18 E 48th Street 19th Floor, New York, NY 10017'),
@@ -445,6 +430,56 @@ for entry in data_bronxville:
 assert '' in ['', 'test']
 assert '' not in all_names
 assert None not in all_names
+
+
+# In[159]:
+
+
+myentry = data_cornwall['101-1-1']
+for line in myentry: print(line)
+
+
+# In[164]:
+
+
+def get_property_type(entry,key):
+    if entry[1][1] == '':
+        if entry[1][3] == '': return entry[1][2]
+        else: return ' '.join(entry[1][2:4])
+    elif entry [1][1] == key:
+        return entry[2][1]
+    else: return entry[1][1]
+
+def run_test(entry,key,result,function):
+    output = function(entry,key)
+    assert output == result, f"{key}, {result} != {output}"
+
+# Tests
+testset_bronxville = [
+    ('13./3/1','210 1 Family Res'),
+    ('11./3/3.A','311 Res vac land'),
+    ('20./2/1.-7K','411 Apartment - CONDO'),
+    ('20./2/60.A-8A','210 1 Family Res'),
+]
+
+testset_cornwall = [
+    ('101-1-1','210 1 Family Res')
+]
+
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_property_type)
+
+for key,result in testset_cornwall:
+    entry = data_cornwall[key]
+    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_property_type)
+
+all_types = []
+for entry in data_bronxville:
+    all_types.append(get_property_type(data_bronxville[entry],entry))
+
+assert '' in ['', 'test']
+assert '' not in all_types
 
 
 # In[38]:
@@ -630,29 +665,6 @@ for entry in data:
 
 assert '' in ['', 'test']
 assert '' not in all_acreage
-
-
-# In[43]:
-
-
-def get_property_type(entry):
-    if entry[1][1] == '':
-        if entry[1][3] == '': return entry[1][2]
-        else: return ' '.join(entry[1][2:4])
-    else: return entry[1][1]
-
-# Tests
-assert get_property_type(data['13./3/1']) == '210 1 Family Res'
-assert get_property_type(data['11./3/3.A']) == '311 Res vac land'
-assert get_property_type(data['20./2/1.-7K']) == '411 Apartment - CONDO'
-assert get_property_type(data['20./2/60.A-8A']) == '210 1 Family Res'
-
-all_types = []
-for entry in data:
-    all_types.append(get_property_type(data[entry]))
-
-assert '' in ['', 'test']
-assert '' not in all_types
 
 
 # In[44]:
