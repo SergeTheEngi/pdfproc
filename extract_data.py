@@ -268,7 +268,7 @@ for key in data_cornwall:
     data_cornwall[key] = break_lines(data_cornwall[key])
 
 
-# In[11]:
+# In[201]:
 
 
 def get_owner_names(entry,key):
@@ -339,15 +339,38 @@ testset_bronxville = [
 ]
 
 testset_cornwall = [
-    ('101-1-1',['Nguyen Lap','Fowlie Greta'])
+    ('101-1-1',['Nguyen Lap','Fowlie Greta']),
+    ('102-4-5',['Igo Ellen M']),
 ]
 
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_owner_names)
 
 for key,result in testset_cornwall:
-    entry = data_cornwall[key]
-    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    entry = []
+    for line in data_cornwall[key]:
+        if 'FULL MARKET VALUE' in line[0] or \
+            'DEED BOOK' in line[0] or \
+            'EAST-' in line[0] or \
+            'ACRES' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'SCHOOL' in line[0] or \
+            'WS SHORE DR' in line[0] or \
+            'BLOOMING GROVE' in line[0] or \
+            'MAP' in line[0]: break
+        elif ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else: break
+        else:
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}']
+            temp = None
+            append_test = True
+            for pattern in patterns:
+                temp = re.search(pattern,line[0])
+                if temp: append_test = False
+            if not append_test: break
+            entry.append(line)
     run_test(entry,key,result,get_owner_names)
 
 #run_tests(testset,get_owner_names)
@@ -362,7 +385,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[12]:
+# In[196]:
 
 
 def get_owner_address(entry):
@@ -411,6 +434,16 @@ testset_cornwall = [
     ('25-1-3','31 Cedar Ln, Cornwall, NY 12518'),
     ('4-2-8.2','42 Robert Rd, Cornwall, NY 12518'),
     ('116-1-4','184 Mountain Rd, Cornwall-On-Hudson, NY 12520'),
+    ('118-1-6.2','25 Boulevard, Cornwall, NY 12518'),
+    ('101-1-13.12','16 Idlewild Park Dr, Cornwall-On-Hudson, NY 12520'),
+    ('103-1-3.4','378 Hudson St, Cornwall-On-Hudson, NY 12520'),
+    #('102-9-24','10-63 Jackson Ave Unit Pha, Long Island City, NY 111001'),
+    ('17-6-10','8 Ferguson Rd, Cornwall, NY 12518'),
+    ('105-9-17.3','325 Hudson St, Cornwall-On-Hudson, NY 12520'),
+    ('1-1-2.22','25 Shore Dr, New Windsor, NY 12553'),
+    ('1-1-64.2','1350 Broadway Ste 201, New York, NY 10018'),
+    ('1-1-177','18 Idlewild Park Dr, Cornwall on Hudson, NY 12520'),
+    ('1-2-19','255 Orrs Mills Rd, Salisbury Mills, NY 12577'),
 ]
 
 for key,result in testset_bronxville:
@@ -421,8 +454,26 @@ for key,result in testset_cornwall:
     for line in data_cornwall[key]:
         if 'FULL MARKET VALUE' in line[0] or \
             'DEED BOOK' in line[0] or \
-            'EAST-' in line[0]: break
-        else: entry.append(line)
+            'EAST-' in line[0] or \
+            'ACRES' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'SCHOOL' in line[0] or \
+            'WS SHORE DR' in line[0] or \
+            'BLOOMING GROVE' in line[0] or \
+            'MAP' in line[0]: break
+        elif ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else: break
+        else:
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}']
+            temp = None
+            append_test = True
+            for pattern in patterns:
+                temp = re.search(pattern,line[0])
+                if temp: append_test = False
+            if not append_test: break
+            entry.append(line)
     run_test(entry,result,get_owner_address)
 
 all_owner_addrs = []
@@ -434,16 +485,20 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[13]:
+# In[97]:
 
 
 def get_property_type(entry,key):
-    if entry[1][1] == '':
-        if entry[1][3] == '': return entry[1][2]
-        else: return ' '.join(entry[1][2:4])
-    elif entry [1][1] == key:
+    try:
+        if entry[1][1] == '':
+            if entry[1][3] == '': return entry[1][2]
+            else: return ' '.join(entry[1][2:4])
+        elif entry[1][1] == key or entry[2][0] == key:
+            return entry[2][1]
+        else: return entry[1][1]
+    except Exception as e:
+        print(f"WARN: {e} for {key}")
         return entry[2][1]
-    else: return entry[1][1]
 
 def run_test(entry,key,result,function):
     output = function(entry,key)
@@ -461,6 +516,10 @@ testset_cornwall = [
     ('101-1-1','210 1 Family Res'),
     ('25-1-3','220 2 Family Res'),
     ('39-6-15','250 Estate'),
+    ('101-3-1','210 1 Family Res'),
+    ('101-1-13.12','210 1 Family Res'),
+    ('101-3-3','210 1 Family Res'),
+    ('1-1-64.2','311 Res vac land'),
 ]
 
 for key,result in testset_bronxville:
@@ -479,15 +538,18 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[14]:
+# In[160]:
 
 
 def get_property_address(entry,key):
     address = [line for line in entry[0][1:] if line != '']
+    if len(address) == 1:
+        address[0] = re.sub(' [0-9 A-Z]{10,}+','',address[0])
+        pass
+    if key in address:
+        print(f"WARN: {key} has no address")
+        return None
     if len(address) > 1:
-        if key in address:
-            print(f"WARN: {key} has no address")
-            return None
         checks = [
             len([i for i in address if 'INCLUDLOT' in i]) != 1,
             len(address) == 2 and address[0] != address[1],
@@ -511,6 +573,13 @@ testset_cornwall = [
     ('101-1-1','303 Shore Rd'),
     ('16-11-12','13 Bede Ter'),
     ('30-1-97.1','2 J R Ct'),
+    ('101-3-1','40 Pine St'),
+    ('107-2-34.5','61 Duncan Ave'),
+    ('1-1-62.1','10 Morris Ln'),
+    ('1-1-64.2',None),
+    ('2-3-10','8 Oak Dr'),
+    ('13-1-11','21 Howard St'),
+    ('22-1-15.1','22 Willow Ave'),
 ]
 
 for key,result in testset_bronxville:
@@ -518,8 +587,13 @@ for key,result in testset_bronxville:
 
 for key,result in testset_cornwall:
     entry = copy.deepcopy(data_cornwall[key][1:])
-    entry[0][0],entry[0][1] = entry[0][1],entry[0][0]
-    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+        if len(entry[0]) > 2:
+            entry[0][1] = ' '.join(entry[0][1:])
+            entry[0] = entry[0][0:2]
+    else: entry[0].append(entry[0][0])
     run_test(entry,key,result,get_property_address)
 
 all_property_addrs = []
@@ -530,7 +604,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[15]:
+# In[165]:
 
 
 def get_zoning(entry,pattern):
@@ -566,6 +640,8 @@ testset_bronxville = [
 testset_cornwall = [
     ('30-1-97.1','Cornwall Csd 332401'),
     ('24-1-14','Cornwall Csd 332401'),
+    ('1-1-64.2','Washingtonville 332002'),
+    ('5-3-3','Newburgh Csd 331100'),
 ]
 
 for key,result in testset_bronxville:
@@ -574,12 +650,12 @@ for key,result in testset_bronxville:
 for key,result in testset_cornwall:
     entry = copy.deepcopy(data_cornwall[key][1:])
     #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
-    run_test(entry,key,result,get_zoning,'Cornwall Csd  ?\\d{6} ')
+    run_test(entry,key,result,get_zoning,'Cornwall Csd  ?\\d{6} |Washingtonville  ?\\d{6} |[A-Za-z]+ Csd  ?\\d{6}')
 
 all_zoning = []
 for entry in data_bronxville:
     all_zoning.append(get_zoning(data_bronxville[entry],'Bronxville Sch  ?\\d{6} '))
-    if get_zoning(data_bronxville[entry],'Bronxville Sch  ?\\d{6} ') == None:
+    if get_zoning(data_bronxville[entry],'Bronxville Sch  ?\\d{6} |Washingtonville  ?\\d{6} ') == None:
         print(entry)
         for block in data_bronxville[entry]:
             print(block)
@@ -590,30 +666,39 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[16]:
+# In[64]:
 
+
+#def get_acreage(entry):
+#    for block in entry:
+#        for ln,line in enumerate(block):
+#            if 'ACRES' in line:
+#                if line == 'ACRES':
+#                    acreage = block[ln+1]
+#                else:
+#                    acreage = line.split()
+#                    try:
+#                        acreage = [acreage[sn+1] for sn,string in enumerate(acreage) if string == 'ACRES'][0]
+#                    except Exception as e:
+#                        if re.search('[a-zA-Z ]', block[ln+1]):
+#                            acreage = block[ln+1].split()
+#                            return float(acreage[0])
+#                        else:
+#                            acreage = block[ln+1]
+#                if re.search('[a-zA-Z ]', acreage):
+#                    acreage = acreage.split()
+#                    return float(acreage[0])
+#                else:
+#                    return float(acreage)
 
 def get_acreage(entry):
     for block in entry:
-        for ln,line in enumerate(block):
-            if 'ACRES' in line:
-                if line == 'ACRES':
-                    acreage = block[ln+1]
-                else:
-                    acreage = line.split()
-                    try:
-                        acreage = [acreage[sn+1] for sn,string in enumerate(acreage) if string == 'ACRES'][0]
-                    except Exception as e:
-                        if re.search('[a-zA-Z ]', block[ln+1]):
-                            acreage = block[ln+1].split()
-                            return float(acreage[0])
-                        else:
-                            acreage = block[ln+1]
-                if re.search('[a-zA-Z ]', acreage):
-                    acreage = acreage.split()
-                    return float(acreage[0])
-                else:
-                    return float(acreage)
+        temp = ' '.join(block)
+        temp = ' '.join(temp.split())
+        acres = re.search('ACRES [0-9]+\\.[0-9][0-9]',temp)
+        if acres:
+            acres = re.sub('ACRES ','',acres.group())
+            return float(acres)
 
 # Tests
 def run_test(entry,key,result,function):
@@ -724,19 +809,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[33]:
-
-
-print(find_line(data_cornwall['101-1-1'],'VILLAGE TAXABLE VALUE'))
-print(data_cornwall['101-1-1'][2][2])
-for block in data_cornwall ['101-1-1']:
-    print(block)
-
-for block in data_bronxville['1./1/10']:
-    print(block)
-
-
-# In[42]:
+# In[43]:
 
 
 def find_line(entry,query):
@@ -816,13 +889,13 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[46]:
+# In[202]:
 
 
 wb = Workbook()
 ws = wb.active
 
-ws.title = "2024 final assessment roll"
+ws.title = "2024 final roll - Cornwall"
 ws['A1'] = 'id'               # 1 id
 ws['B1'] = 'OWNERS NAME'      # 2 owners name
 ws['C1'] = 'OWNERS ADDRESS'   # 3 owners address
@@ -836,23 +909,103 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[47]:
+# In[203]:
 
 
 row = 2
 a = time.time()
-for id in data:
-    ws[f"A{row}"] = id
-    ws[f"B{row}"] = ', '.join(get_owner_names(data[id]))
-    ws[f"C{row}"] = get_owner_address(data[id])
-    ws[f"D{row}"] = get_property_type(data[id])
-    ws[f"E{row}"] = get_property_address(data[id],id)
-    ws[f"F{row}"] = get_zoning(data[id])
-    ws[f"G{row}"] = get_acreage(data[id])
-    ws[f"H{row}"] = get_full_market_value(data[id])
-    ws[f"I{row}"] = get_taxable(data[id],'COUNTY TAXABLE VALUE')
-    ws[f"J{row}"] = get_taxable(data[id],'SCHOOL TAXABLE VALUE')
-    ws[f"K{row}"] = get_taxable(data[id],'VILLAGE TAXABLE VALUE')
+for key in data_cornwall:
+    print(key)
+    ws[f"A{row}"] = key
+    
+    # Owner names
+    entry = []
+    for line in data_cornwall[key]:
+        if 'FULL MARKET VALUE' in line[0] or \
+            'DEED BOOK' in line[0] or \
+            'EAST-' in line[0] or \
+            'ACRES' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'SCHOOL' in line[0] or \
+            'WS SHORE DR' in line[0] or \
+            'BLOOMING GROVE' in line[0] or \
+            'MAP' in line[0]: break
+        elif ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else: break
+        else:
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}']
+            temp = None
+            append_test = True
+            for pattern in patterns:
+                temp = re.search(pattern,line[0])
+                if temp: append_test = False
+            if not append_test: break
+            entry.append(line)
+    ws[f"B{row}"] = ', '.join(get_owner_names(entry,key))
+
+    # Owner address
+    entry = []
+    for line in data_cornwall[key]:
+        if 'FULL MARKET VALUE' in line[0] or \
+            'DEED BOOK' in line[0] or \
+            'EAST-' in line[0] or \
+            'ACRES' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'SCHOOL' in line[0] or \
+            'WS SHORE DR' in line[0] or \
+            'BLOOMING GROVE' in line[0] or \
+            'MAP' in line[0]: break
+        elif ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else: break
+        else:
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}']
+            temp = None
+            append_test = True
+            for pattern in patterns:
+                temp = re.search(pattern,line[0])
+                if temp: append_test = False
+            if not append_test: break
+            entry.append(line)
+    ws[f"C{row}"] = get_owner_address(entry)
+
+    # Property type
+    entry = data_cornwall[key]
+    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    ws[f"D{row}"] = get_property_type(entry,key)
+
+    # Property address
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+        if len(entry[0]) > 2:
+            entry[0][1] = ' '.join(entry[0][1:])
+            entry[0] = entry[0][0:2]
+    else: entry[0].append(entry[0][0])
+    ws[f"E{row}"] = get_property_address(entry,key)
+
+    # Zoning
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    ws[f"F{row}"] = get_zoning(entry,'Cornwall Csd  ?\\d{6} |Washingtonville  ?\\d{6} |[A-Za-z]+ Csd  ?\\d{6}')
+
+    # Acreage
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    ws[f"G{row}"] = get_acreage(entry)
+
+    # Full market value
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    ws[f"H{row}"] = get_full_market_value(entry)
+
+    # Taxables
+    entry = copy.deepcopy(data_cornwall[key][1:])
+    ws[f"I{row}"] = get_taxable(entry,'COUNTY TAXABLE VALUE')
+    ws[f"J{row}"] = get_taxable(entry,'SCHOOL TAXABLE VALUE')
+    ws[f"K{row}"] = get_taxable(entry,'TOWN TAXABLE VALUE')
     row += 1
 
 wb.save('extracted_data.xlsx')

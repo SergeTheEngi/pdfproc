@@ -15,4 +15,4 @@ Cornwall test:
     - [x] Extract acreage
     - [x] Extract market value
     - [x] Extract taxables
-- [ ] Review the data, fix the errors
+- [x] Review the data, fix the errors
