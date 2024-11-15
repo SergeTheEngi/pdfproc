@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[193]:
+# In[1]:
 
 
 import time
@@ -16,7 +16,7 @@ bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
 
 
-# In[6]:
+# In[5]:
 
 
 # Inspect the data
@@ -40,7 +40,7 @@ print(header)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[7]:
+# In[3]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -48,7 +48,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[8]:
+# In[6]:
 
 
 def get_header(page_text,verbose=False):
@@ -163,7 +163,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[9]:
+# In[7]:
 
 
 def get_page_data(page_text,header_end):
@@ -191,7 +191,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[205]:
+# In[8]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -225,7 +225,7 @@ data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 
 
-# In[206]:
+# In[9]:
 
 
 def break_lines(entry):
@@ -238,7 +238,7 @@ def break_lines(entry):
 print(break_lines(data_bronxville['11./5/1.-212'][0]))
 
 
-# In[207]:
+# In[10]:
 
 
 # Shape cornwall data
@@ -268,7 +268,7 @@ for key in data_cornwall:
     data_cornwall[key] = break_lines(data_cornwall[key])
 
 
-# In[143]:
+# In[11]:
 
 
 def get_owner_names(entry,key):
@@ -362,7 +362,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[176]:
+# In[12]:
 
 
 def get_owner_address(entry):
@@ -434,7 +434,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[168]:
+# In[13]:
 
 
 def get_property_type(entry,key):
@@ -479,7 +479,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[216]:
+# In[14]:
 
 
 def get_property_address(entry,key):
@@ -530,7 +530,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[226]:
+# In[15]:
 
 
 def get_zoning(entry,pattern):
@@ -590,7 +590,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[234]:
+# In[16]:
 
 
 def get_acreage(entry):
@@ -651,7 +651,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[240]:
+# In[17]:
 
 
 def get_full_market_value(entry):
@@ -724,72 +724,87 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[40]:
+# In[33]:
 
+
+print(find_line(data_cornwall['101-1-1'],'VILLAGE TAXABLE VALUE'))
+print(data_cornwall['101-1-1'][2][2])
+for block in data_cornwall ['101-1-1']:
+    print(block)
+
+for block in data_bronxville['1./1/10']:
+    print(block)
+
+
+# In[42]:
+
+
+def find_line(entry,query):
+    for block in entry:
+        temp = ' '.join(block)
+        temp = ' '.join(temp.split())
+        if query in temp: return temp
+    return 1
 
 def get_taxable(entry,taxable_name):
-    taxable = find_line(entry,taxable_name)
-    if taxable == 1:
+    taxable_line = find_line(entry,taxable_name)
+    if taxable_line == 1:
         #print(f"WARN: {entry[1][0]} doesn't have {taxable_name}")
         return None
-    else:
-        bn,ln = taxable[0],taxable[1]
-    if taxable_name == entry[bn][ln]: taxable = entry[bn][ln+1]
-    else:
-        taxable = entry[bn][ln].split()
-        for sn,string in enumerate(taxable):
-            if string == 'VALUE':
-                try: taxable = taxable[sn+1]
-                except: taxable = entry[bn][ln+1]
-                break
-    if re.search('[a-zA-Z ]', taxable):
-        taxable = taxable.split()[0]
-    return float(taxable.replace(',','.'))
+    
+    taxable = re.search(taxable_name + ' [0-9\\,]+',taxable_line)
+    taxable = re.sub(taxable_name + ' ','',taxable.group())
+    return float(taxable.replace(',',''))
+    #else:
+    #    taxable = entry[bn][ln].split()
+    #    for sn,string in enumerate(taxable):
+    #        if string == 'VALUE':
+    #            try: taxable = taxable[sn+1]
+    #            except: taxable = entry[bn][ln+1]
+    #            break
+    #if re.search('[a-zA-Z ]', taxable):
+    #    taxable = taxable.split()[0]
+    #return float(taxable.replace(',',''))
 
 
-def get_all_taxables(entry):
-    taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
+def get_all_taxables(entry,taxable_names):
     taxables = []
     for tn in taxable_names:
         taxables.append(get_taxable(entry,tn))
     return taxables
 
 # Tests
-def run_test(entry,key,result,function):
-    output = function(entry)
+def run_test(entry,key,result,function,taxable_names):
+    output = function(entry,taxable_names)
     assert output == result, f"{key}, {result} != {output}"
 
 testset_bronxville = [
-    ('1./1/10',[None,1100,1100]),
-    ('7.E/3/8',[None,3500,3500]),
-    ('11./5/1.-311',[None,869.261,869.261]),
-    ('3./3/11',[1475,1475,1398.580]),
+    ('1./1/10',[None,1100000,1100000]),
+    ('7.E/3/8',[None,3500000,3500000]),
+    ('11./5/1.-311',[None,869261,869261]),
+    ('3./3/11',[1475000,1475000,1398580]),
 ]
 
 testset_cornwall = [
-    ('30-1-97.1','Cornwall Csd 332401'),
-    ('24-1-14','Cornwall Csd 332401'),
+    ('101-1-1',[475000,475000,475000]),
+    ('18-3-16',[287400,287400,287400]),
 ]
 
+taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
 for key,result in testset_bronxville:
-    run_test(data_bronxville[key],key,result,get_zoning)
+    run_test(data_bronxville[key],key,result,get_all_taxables,taxable_names)
 
+taxable_names = ['COUNTY TAXABLE VALUE','TOWN TAXABLE VALUE','SCHOOL TAXABLE VALUE']
 for key,result in testset_cornwall:
     entry = copy.deepcopy(data_cornwall[key][1:])
     #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
-    run_test(entry,key,result,get_zoning)
+    run_test(entry,key,result,get_all_taxables,taxable_names)
 
-#print(get_all_taxables(data[key]))
-#print(get_all_taxables(data['11./5/1.-311']))
-assert get_all_taxables(data['1./1/10']) == [None,1100,1100]
-assert get_all_taxables(data['7.E/3/8']) == [None,3500,3500]
-assert get_all_taxables(data['11./5/1.-311']) == [None,869.261,869.261]
-assert get_all_taxables(data['3./3/11']) == [1475,1475,1398.580]
-
+taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
 all_taxables = []
-for entry in data:
+for entry in data_bronxville:
     #print(entry)
-    taxable = get_all_taxables(data[entry])
+    taxable = get_all_taxables(data_bronxville[entry],taxable_names)
     all_taxables.append(taxable)
     #try:all_market_values.append(get_full_market_value(data[entry]))
     #except Exception as e:
