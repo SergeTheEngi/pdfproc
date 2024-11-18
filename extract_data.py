@@ -275,7 +275,7 @@ for block in data_scarsdale['01.05.5']:
     print()
 
 
-# In[10]:
+# In[34]:
 
 
 def get_owner_names(entry,key):
@@ -350,6 +350,14 @@ testset_cornwall = [
     ('102-4-5',['Igo Ellen M']),
 ]
 
+testset_scarsdale = [
+    ('01.05.12',['DALLAL STEVEN','DALLAL TERESA']),
+    ('08.19.32',['MCHENRY BRENDAN']),
+    ('19.01.40',['MITCHELL ROBERT A','MITCHELL DANA E']),
+    ('01.02.20A',['HOFF BARTHELSON','MUSIC SCHOOL','% KEN COLE EXEC DIR']),
+    ('11.05.9',['KROHNENGOLD STUART']),
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_owner_names)
 
@@ -375,6 +383,30 @@ for key,result in testset_cornwall:
             append_test = True
             for pattern in patterns:
                 temp = re.search(pattern,line[0])
+                if temp: append_test = False
+            if not append_test: break
+            entry.append(line)
+    run_test(entry,key,result,get_owner_names)
+
+for key,result in testset_scarsdale:
+    entry = []
+    for line in data_scarsdale[key]:
+        if 'FULL MKT VAL' in line[0] or \
+            'DEED BK' in line[0] or \
+            'EAST-' in line[0] or \
+            'ACRES' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'MAP' in line[0]: break
+        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else: break
+        else:
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
+            temp = None
+            append_test = True
+            for pattern in patterns:
+                temp = re.search(pattern,' '.join(line))
                 if temp: append_test = False
             if not append_test: break
             entry.append(line)
