@@ -1,18 +1,18 @@
 # Current tasks
 
-Cornwall test:
+Process Scarsdale:
 - [x] Inspect the data
 - Collect data:
     - [x] Get headers
     - [x] Assemble headers
     - [x] Collect page data
 - Process data:
-    - [x] Extract owner names
-    - [x] Extract owner address
-    - [x] Extract property type
-    - [x] Extract property address
-    - [x] Extract zoning
-    - [x] Extract acreage
-    - [x] Extract market value
-    - [x] Extract taxables
-- [x] Review the data, fix the errors
+    - [ ] Extract owner names
+    - [ ] Extract owner address
+    - [ ] Extract property type
+    - [ ] Extract property address
+    - [ ] Extract zoning
+    - [ ] Extract acreage
+    - [ ] Extract market value
+    - [ ] Extract taxables
+- [ ] Review the data, fix the errors
