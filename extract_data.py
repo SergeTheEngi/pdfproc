@@ -17,13 +17,14 @@ cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('Scarsdale FINAL ASSESSMENT ROLL 2024.pdf')
 
 
-# In[5]:
+# In[34]:
 
 
 # Inspect the data
-page = cornwall.load_page(0)
+page = scarsdale.load_page(1)
 page_text = page.get_text('dict')
 
+#print(page_text)
 
 #for block in page_text['blocks']:
 #    for line in block['lines']:
@@ -32,7 +33,8 @@ page_text = page.get_text('dict')
 header_start,header_end = get_header(page_text)
 header = assemble_header(page_text, header_start, header_end)
 
-print(header)
+for block in header:
+    for line in block: print([line])
 
 
 # ## Extracting the data
@@ -41,7 +43,7 @@ print(header)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[3]:
+# In[30]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -49,11 +51,14 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[4]:
+# In[37]:
 
 
 def get_header(page_text,verbose=False):
     header_start = None
+    if 'blocks' not in page_text.keys():
+        print("Page structure lacks 'blocks'")
+        return None,None
     for bn,block in enumerate(page_text['blocks']):
         if verbose:
             print(bn,type(block),end="")
@@ -61,6 +66,9 @@ def get_header(page_text,verbose=False):
                 print(block.keys())
             else:
                 print()
+        if 'lines' not in block.keys():
+            print("Block structure lacks 'lines'")
+            return None,None
         for ln,line in enumerate(block['lines']):
             line_text = line['spans'][0]['text']
             
@@ -192,7 +200,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[7]:
+# In[39]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -222,8 +230,9 @@ def get_data(source,from_page=0,verbose=False,print_failed=True):
     if verbose: print("completed in",d-c)
     return data
 
-data_bronxville = get_data(bronxville,1)
-data_cornwall = get_data(cornwall,0)
+#data_bronxville = get_data(bronxville,1)
+#data_cornwall = get_data(cornwall,0)
+data_scarsdale = get_data(scarsdale,1)
 
 
 # In[8]:
