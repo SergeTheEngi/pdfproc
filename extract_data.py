@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[18]:
 
 
 import time
@@ -13,7 +13,8 @@ from openpyxl import Workbook
 from pdfproc.as_dict import find_line,normalize_data
 
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
-cornwall = pymupdf.open('Cornwall Assessment Final Roll 2024.pdf')
+cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
+scarsdale = pymupdf.open('Scarsdale FINAL ASSESSMENT ROLL 2024.pdf')
 
 
 # In[5]:
@@ -48,7 +49,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[6]:
+# In[4]:
 
 
 def get_header(page_text,verbose=False):
@@ -163,7 +164,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[7]:
+# In[6]:
 
 
 def get_page_data(page_text,header_end):
@@ -191,7 +192,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[8]:
+# In[7]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -225,7 +226,7 @@ data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 
 
-# In[9]:
+# In[8]:
 
 
 def break_lines(entry):
@@ -238,7 +239,7 @@ def break_lines(entry):
 print(break_lines(data_bronxville['11./5/1.-212'][0]))
 
 
-# In[10]:
+# In[9]:
 
 
 # Shape cornwall data
@@ -268,7 +269,7 @@ for key in data_cornwall:
     data_cornwall[key] = break_lines(data_cornwall[key])
 
 
-# In[201]:
+# In[10]:
 
 
 def get_owner_names(entry,key):
@@ -385,7 +386,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[196]:
+# In[11]:
 
 
 def get_owner_address(entry):
@@ -485,7 +486,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[97]:
+# In[12]:
 
 
 def get_property_type(entry,key):
@@ -538,7 +539,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[160]:
+# In[13]:
 
 
 def get_property_address(entry,key):
@@ -604,7 +605,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[165]:
+# In[14]:
 
 
 def get_zoning(entry,pattern):
@@ -666,30 +667,8 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[64]:
+# In[15]:
 
-
-#def get_acreage(entry):
-#    for block in entry:
-#        for ln,line in enumerate(block):
-#            if 'ACRES' in line:
-#                if line == 'ACRES':
-#                    acreage = block[ln+1]
-#                else:
-#                    acreage = line.split()
-#                    try:
-#                        acreage = [acreage[sn+1] for sn,string in enumerate(acreage) if string == 'ACRES'][0]
-#                    except Exception as e:
-#                        if re.search('[a-zA-Z ]', block[ln+1]):
-#                            acreage = block[ln+1].split()
-#                            return float(acreage[0])
-#                        else:
-#                            acreage = block[ln+1]
-#                if re.search('[a-zA-Z ]', acreage):
-#                    acreage = acreage.split()
-#                    return float(acreage[0])
-#                else:
-#                    return float(acreage)
 
 def get_acreage(entry):
     for block in entry:
@@ -736,7 +715,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[17]:
+# In[16]:
 
 
 def get_full_market_value(entry):
@@ -809,15 +788,8 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[43]:
+# In[17]:
 
-
-def find_line(entry,query):
-    for block in entry:
-        temp = ' '.join(block)
-        temp = ' '.join(temp.split())
-        if query in temp: return temp
-    return 1
 
 def get_taxable(entry,taxable_name):
     taxable_line = find_line(entry,taxable_name)
@@ -1012,10 +984,4 @@ wb.save('extracted_data.xlsx')
 b = time.time()
 
 print(b-a)
-
-
-# In[ ]:
-
-
-
 
