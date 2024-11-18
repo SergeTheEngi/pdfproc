@@ -63,6 +63,12 @@ class Extractor:
 # Helper functions
 import re as re
 
+def break_lines(entry):
+    out = []
+    for line in entry:
+        out.append(re.split(' {2,}+',line))
+    return out
+
 def find_line(entry,query):
     for line in entry:
         temp = ' '.join(line)
@@ -127,3 +133,24 @@ def remove_spaces(string):
         string
     )
     return(string)
+
+def unwrap_sublists(var:list):
+    assert type(var) == list, "Input value must be a list"
+    out = []
+    for item in var:
+        if type(item) != list:
+            out.append(item)
+        else:
+            out.extend(item)
+    return out
+
+def unwrap_sublists_recursive(data,key):
+    go = True
+    while go:
+        if type(data[key]) == list:
+            data[key] = unwrap_sublists(data[key])
+            if not any(isinstance(i, list) for i in data[key]):
+                go = False
+        else:
+            print(f"{key} is not a list. Exiting")
+            go = False

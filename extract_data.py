@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[18]:
+# In[2]:
 
 
 import time
@@ -10,14 +10,19 @@ import pymupdf
 import re
 import copy
 from openpyxl import Workbook
-from pdfproc.as_dict import find_line,normalize_data
+from pdfproc.as_dict import \
+    break_lines, \
+    find_line, \
+    normalize_data, \
+    unwrap_sublists, \
+    unwrap_sublists_recursive
 
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('Scarsdale FINAL ASSESSMENT ROLL 2024.pdf')
 
 
-# In[34]:
+# In[5]:
 
 
 # Inspect the data
@@ -43,7 +48,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[30]:
+# In[3]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -51,7 +56,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[37]:
+# In[4]:
 
 
 def get_header(page_text,verbose=False):
@@ -200,7 +205,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[39]:
+# In[7]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -230,52 +235,44 @@ def get_data(source,from_page=0,verbose=False,print_failed=True):
     if verbose: print("completed in",d-c)
     return data
 
-#data_bronxville = get_data(bronxville,1)
-#data_cornwall = get_data(cornwall,0)
+data_bronxville = get_data(bronxville,1)
+data_cornwall = get_data(cornwall,0)
 data_scarsdale = get_data(scarsdale,1)
-
-
-# In[8]:
-
-
-def break_lines(entry):
-    out = []
-    for line in entry:
-        out.append(re.split(' {2,}+',line))
-    return out
-
-#print(break_blocks(data_cornwall['101-1-1'][0]))
-print(break_lines(data_bronxville['11./5/1.-212'][0]))
 
 
 # In[9]:
 
 
-# Shape cornwall data
-def unwrap_sublists(var:list):
-    assert type(var) == list, "Input value must be a list"
-    out = []
-    for item in var:
-        if type(item) != list:
-            out.append(item)
-        else:
-            out.extend(item)
-    return out
+# Check whether data needs to be reshaped
+for block in data_scarsdale['01.01.1']:
+    for line in block: print([line])
+
+
+# In[10]:
+
+
+# Shape data
 
 for key in data_cornwall:
-    #for item in data_cornwall[key]:
-    go = True
-    while go:
-        if type(data_cornwall[key]) == list:
-            data_cornwall[key] = unwrap_sublists(data_cornwall[key])
-            if not any(isinstance(i, list) for i in data_cornwall[key]):
-                go = False
-        else:
-            print(key)
-            go = False
-
-for key in data_cornwall:
+    unwrap_sublists_recursive(data_cornwall,key)
     data_cornwall[key] = break_lines(data_cornwall[key])
+
+for key in data_scarsdale:
+    unwrap_sublists_recursive(data_scarsdale,key)
+    data_scarsdale[key] = break_lines(data_scarsdale[key])
+
+
+# In[11]:
+
+
+# Check data integrity
+for block in data_cornwall['101-1-1']:
+    for line in block: print([line],end='')
+    print()
+
+for block in data_scarsdale['01.05.5']:
+    for line in block: print([line],end='')
+    print()
 
 
 # In[10]:
