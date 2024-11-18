@@ -64,10 +64,10 @@ class Extractor:
 import re as re
 
 def find_line(entry,query):
-    for bn,block in enumerate(entry):
-        for ln,line in enumerate(block):
-            temp = ' '.join(line.split())
-            if query in temp: return bn,ln
+    for line in entry:
+        temp = ' '.join(line)
+        temp = ' '.join(temp.split())
+        if query in temp: return temp
     return 1
 
 def normalize_data(entry,verbose=False):
