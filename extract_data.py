@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[3]:
 
 
 import time
@@ -22,7 +22,7 @@ cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('Scarsdale FINAL ASSESSMENT ROLL 2024.pdf')
 
 
-# In[4]:
+# In[6]:
 
 
 # Inspect the data
@@ -48,7 +48,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[2]:
+# In[4]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -56,7 +56,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[3]:
+# In[5]:
 
 
 def get_header(page_text,verbose=False):
@@ -177,7 +177,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[76]:
+# In[7]:
 
 
 def get_page_data(page_text,header_end):
@@ -205,7 +205,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[77]:
+# In[8]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -240,7 +240,7 @@ data_cornwall = get_data(cornwall,0)
 data_scarsdale = get_data(scarsdale,1)
 
 
-# In[78]:
+# In[9]:
 
 
 # Check whether data needs to be reshaped
@@ -248,7 +248,7 @@ for block in data_scarsdale['01.01.1']:
     for line in block: print([line])
 
 
-# In[79]:
+# In[10]:
 
 
 # Shape data
@@ -262,7 +262,7 @@ for key in data_scarsdale:
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
 
-# In[80]:
+# In[11]:
 
 
 # Check data integrity
@@ -275,7 +275,7 @@ for block in data_scarsdale['01.05.5']:
     print()
 
 
-# In[81]:
+# In[132]:
 
 
 def get_owner_names(entry,key):
@@ -356,6 +356,17 @@ testset_scarsdale = [
     ('19.01.40',['MITCHELL ROBERT A','MITCHELL DANA E']),
     ('01.02.20A',['HOFF BARTHELSON','MUSIC SCHOOL','% KEN COLE EXEC DIR']),
     ('11.05.9',['KROHNENGOLD STUART']),
+    ('05.02.64',['HITCHCOCK PRESBYTERIAN','CHURCH']),
+    ('06.06.4',['LEVINE ERIC B','SIMON TERRI E']),
+    ('05.03.72',['NG JOSEPH']),
+    ('13.04.52',['NEIRA ALBERT G']),
+    ('09.11.50.52',['SILBERBERG HOWARD']),
+    ('06.08.18',['LANDAUER BRIAN','LANDAUER MADELYN']),
+    ('02.05.9',['SCARSDALE CHATEAUX OWNERS','% BARHITE AND HOLZINGER']),
+    ('20.01.7',['636 EXPRESS LLC','SUITE 1191']),
+    ('21.01.24',['8 STONEWALL LANE LLC']),
+    ('21.01.42',['LEVITT BARRIE']),
+    ('10.31.10',['VILLAGE OF SCARSDALE','EAST SIDE CLARENCE RD','TREASURER']),
 ]
 
 for key,result in testset_bronxville:
@@ -394,22 +405,44 @@ for key,result in testset_scarsdale:
         if 'FULL MKT VAL' in line[0] or \
             'DEED BK' in line[0] or \
             'EAST-' in line[0] or \
-            'ACRES' in line[0] or \
+            'ACREAGE' in line[0] or \
             'add to' in line[0] or \
             'add map' in line[0] or \
-            'MAP' in line[0]: break
+            'MAP' in line[0] or \
+            'TAXABLE' in line[0] or \
+            'CONTIGUOUS PARCEL' in line[0] or \
+            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
+            bool(re.search('@ [0-9]',line[0])) or \
+            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
+            break
         elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
             if line[0][-4:] == 'FRNT': pass
             else: break
         else:
-            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
+            patterns = [
+                ('FD[0-9]{3}',' '.join(line)),
+                ('RG[0-9]{3}',' '.join(line)),
+                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
+            ]
             temp = None
             append_test = True
-            for pattern in patterns:
-                temp = re.search(pattern,' '.join(line))
-                if temp: append_test = False
-            if not append_test: break
-            entry.append(line)
+            for pattern,text in patterns:
+                temp = re.search(pattern,text)
+                if temp:
+                    append_test = False
+            if not append_test:
+                break
+            else:
+                newline = None
+                for ln,subline in enumerate(line):
+                    if 'SCARSDALE CENTRAL' in subline:
+                        if ln > 1:
+                            newline = [' '.join(line[:ln])]
+                            newline.extend(line[ln:])
+                            entry.append(newline)
+                        else: break
+                if not newline:
+                    entry.append(line)
     run_test(entry,key,result,get_owner_names)
 
 #run_tests(testset,get_owner_names)
@@ -424,7 +457,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[82]:
+# In[130]:
 
 
 def get_owner_address(entry):
@@ -491,6 +524,15 @@ testset_scarsdale = [
     ('19.01.40','18 CORALYN RD, SCARSDALE NY 10583'),
     ('01.02.20A','25 SCHOOL LA, SCARSDALE NY 10583'),
     ('11.05.9','15 HAMILTON RD, SCARSDALE NY 10583'),
+    ('05.02.64','6 GREENACRES AVE, SCARSDALE NY 10583'),
+    ('09.11.50.52','37 SPRAGUE RD, SCARSDALE NY 10583'),
+    ('06.08.18','1 BERKELEY RD, SCARSDALE NY 10583'),
+    ('01.01.4','10 SCHOOL LA, SCARSDALE NY 10583'),
+    ('02.05.9','77 PONDFIELD RD, BRONXVILLE NY 10708'),
+    ('20.01.7','455 TARRYTOWN RD, WHITE PLAINS NY 10607'),
+    ('21.01.24','16 STONEWALL LA, MAMARONECK NY 10538'),
+    ('21.01.42','16 STONEWALL LA, MAMARONECK NY 10543'),
+    ('10.31.10','1001 POST RD, SCARSDALE NY 10583'),
 ]
 
 for key,result in testset_bronxville:
@@ -529,22 +571,37 @@ for key,result in testset_scarsdale:
         if 'FULL MKT VAL' in line[0] or \
             'DEED BK' in line[0] or \
             'EAST-' in line[0] or \
-            'ACRES' in line[0] or \
+            'ACREAGE' in line[0] or \
             'add to' in line[0] or \
             'add map' in line[0] or \
-            'MAP' in line[0]: break
+            'MAP' in line[0] or \
+            'TAXABLE' in line[0] or \
+            'CONTIGUOUS PARCEL' in line[0] or \
+            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
+            bool(re.search('@ [0-9]',line[0])) or \
+            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
+                break
         elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
             if line[0][-4:] == 'FRNT': pass
-            else: break
+            else:
+                break
         else:
-            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
+            patterns = [
+                ('FD[0-9]{3}',' '.join(line)),
+                ('RG[0-9]{3}',' '.join(line)),
+                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
+            ]
             temp = None
             append_test = True
-            for pattern in patterns:
-                temp = re.search(pattern,' '.join(line))
-                if temp: append_test = False
-            if not append_test: break
-            entry.append(line)
+            for pattern,text in patterns:
+                temp = re.search(pattern,text)
+                if temp:
+                    if key == '10.31.10': print(temp.group())
+                    append_test = False
+            if not append_test:
+                break
+            else:
+                entry.append(line)
     run_test(entry,key,result,get_owner_address)
 
 all_owner_addrs = []
@@ -552,11 +609,11 @@ for entry in data_bronxville:
     all_owner_addrs.append(get_owner_address(data_bronxville[entry]))
 
 assert '' in ['', 'test']
-assert '' not in all_names
-assert None not in all_names
+assert '' not in all_owner_addrs
+assert None not in all_owner_addrs
 
 
-# In[83]:
+# In[84]:
 
 
 def get_property_type(entry,key):
@@ -829,6 +886,7 @@ testset_scarsdale = [
     ('19.01.40',0.16),
     ('01.02.20A',1.48),
     ('11.05.9',0.18),
+    ('08.22.20',None),
 ]
 
 for key,result in testset_bronxville:
@@ -935,7 +993,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[90]:
+# In[89]:
 
 
 def get_taxable(entry,taxable_name):
@@ -1016,7 +1074,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[91]:
+# In[134]:
 
 
 wb = Workbook()
@@ -1036,9 +1094,10 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'VILLAGE TAXABLE'
 
 
-# In[92]:
+# In[135]:
 
 
+# Extract the data
 row = 2
 a = time.time()
 for key in data_scarsdale:
@@ -1051,22 +1110,44 @@ for key in data_scarsdale:
         if 'FULL MKT VAL' in line[0] or \
             'DEED BK' in line[0] or \
             'EAST-' in line[0] or \
-            'ACRES' in line[0] or \
+            'ACREAGE' in line[0] or \
             'add to' in line[0] or \
             'add map' in line[0] or \
-            'MAP' in line[0]: break
+            'MAP' in line[0] or \
+            'TAXABLE' in line[0] or \
+            'CONTIGUOUS PARCEL' in line[0] or \
+            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
+            bool(re.search('@ [0-9]',line[0])) or \
+            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
+            break
         elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
             if line[0][-4:] == 'FRNT': pass
             else: break
         else:
-            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
+            patterns = [
+                ('FD[0-9]{3}',' '.join(line)),
+                ('RG[0-9]{3}',' '.join(line)),
+                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
+            ]
             temp = None
             append_test = True
-            for pattern in patterns:
-                temp = re.search(pattern,' '.join(line))
-                if temp: append_test = False
-            if not append_test: break
-            entry.append(line)
+            for pattern,text in patterns:
+                temp = re.search(pattern,text)
+                if temp:
+                    append_test = False
+            if not append_test:
+                break
+            else:
+                newline = None
+                for ln,subline in enumerate(line):
+                    if 'SCARSDALE CENTRAL' in subline:
+                        if ln > 1:
+                            newline = [' '.join(line[:ln])]
+                            newline.extend(line[ln:])
+                            entry.append(newline)
+                        else: break
+                if not newline:
+                    entry.append(line)
     ws[f"B{row}"] = ', '.join(get_owner_names(entry,key))
 
     # Owner address
@@ -1075,26 +1156,41 @@ for key in data_scarsdale:
         if 'FULL MKT VAL' in line[0] or \
             'DEED BK' in line[0] or \
             'EAST-' in line[0] or \
-            'ACRES' in line[0] or \
+            'ACREAGE' in line[0] or \
             'add to' in line[0] or \
             'add map' in line[0] or \
-            'MAP' in line[0]: break
+            'MAP' in line[0] or \
+            'TAXABLE' in line[0] or \
+            'CONTIGUOUS PARCEL' in line[0] or \
+            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
+            bool(re.search('@ [0-9]',line[0])) or \
+            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
+                break
         elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
             if line[0][-4:] == 'FRNT': pass
-            else: break
+            else:
+                break
         else:
-            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
+            patterns = [
+                ('FD[0-9]{3}',' '.join(line)),
+                ('RG[0-9]{3}',' '.join(line)),
+                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
+            ]
             temp = None
             append_test = True
-            for pattern in patterns:
-                temp = re.search(pattern,' '.join(line))
-                if temp: append_test = False
-            if not append_test: break
-            entry.append(line)
+            for pattern,text in patterns:
+                temp = re.search(pattern,text)
+                if temp:
+                    if key == '10.31.10': print(temp.group())
+                    append_test = False
+            if not append_test:
+                break
+            else:
+                entry.append(line)
     ws[f"C{row}"] = get_owner_address(entry)
 
     # Property type
-    entry = data_scarsdale[key]
+    entry = copy.deepcopy(data_scarsdale[key])
     if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
     trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
     if trash: del entry[2][1]
@@ -1135,4 +1231,10 @@ wb.save('extracted_data.xlsx')
 b = time.time()
 
 print(b-a)
+
+
+# In[ ]:
+
+
+
 
