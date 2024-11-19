@@ -8,7 +8,7 @@ Process Scarsdale:
     - [x] Collect page data
 - Process data:
     - [x] Extract owner names
-    - [ ] Extract owner address
+    - [x] Extract owner address
     - [ ] Extract property type
     - [ ] Extract property address
     - [ ] Extract zoning

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 
 import time
@@ -22,7 +22,7 @@ cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('Scarsdale FINAL ASSESSMENT ROLL 2024.pdf')
 
 
-# In[5]:
+# In[4]:
 
 
 # Inspect the data
@@ -48,7 +48,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[3]:
+# In[2]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -56,7 +56,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[4]:
+# In[3]:
 
 
 def get_header(page_text,verbose=False):
@@ -177,7 +177,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[6]:
+# In[5]:
 
 
 def get_page_data(page_text,header_end):
@@ -205,7 +205,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[7]:
+# In[6]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -240,7 +240,7 @@ data_cornwall = get_data(cornwall,0)
 data_scarsdale = get_data(scarsdale,1)
 
 
-# In[9]:
+# In[7]:
 
 
 # Check whether data needs to be reshaped
@@ -248,7 +248,7 @@ for block in data_scarsdale['01.01.1']:
     for line in block: print([line])
 
 
-# In[10]:
+# In[8]:
 
 
 # Shape data
@@ -262,7 +262,7 @@ for key in data_scarsdale:
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
 
-# In[11]:
+# In[9]:
 
 
 # Check data integrity
@@ -275,7 +275,7 @@ for block in data_scarsdale['01.05.5']:
     print()
 
 
-# In[34]:
+# In[10]:
 
 
 def get_owner_names(entry,key):
@@ -424,7 +424,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[11]:
+# In[14]:
 
 
 def get_owner_address(entry):
@@ -450,7 +450,7 @@ def get_owner_address(entry):
         
     return ', '.join(owner_addr)
 
-def run_test(entry,result,function):
+def run_test(entry,key,result,function):
     output = function(entry)
     assert output == result, f"{key}, {result} != {output}"
 
@@ -485,8 +485,16 @@ testset_cornwall = [
     ('1-2-19','255 Orrs Mills Rd, Salisbury Mills, NY 12577'),
 ]
 
+testset_scarsdale = [
+    ('01.05.12','5 SCHOOL LA, SCARSDALE NY 10583'),
+    ('08.19.32','113 BRAMBACH RD, SCARSDALE NY 10583'),
+    ('19.01.40','18 CORALYN RD, SCARSDALE NY 10583'),
+    ('01.02.20A','25 SCHOOL LA, SCARSDALE NY 10583'),
+    ('11.05.9','15 HAMILTON RD, SCARSDALE NY 10583'),
+]
+
 for key,result in testset_bronxville:
-    run_test(data_bronxville[key],result,get_owner_address)
+    run_test(data_bronxville[key],key,result,get_owner_address)
 
 for key,result in testset_cornwall:
     entry = []
@@ -513,7 +521,31 @@ for key,result in testset_cornwall:
                 if temp: append_test = False
             if not append_test: break
             entry.append(line)
-    run_test(entry,result,get_owner_address)
+    run_test(entry,key,result,get_owner_address)
+
+for key,result in testset_scarsdale:
+    entry = []
+    for line in data_scarsdale[key]:
+        if 'FULL MKT VAL' in line[0] or \
+            'DEED BK' in line[0] or \
+            'EAST-' in line[0] or \
+            'ACRES' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'MAP' in line[0]: break
+        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else: break
+        else:
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
+            temp = None
+            append_test = True
+            for pattern in patterns:
+                temp = re.search(pattern,' '.join(line))
+                if temp: append_test = False
+            if not append_test: break
+            entry.append(line)
+    run_test(entry,key,result,get_owner_address)
 
 all_owner_addrs = []
 for entry in data_bronxville:
