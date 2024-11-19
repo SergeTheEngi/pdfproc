@@ -11,7 +11,7 @@ Process Scarsdale:
     - [x] Extract owner address
     - [x] Extract property type
     - [x] Extract property address
-    - [ ] Extract zoning
+    - [x] Extract zoning
     - [ ] Extract acreage
     - [ ] Extract market value
     - [ ] Extract taxables

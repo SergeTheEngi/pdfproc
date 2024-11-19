@@ -706,7 +706,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[14]:
+# In[37]:
 
 
 def get_zoning(entry,pattern):
@@ -746,6 +746,13 @@ testset_cornwall = [
     ('5-3-3','Newburgh Csd 331100'),
 ]
 
+testset_scarsdale = [
+    ('01.05.12','SCARSDALE CENTRAL'),
+    ('08.19.32','SCARSDALE CENTRAL'),
+    ('19.01.40','SCARSDALE CENTRAL'),
+    ('01.02.20A','SCARSDALE CENTRAL'),
+    ('11.05.9','SCARSDALE CENTRAL'),
+]
 
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_zoning,'Bronxville Sch  ?\\d{6} ')
@@ -755,6 +762,19 @@ for key,result in testset_cornwall:
     #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
     run_test(entry,key,result,get_zoning,'Cornwall Csd  ?\\d{6} |Washingtonville  ?\\d{6} |[A-Za-z]+ Csd  ?\\d{6}')
 
+# Scarsdale tests
+for key,result in testset_scarsdale:
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_zoning,'SCARSDALE CENTRAL')
+
+for key in data_scarsdale:
+    result = None; entry = None
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    result = get_zoning(entry,'SCARSDALE CENTRAL')
+    assert result != None
+
+# Old tests
 all_zoning = []
 for entry in data_bronxville:
     all_zoning.append(get_zoning(data_bronxville[entry],'Bronxville Sch  ?\\d{6} '))
