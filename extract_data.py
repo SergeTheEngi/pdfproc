@@ -624,14 +624,11 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[13]:
+# In[36]:
 
 
 def get_property_address(entry,key):
     address = [line for line in entry[0][1:] if line != '']
-    if len(address) == 1:
-        address[0] = re.sub(' [0-9 A-Z]{10,}+','',address[0])
-        pass
     if key in address:
         print(f"WARN: {key} has no address")
         return None
@@ -668,6 +665,14 @@ testset_cornwall = [
     ('22-1-15.1','22 Willow Ave'),
 ]
 
+testset_scarsdale = [
+    ('01.05.12','5 SCHOOL LA'),
+    ('08.19.32','113 BRAMBACH RD'),
+    ('19.01.40','18 CORALYN RD'),
+    ('01.02.20A','25 SCHOOL LA'),
+    ('11.05.9','15 HAMILTON RD'),
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_property_address)
 
@@ -680,6 +685,17 @@ for key,result in testset_cornwall:
             entry[0][1] = ' '.join(entry[0][1:])
             entry[0] = entry[0][0:2]
     else: entry[0].append(entry[0][0])
+    entry[0][1] = re.sub(' [0-9 A-Z]{10,}+','',entry[0][1])
+    run_test(entry,key,result,get_property_address)
+
+for key,result in testset_scarsdale:
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        entry[0][1] = ' '.join(entry[0][1:])
+        entry[0] = entry[0][0:2]
     run_test(entry,key,result,get_property_address)
 
 all_property_addrs = []
