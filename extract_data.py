@@ -177,7 +177,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[5]:
+# In[76]:
 
 
 def get_page_data(page_text,header_end):
@@ -205,7 +205,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[6]:
+# In[77]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -240,7 +240,7 @@ data_cornwall = get_data(cornwall,0)
 data_scarsdale = get_data(scarsdale,1)
 
 
-# In[7]:
+# In[78]:
 
 
 # Check whether data needs to be reshaped
@@ -248,7 +248,7 @@ for block in data_scarsdale['01.01.1']:
     for line in block: print([line])
 
 
-# In[8]:
+# In[79]:
 
 
 # Shape data
@@ -262,7 +262,7 @@ for key in data_scarsdale:
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
 
-# In[9]:
+# In[80]:
 
 
 # Check data integrity
@@ -275,7 +275,7 @@ for block in data_scarsdale['01.05.5']:
     print()
 
 
-# In[10]:
+# In[81]:
 
 
 def get_owner_names(entry,key):
@@ -424,7 +424,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[14]:
+# In[82]:
 
 
 def get_owner_address(entry):
@@ -556,7 +556,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[19]:
+# In[83]:
 
 
 def get_property_type(entry,key):
@@ -610,7 +610,7 @@ for key,result in testset_cornwall:
     run_test(entry,key,result,get_property_type)
 
 for key,result in testset_scarsdale:
-    entry = data_scarsdale[key]
+    entry = copy.deepcopy(data_scarsdale[key])
     if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
     trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
     if trash: del entry[2][1]
@@ -624,7 +624,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[36]:
+# In[85]:
 
 
 def get_property_address(entry,key):
@@ -671,6 +671,7 @@ testset_scarsdale = [
     ('19.01.40','18 CORALYN RD'),
     ('01.02.20A','25 SCHOOL LA'),
     ('11.05.9','15 HAMILTON RD'),
+    ('02.05.2A.2','CHRISTIE PL'),
 ]
 
 for key,result in testset_bronxville:
@@ -696,6 +697,8 @@ for key,result in testset_scarsdale:
     if len(entry[0]) > 2:
         entry[0][1] = ' '.join(entry[0][1:])
         entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
     run_test(entry,key,result,get_property_address)
 
 all_property_addrs = []
@@ -706,7 +709,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[37]:
+# In[86]:
 
 
 def get_zoning(entry,pattern):
@@ -789,7 +792,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[42]:
+# In[87]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -848,7 +851,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[45]:
+# In[88]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -932,7 +935,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[47]:
+# In[90]:
 
 
 def get_taxable(entry,taxable_name):
@@ -980,6 +983,7 @@ testset_cornwall = [
 ]
 
 testset_scarsdale = [
+    ('01.01.1',[1425000,1425000,1425000]),
     ('01.05.12',[1925000,1925000,1925000]),
     ('08.19.32',[800000,800000,800000]),
     ('19.01.40',[1721400,1721400,1721400]),
@@ -1004,70 +1008,62 @@ for key,result in testset_scarsdale:
 taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
 all_taxables = []
 for entry in data_bronxville:
-    #print(entry)
     taxable = get_all_taxables(data_bronxville[entry],taxable_names)
     all_taxables.append(taxable)
-    #try:all_market_values.append(get_full_market_value(data[entry]))
-    #except Exception as e:
-        #print(entry,":",e)
-        #print(entry)
 
 assert '' in ['', 'test']
 assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[202]:
+# In[91]:
 
 
 wb = Workbook()
 ws = wb.active
 
-ws.title = "2024 final roll - Cornwall"
-ws['A1'] = 'id'               # 1 id
-ws['B1'] = 'OWNERS NAME'      # 2 owners name
-ws['C1'] = 'OWNERS ADDRESS'   # 3 owners address
-ws['D1'] = 'PROPERTY TYPE'    # 4 property type
-ws['E1'] = 'PROPERTY ADDRESS' # 5 property address
-ws['F1'] = 'ZONING'           # 6 School district, I think
-ws['G1'] = 'ACREAGE'          # 7 acreage
-ws['H1'] = 'FULL MARKET VALUE'# 8 school taxable
-ws['I1'] = 'COUNTY TAXABLE'   # 9 town taxable
+ws.title = "2024 final roll - Scarsdale"
+ws['A1'] = 'id'
+ws['B1'] = 'OWNERS NAME'
+ws['C1'] = 'OWNERS ADDRESS'
+ws['D1'] = 'PROPERTY TYPE'
+ws['E1'] = 'PROPERTY ADDRESS'
+ws['F1'] = 'ZONING'
+ws['G1'] = 'ACREAGE'
+ws['H1'] = 'FULL MARKET VALUE'
+ws['I1'] = 'COUNTY TAXABLE'
 ws['J1'] = 'SCHOOL TAXABLE'
-ws['K1'] = 'TOWN TAXABLE'
+ws['K1'] = 'VILLAGE TAXABLE'
 
 
-# In[203]:
+# In[92]:
 
 
 row = 2
 a = time.time()
-for key in data_cornwall:
+for key in data_scarsdale:
     print(key)
     ws[f"A{row}"] = key
     
     # Owner names
     entry = []
-    for line in data_cornwall[key]:
-        if 'FULL MARKET VALUE' in line[0] or \
-            'DEED BOOK' in line[0] or \
+    for line in data_scarsdale[key]:
+        if 'FULL MKT VAL' in line[0] or \
+            'DEED BK' in line[0] or \
             'EAST-' in line[0] or \
             'ACRES' in line[0] or \
             'add to' in line[0] or \
             'add map' in line[0] or \
-            'SCHOOL' in line[0] or \
-            'WS SHORE DR' in line[0] or \
-            'BLOOMING GROVE' in line[0] or \
             'MAP' in line[0]: break
-        elif ('FRNT' in line[0] and 'DPTH' in line[1]):
+        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
             if line[0][-4:] == 'FRNT': pass
             else: break
         else:
-            patterns = ['FD[0-9]{3}','RG[0-9]{3}']
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
             temp = None
             append_test = True
             for pattern in patterns:
-                temp = re.search(pattern,line[0])
+                temp = re.search(pattern,' '.join(line))
                 if temp: append_test = False
             if not append_test: break
             entry.append(line)
@@ -1075,65 +1071,64 @@ for key in data_cornwall:
 
     # Owner address
     entry = []
-    for line in data_cornwall[key]:
-        if 'FULL MARKET VALUE' in line[0] or \
-            'DEED BOOK' in line[0] or \
+    for line in data_scarsdale[key]:
+        if 'FULL MKT VAL' in line[0] or \
+            'DEED BK' in line[0] or \
             'EAST-' in line[0] or \
             'ACRES' in line[0] or \
             'add to' in line[0] or \
             'add map' in line[0] or \
-            'SCHOOL' in line[0] or \
-            'WS SHORE DR' in line[0] or \
-            'BLOOMING GROVE' in line[0] or \
             'MAP' in line[0]: break
-        elif ('FRNT' in line[0] and 'DPTH' in line[1]):
+        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
             if line[0][-4:] == 'FRNT': pass
             else: break
         else:
-            patterns = ['FD[0-9]{3}','RG[0-9]{3}']
+            patterns = ['FD[0-9]{3}','RG[0-9]{3}','[0-9\\,]+ ?EX']
             temp = None
             append_test = True
             for pattern in patterns:
-                temp = re.search(pattern,line[0])
+                temp = re.search(pattern,' '.join(line))
                 if temp: append_test = False
             if not append_test: break
             entry.append(line)
     ws[f"C{row}"] = get_owner_address(entry)
 
     # Property type
-    entry = data_cornwall[key]
+    entry = data_scarsdale[key]
     if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
+    if trash: del entry[2][1]
     ws[f"D{row}"] = get_property_type(entry,key)
 
     # Property address
-    entry = copy.deepcopy(data_cornwall[key][1:])
-    entry = copy.deepcopy(data_cornwall[key][1:])
+    entry = copy.deepcopy(data_scarsdale[key][1:])
     if len(entry[0]) > 1:
         last_item = entry[0].pop()
         entry[0].insert(0,last_item)
-        if len(entry[0]) > 2:
-            entry[0][1] = ' '.join(entry[0][1:])
-            entry[0] = entry[0][0:2]
-    else: entry[0].append(entry[0][0])
+    if len(entry[0]) > 2:
+        entry[0][1] = ' '.join(entry[0][1:])
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
     ws[f"E{row}"] = get_property_address(entry,key)
 
     # Zoning
-    entry = copy.deepcopy(data_cornwall[key][1:])
-    ws[f"F{row}"] = get_zoning(entry,'Cornwall Csd  ?\\d{6} |Washingtonville  ?\\d{6} |[A-Za-z]+ Csd  ?\\d{6}')
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    ws[f"F{row}"] = get_zoning(entry,'SCARSDALE CENTRAL')
 
     # Acreage
-    entry = copy.deepcopy(data_cornwall[key][1:])
-    ws[f"G{row}"] = get_acreage(entry)
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    ws[f"G{row}"] = get_acreage(entry,'ACREAGE')
 
     # Full market value
-    entry = copy.deepcopy(data_cornwall[key][1:])
-    ws[f"H{row}"] = get_full_market_value(entry)
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    ws[f"H{row}"] = get_full_market_value(entry,keywords=['FULL MKT VAL','VAL'])
 
     # Taxables
-    entry = copy.deepcopy(data_cornwall[key][1:])
-    ws[f"I{row}"] = get_taxable(entry,'COUNTY TAXABLE VALUE')
-    ws[f"J{row}"] = get_taxable(entry,'SCHOOL TAXABLE VALUE')
-    ws[f"K{row}"] = get_taxable(entry,'TOWN TAXABLE VALUE')
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    ws[f"I{row}"] = get_taxable(entry,'COUNTY TAXABLE')
+    ws[f"J{row}"] = get_taxable(entry,'SCHOOL TAXABLE')
+    ws[f"K{row}"] = get_taxable(entry,'VILLAGE TAXABLE')
     row += 1
 
 wb.save('extracted_data.xlsx')
