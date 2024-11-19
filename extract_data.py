@@ -848,14 +848,14 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[16]:
+# In[45]:
 
 
-def get_full_market_value(entry):
+def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
     for block in entry:
         for ln,line in enumerate(block):
-            if 'FULL MARKET VALUE' in line:
-                if line == 'FULL MARKET VALUE':
+            if keywords[0] in line:
+                if line == keywords[0]:
                     if block[ln+1] == '':
                         mval = block[ln+2]
                     else:
@@ -867,7 +867,7 @@ def get_full_market_value(entry):
                 else:
                     line = line.split()
                     for sn,subline in enumerate(line):
-                        if subline == 'VALUE':
+                        if subline == keywords[1]:
                             try: mval = line[sn+1]
                             except Exception as e:
                                 if block[ln+1] == '':
@@ -882,8 +882,8 @@ def get_full_market_value(entry):
                                 
                         
 # Tests
-def run_test(entry,key,result,function):
-    output = function(entry)
+def run_test(entry,key,result,function,keywords=['FULL MARKET VALUE','VALUE']):
+    output = function(entry,keywords)
     assert output == result, f"{key}, {result} != {output}"
 
 testset_bronxville = [
@@ -898,13 +898,24 @@ testset_cornwall = [
     ('624.089-0000-621.700-1881',0)
 ]
 
+testset_scarsdale = [
+    ('01.05.12',2568721),
+    ('08.19.32',1067520),
+    ('19.01.40',2297037),
+    ('01.02.20A',11742727),
+    ('11.05.9',1177441),
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_full_market_value)
 
 for key,result in testset_cornwall:
     entry = copy.deepcopy(data_cornwall[key][1:])
-    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
     run_test(entry,key,result,get_full_market_value)
+
+for key,result in testset_scarsdale:
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    run_test(entry,key,result,get_full_market_value,keywords=['FULL MKT VAL','VAL'])
 
 all_market_values = []
 for entry in data_bronxville:
