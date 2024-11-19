@@ -9,7 +9,7 @@ Process Scarsdale:
 - Process data:
     - [x] Extract owner names
     - [x] Extract owner address
-    - [ ] Extract property type
+    - [x] Extract property type
     - [ ] Extract property address
     - [ ] Extract zoning
     - [ ] Extract acreage

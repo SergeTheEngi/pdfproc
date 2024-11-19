@@ -556,7 +556,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[12]:
+# In[19]:
 
 
 def get_property_type(entry,key):
@@ -593,12 +593,27 @@ testset_cornwall = [
     ('1-1-64.2','311 Res vac land'),
 ]
 
+testset_scarsdale = [
+    ('01.05.12','210 1 FAMILY RES'),
+    ('08.19.32','210 1 FAMILY RES'),
+    ('19.01.40','210 1 FAMILY RES'),
+    ('01.02.20A','612 SCHOOLS'),
+    ('11.05.9','210 1 FAMILY RES'),
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_property_type)
 
 for key,result in testset_cornwall:
     entry = data_cornwall[key]
     if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_property_type)
+
+for key,result in testset_scarsdale:
+    entry = data_scarsdale[key]
+    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
+    if trash: del entry[2][1]
     run_test(entry,key,result,get_property_type)
 
 all_types = []
@@ -714,6 +729,7 @@ testset_cornwall = [
     ('1-1-64.2','Washingtonville 332002'),
     ('5-3-3','Newburgh Csd 331100'),
 ]
+
 
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_zoning,'Bronxville Sch  ?\\d{6} ')
