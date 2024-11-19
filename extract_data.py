@@ -789,21 +789,21 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[15]:
+# In[42]:
 
 
-def get_acreage(entry):
+def get_acreage(entry,keyword='ACRES'):
     for block in entry:
         temp = ' '.join(block)
         temp = ' '.join(temp.split())
-        acres = re.search('ACRES [0-9]+\\.[0-9][0-9]',temp)
+        acres = re.search(f"{keyword} [0-9]+\\.[0-9][0-9]",temp)
         if acres:
-            acres = re.sub('ACRES ','',acres.group())
+            acres = re.sub(f'{keyword} ','',acres.group())
             return float(acres)
 
 # Tests
-def run_test(entry,key,result,function):
-    output = function(entry)
+def run_test(entry,key,result,function,keyword='ACRES'):
+    output = function(entry,keyword)
     assert output == result, f"{key}, {result} != {output}"
 
 testset_bronxville = [
@@ -820,13 +820,24 @@ testset_cornwall = [
     ('106-3-36',0.94),
 ]
 
+testset_scarsdale = [
+    ('01.05.12',0.40),
+    ('08.19.32',0.11),
+    ('19.01.40',0.16),
+    ('01.02.20A',1.48),
+    ('11.05.9',0.18),
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_acreage)
 
 for key,result in testset_cornwall:
     entry = copy.deepcopy(data_cornwall[key][1:])
-    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
     run_test(entry,key,result,get_acreage)
+
+for key,result in testset_scarsdale:
+    entry = copy.deepcopy(data_scarsdale[key][1:])
+    run_test(entry,key,result,get_acreage,'ACREAGE')
 
 all_acreage = []
 for entry in data_bronxville:
