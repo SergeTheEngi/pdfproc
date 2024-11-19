@@ -932,7 +932,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[17]:
+# In[47]:
 
 
 def get_taxable(entry,taxable_name):
@@ -979,6 +979,14 @@ testset_cornwall = [
     ('18-3-16',[287400,287400,287400]),
 ]
 
+testset_scarsdale = [
+    ('01.05.12',[1925000,1925000,1925000]),
+    ('08.19.32',[800000,800000,800000]),
+    ('19.01.40',[1721400,1721400,1721400]),
+    ('01.02.20A',[0,0,0]),
+    ('11.05.9',[882375,882375,882375]),
+]
+
 taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_all_taxables,taxable_names)
@@ -986,7 +994,11 @@ for key,result in testset_bronxville:
 taxable_names = ['COUNTY TAXABLE VALUE','TOWN TAXABLE VALUE','SCHOOL TAXABLE VALUE']
 for key,result in testset_cornwall:
     entry = copy.deepcopy(data_cornwall[key][1:])
-    #if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    run_test(entry,key,result,get_all_taxables,taxable_names)
+
+taxable_names = ['COUNTY TAXABLE','VILLAGE TAXABLE','SCHOOL TAXABLE']
+for key,result in testset_scarsdale:
+    entry = copy.deepcopy(data_scarsdale[key][1:])
     run_test(entry,key,result,get_all_taxables,taxable_names)
 
 taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']

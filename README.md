@@ -14,5 +14,5 @@ Process Scarsdale:
     - [x] Extract zoning
     - [x] Extract acreage
     - [x] Extract market value
-    - [ ] Extract taxables
+    - [x] Extract taxables
 - [ ] Review the data, fix the errors
