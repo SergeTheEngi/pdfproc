@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[6]:
 
 
 import time
@@ -20,13 +20,14 @@ from pdfproc.as_dict import \
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
+harrison = pymupdf.open('Harrison Assessment Roll 2024.pdf')
 
 
-# In[5]:
+# In[8]:
 
 
 # Inspect the data
-page = scarsdale.load_page(1)
+page = harrison.load_page(1)
 page_text = page.get_text('dict')
 
 #print(page_text)
@@ -177,7 +178,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[7]:
+# In[10]:
 
 
 def get_page_data(page_text,header_end):
@@ -205,7 +206,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[8]:
+# In[11]:
 
 
 def get_data(source,from_page=0,verbose=False,print_failed=True):
@@ -238,6 +239,7 @@ def get_data(source,from_page=0,verbose=False,print_failed=True):
 data_bronxville = get_data(bronxville,1)
 data_cornwall = get_data(cornwall,0)
 data_scarsdale = get_data(scarsdale,1)
+data_harrison = get_data(harrison,0)
 
 
 # In[9]:

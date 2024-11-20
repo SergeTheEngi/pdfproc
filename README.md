@@ -1,11 +1,11 @@
 # Current tasks
 
 Process Harrison:
-- [ ] Inspect the data
+- [x] Inspect the data
 - Collect data:
-    - [ ] Get headers
-    - [ ] Assemble headers
-    - [ ] Collect page data
+    - [x] Get headers
+    - [x] Assemble headers
+    - [x] Collect page data
 - Process data:
     - [ ] Extract owner names
     - [ ] Extract owner address
