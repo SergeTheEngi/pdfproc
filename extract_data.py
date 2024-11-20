@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[2]:
 
 
 import time
@@ -19,10 +19,10 @@ from pdfproc.as_dict import \
 
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
-scarsdale = pymupdf.open('Scarsdale FINAL ASSESSMENT ROLL 2024.pdf')
+scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 
 
-# In[6]:
+# In[5]:
 
 
 # Inspect the data
@@ -48,7 +48,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[4]:
+# In[3]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -56,7 +56,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[5]:
+# In[4]:
 
 
 def get_header(page_text,verbose=False):
