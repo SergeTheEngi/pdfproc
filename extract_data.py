@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
+# In[3]:
 
 
 import time
@@ -20,10 +20,10 @@ from pdfproc.as_dict import \
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
-harrison = pymupdf.open('Harrison Assessment Roll 2024.pdf')
+harrison = pymupdf.open('Harrison.pdf')
 
 
-# In[8]:
+# In[6]:
 
 
 # Inspect the data
@@ -49,7 +49,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[3]:
+# In[4]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -57,7 +57,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[4]:
+# In[5]:
 
 
 def get_header(page_text,verbose=False):
@@ -178,7 +178,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[10]:
+# In[7]:
 
 
 def get_page_data(page_text,header_end):
@@ -206,51 +206,98 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[11]:
+# In[41]:
 
 
-def get_data(source,from_page=0,verbose=False,print_failed=True):
-    c = time.time()
+# Multiprocessing version of get_data
+def get_data_main(datasets:list):
+    import multiprocessing
     
-    data = {}
-    failed = []
-    
-    for p in range(from_page,source.page_count):
-        page = source.load_page(p)
-        page_text=page.get_text('dict')
-    
-        hs,he = get_header(page_text)
-        #header = assemble_header(page_text,hs,he)
-    
-        if hs != None and he != None:
-            page_data = get_page_data(page_text,he)
-            if verbose: print("page",p,page_data.keys())
-            for id in page_data:
-                data[id] = page_data[id]
-        else:
-            failed.append(p+1)
-            if verbose: print("page",p)
+    def get_data(q,source,name,from_page=0,verbose=False,print_failed=True):
+        c = time.time()
         
-    if print_failed: print("failed to find headers:",failed)
-    d = time.time()
-    if verbose: print("completed in",d-c)
-    return data
+        data = {}
+        failed = []
+        
+        for p in range(from_page,source.page_count):
+            page = source.load_page(p)
+            page_text=page.get_text('dict')
+        
+            hs,he = get_header(page_text)
+            #header = assemble_header(page_text,hs,he)
+        
+            if hs != None and he != None:
+                page_data = get_page_data(page_text,he)
+                if verbose: print("page",p,page_data.keys())
+                for id in page_data:
+                    data[id] = page_data[id]
+            else:
+                failed.append(p+1)
+                if verbose: print("page",p)
+            
+        if print_failed: print("failed to find headers:",failed)
+        d = time.time()
+        if verbose: print("completed in",d-c)
+        q.put((data,name))
 
-data_bronxville = get_data(bronxville,1)
-data_cornwall = get_data(cornwall,0)
-data_scarsdale = get_data(scarsdale,1)
-data_harrison = get_data(harrison,0)
+    with multiprocessing.Manager() as manager:
+        q = manager.Queue()
+        processes = []
+        results = {}
+        
+        for dataset,name in datasets:
+            p = multiprocessing.Process(target=get_data, args=(q,dataset,name))
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()
+
+        while not q.empty():
+            result,key = q.get()
+            results[key] = result
+
+        #q.close()
+    
+    return results
+
+#data_bronxville = get_data(bronxville,1)
+#data_cornwall = get_data(cornwall,0)
+#data_scarsdale = get_data(scarsdale,1)
+#data_harrison = get_data(harrison,0)
+alldata = get_data_main([
+    (bronxville,'bronxville'),
+    (cornwall,'cornwall'),
+    (scarsdale,'scarsdale'),
+    (harrison,'harrison')
+])
+
+data_bronxville = copy.deepcopy(alldata['bronxville'])
+data_cornwall = copy.deepcopy(alldata['cornwall'])
+data_scarsdale = copy.deepcopy(alldata['scarsdale'])
+data_harrison = copy.deepcopy(alldata['harrison'])
+
+del alldata
 
 
-# In[9]:
+# In[43]:
+
+
+print('bronxville',len(data_bronxville)) # 1730
+print('cornwall',len(data_cornwall))     # 4934
+print('scarsdale',len(data_scarsdale))   # 5960
+print('harrison',len(data_harrison))     # 7076
+
+
+# In[44]:
 
 
 # Check whether data needs to be reshaped
-for block in data_scarsdale['01.01.1']:
+for block in data_harrison['0011.-1']:
     for line in block: print([line])
 
 
-# In[10]:
+# In[45]:
 
 
 # Shape data
@@ -263,21 +310,21 @@ for key in data_scarsdale:
     unwrap_sublists_recursive(data_scarsdale,key)
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
+for key in data_harrison:
+    unwrap_sublists_recursive(data_harrison,key)
+    data_harrison[key] = break_lines(data_harrison[key])
 
-# In[11]:
+
+# In[49]:
 
 
 # Check data integrity
-for block in data_cornwall['101-1-1']:
-    for line in block: print([line],end='')
-    print()
-
-for block in data_scarsdale['01.05.5']:
+for block in data_harrison['0011.-1']:
     for line in block: print([line],end='')
     print()
 
 
-# In[132]:
+# In[50]:
 
 
 def get_owner_names(entry,key):
@@ -459,7 +506,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[130]:
+# In[51]:
 
 
 def get_owner_address(entry):
@@ -615,7 +662,7 @@ assert '' not in all_owner_addrs
 assert None not in all_owner_addrs
 
 
-# In[84]:
+# In[52]:
 
 
 def get_property_type(entry,key):
@@ -683,7 +730,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[85]:
+# In[53]:
 
 
 def get_property_address(entry,key):
@@ -768,7 +815,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[86]:
+# In[54]:
 
 
 def get_zoning(entry,pattern):
@@ -851,7 +898,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[87]:
+# In[55]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -911,7 +958,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[88]:
+# In[56]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -995,7 +1042,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[89]:
+# In[57]:
 
 
 def get_taxable(entry,taxable_name):
@@ -1076,7 +1123,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[134]:
+# In[58]:
 
 
 wb = Workbook()
@@ -1096,7 +1143,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'VILLAGE TAXABLE'
 
 
-# In[135]:
+# In[59]:
 
 
 # Extract the data
@@ -1233,10 +1280,4 @@ wb.save('extracted_data.xlsx')
 b = time.time()
 
 print(b-a)
-
-
-# In[ ]:
-
-
-
 
