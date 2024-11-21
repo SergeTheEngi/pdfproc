@@ -49,7 +49,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[4]:
+# In[12]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -57,7 +57,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[5]:
+# In[13]:
 
 
 def get_header(page_text,verbose=False):
@@ -178,7 +178,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[7]:
+# In[91]:
 
 
 def get_page_data(page_text,header_end):
@@ -206,7 +206,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[41]:
+# In[92]:
 
 
 # Multiprocessing version of get_data
@@ -280,7 +280,7 @@ data_harrison = copy.deepcopy(alldata['harrison'])
 del alldata
 
 
-# In[43]:
+# In[93]:
 
 
 print('bronxville',len(data_bronxville)) # 1730
@@ -289,7 +289,7 @@ print('scarsdale',len(data_scarsdale))   # 5960
 print('harrison',len(data_harrison))     # 7076
 
 
-# In[44]:
+# In[96]:
 
 
 # Check whether data needs to be reshaped
@@ -297,7 +297,10 @@ for block in data_harrison['0011.-1']:
     for line in block: print([line])
 
 
-# In[45]:
+print(len(data_harrison['0011.-9']))
+
+
+# In[97]:
 
 
 # Shape data
@@ -310,23 +313,29 @@ for key in data_scarsdale:
     unwrap_sublists_recursive(data_scarsdale,key)
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
+#for key in data_harrison:
+#    unwrap_sublists_recursive(data_harrison,key)
+#    data_harrison[key] = break_lines(data_harrison[key])
 for key in data_harrison:
-    unwrap_sublists_recursive(data_harrison,key)
-    data_harrison[key] = break_lines(data_harrison[key])
+    newdata = []
+    assert len(data_harrison[key]) == 1, f"{key},{len(data_harrison[key])}"
+    data_harrison[key] = data_harrison[key][0]
 
 
-# In[49]:
+# In[106]:
 
 
 # Check data integrity
-for block in data_harrison['0011.-1']:
-    for line in block: print([line],end='')
-    print()
+#for block in data_harrison['0011.-1']:
+#    for line in block: print([line],end='')
+#    print()
+
+for line in data_harrison['0011.-1']: print([line])
 
 
 # #### Get owner names
 
-# In[61]:
+# In[20]:
 
 
 def get_owner_names(entry,key):
@@ -369,7 +378,7 @@ def run_test(entry,key,result,function):
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[62]:
+# In[21]:
 
 
 # Test bronxville
@@ -405,7 +414,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[63]:
+# In[22]:
 
 
 # Test cornwall
@@ -442,7 +451,7 @@ for key,result in testset_cornwall:
     run_test(entry,key,result,get_owner_names)
 
 
-# In[64]:
+# In[23]:
 
 
 # Test scarsdale
@@ -513,7 +522,7 @@ for key,result in testset_scarsdale:
     run_test(entry,key,result,get_owner_names)
 
 
-# In[76]:
+# In[26]:
 
 
 testset_harrison = [
@@ -566,16 +575,15 @@ for key,result in testset_harrison:
                         else: break
                 if not newline:
                     entry.append(line)
-    print(entry)
     run_test(entry,key,result,get_owner_names)
 
 
 # #### Get owner address
 
-# In[51]:
+# In[52]:
 
 
-def get_owner_address(entry):
+def get_owner_address_blocks(entry):
     col1 = []; company = None
     owner_address_data=normalize_data(entry)
     for bn,block in enumerate(owner_address_data):
@@ -602,7 +610,11 @@ def run_test(entry,key,result,function):
     output = function(entry)
     assert output == result, f"{key}, {result} != {output}"
 
-# Tests
+
+# In[55]:
+
+
+# Test bronxville
 testset_bronxville = [
     ('14./3/4.B','5 Edgehill Close, Bronxville, NY 10708'),
     ('2./2/17','18 E 48th Street 19th Floor, New York, NY 10017'),
@@ -616,6 +628,22 @@ testset_bronxville = [
     ('1./1/15.A','36-38 Parkway Road, Bronxville, NY 10708'),
 ]
 
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_owner_address_blocks)
+
+all_owner_addrs = []
+for entry in data_bronxville:
+    all_owner_addrs.append(get_owner_address_blocks(data_bronxville[entry]))
+
+assert '' in ['', 'test']
+assert '' not in all_owner_addrs
+assert None not in all_owner_addrs
+
+
+# In[56]:
+
+
+# Test cornwall
 testset_cornwall = [
     ('101-1-1','303 Shore Rd, Cornwall-On-Hudson, NY 12520'),
     ('25-1-3','31 Cedar Ln, Cornwall, NY 12518'),
@@ -632,26 +660,6 @@ testset_cornwall = [
     ('1-1-177','18 Idlewild Park Dr, Cornwall on Hudson, NY 12520'),
     ('1-2-19','255 Orrs Mills Rd, Salisbury Mills, NY 12577'),
 ]
-
-testset_scarsdale = [
-    ('01.05.12','5 SCHOOL LA, SCARSDALE NY 10583'),
-    ('08.19.32','113 BRAMBACH RD, SCARSDALE NY 10583'),
-    ('19.01.40','18 CORALYN RD, SCARSDALE NY 10583'),
-    ('01.02.20A','25 SCHOOL LA, SCARSDALE NY 10583'),
-    ('11.05.9','15 HAMILTON RD, SCARSDALE NY 10583'),
-    ('05.02.64','6 GREENACRES AVE, SCARSDALE NY 10583'),
-    ('09.11.50.52','37 SPRAGUE RD, SCARSDALE NY 10583'),
-    ('06.08.18','1 BERKELEY RD, SCARSDALE NY 10583'),
-    ('01.01.4','10 SCHOOL LA, SCARSDALE NY 10583'),
-    ('02.05.9','77 PONDFIELD RD, BRONXVILLE NY 10708'),
-    ('20.01.7','455 TARRYTOWN RD, WHITE PLAINS NY 10607'),
-    ('21.01.24','16 STONEWALL LA, MAMARONECK NY 10538'),
-    ('21.01.42','16 STONEWALL LA, MAMARONECK NY 10543'),
-    ('10.31.10','1001 POST RD, SCARSDALE NY 10583'),
-]
-
-for key,result in testset_bronxville:
-    run_test(data_bronxville[key],key,result,get_owner_address)
 
 for key,result in testset_cornwall:
     entry = []
@@ -678,7 +686,29 @@ for key,result in testset_cornwall:
                 if temp: append_test = False
             if not append_test: break
             entry.append(line)
-    run_test(entry,key,result,get_owner_address)
+    run_test(entry,key,result,get_owner_address_blocks)
+
+
+# In[57]:
+
+
+# Test scarsdale
+testset_scarsdale = [
+    ('01.05.12','5 SCHOOL LA, SCARSDALE NY 10583'),
+    ('08.19.32','113 BRAMBACH RD, SCARSDALE NY 10583'),
+    ('19.01.40','18 CORALYN RD, SCARSDALE NY 10583'),
+    ('01.02.20A','25 SCHOOL LA, SCARSDALE NY 10583'),
+    ('11.05.9','15 HAMILTON RD, SCARSDALE NY 10583'),
+    ('05.02.64','6 GREENACRES AVE, SCARSDALE NY 10583'),
+    ('09.11.50.52','37 SPRAGUE RD, SCARSDALE NY 10583'),
+    ('06.08.18','1 BERKELEY RD, SCARSDALE NY 10583'),
+    ('01.01.4','10 SCHOOL LA, SCARSDALE NY 10583'),
+    ('02.05.9','77 PONDFIELD RD, BRONXVILLE NY 10708'),
+    ('20.01.7','455 TARRYTOWN RD, WHITE PLAINS NY 10607'),
+    ('21.01.24','16 STONEWALL LA, MAMARONECK NY 10538'),
+    ('21.01.42','16 STONEWALL LA, MAMARONECK NY 10543'),
+    ('10.31.10','1001 POST RD, SCARSDALE NY 10583'),
+]
 
 for key,result in testset_scarsdale:
     entry = []
@@ -717,15 +747,96 @@ for key,result in testset_scarsdale:
                 break
             else:
                 entry.append(line)
-    run_test(entry,key,result,get_owner_address)
+    run_test(entry,key,result,get_owner_address_blocks)
 
-all_owner_addrs = []
-for entry in data_bronxville:
-    all_owner_addrs.append(get_owner_address(data_bronxville[entry]))
 
-assert '' in ['', 'test']
-assert '' not in all_owner_addrs
-assert None not in all_owner_addrs
+# In[119]:
+
+
+def get_owner_address_lines(entry,position):
+    '''position = (fromchar,tochar)'''
+    fromchar,tochar = position
+    result = []
+    for item in entry[-2:]:
+        result.append(' '.join(item[fromchar:tochar].split()))
+    return ', '.join(result)
+
+# Test harrison
+testset_harrison = [
+    ('0011.-1','56 LAFAYETTE AVE, WHITE PLAINS NY 10603'),
+    ('0824.-19','146 FREMONT ST, HARRISON NY 10528')
+]
+
+for key,result in testset_harrison:
+    #entry = copy.deepcopy(data_harrison[key])
+    entry = []
+    for line in data_harrison[key]:
+        if 'FULL MKT VAL' in line[0:27] or \
+            'DEED BK' in line[0:27] or \
+            'EAST-' in line[0:27] or \
+            'ACREAGE' in line[0:27] or \
+            'add to' in line[0:27] or \
+            'add map' in line[0:27] or \
+            'MAP' in line[0:27] or \
+            'TAXABLE' in line[0:27] or \
+            'CONTIGUOUS PARCEL' in line[0:27] or \
+            bool(re.search('[A-Z]{2}[0-9]{3}',line[0:27])) or \
+            bool(re.search('@ [0-9]',line[0:27])) or \
+            bool(re.fullmatch('BANK [0-9]{2,3}',line[0:27])):
+                break
+        else:
+            entry.append(line)
+    assert get_owner_address_lines(entry,(0,27)) == result, f"{key}, {get_owner_address_lines(entry,(0,27))} != {result}"
+
+
+# In[120]:
+
+
+# Test harrison
+testset_harrison = [
+    ('0011.-1','56 LAFAYETTE AVE, WHITE PLAINS NY 10603'),
+    ('0824.-19','146 FREMONT ST, HARRISON NY 10528')
+]
+
+for key,result in testset_harrison:
+    entry = []
+    for line in data_harrison[key]:
+        if 'FULL MKT VAL' in line[0] or \
+            'DEED BK' in line[0] or \
+            'EAST-' in line[0] or \
+            'ACREAGE' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'MAP' in line[0] or \
+            'TAXABLE' in line[0] or \
+            'CONTIGUOUS PARCEL' in line[0] or \
+            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
+            bool(re.search('@ [0-9]',line[0])) or \
+            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
+                break
+        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else:
+                break
+        else:
+            patterns = [
+                ('FD[0-9]{3}',' '.join(line)),
+                ('RG[0-9]{3}',' '.join(line)),
+                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
+            ]
+            temp = None
+            append_test = True
+            for pattern,text in patterns:
+                temp = re.search(pattern,text)
+                if temp:
+                    if key == '10.31.10': print(temp.group())
+                    append_test = False
+            if not append_test:
+                break
+            else:
+                entry.append(line)
+    print(entry)
+    run_test(entry,key,result,get_owner_address_blocks)
 
 
 # In[52]:
