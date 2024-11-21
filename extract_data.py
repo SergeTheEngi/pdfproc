@@ -324,7 +324,9 @@ for block in data_harrison['0011.-1']:
     print()
 
 
-# In[50]:
+# #### Get owner names
+
+# In[61]:
 
 
 def get_owner_names(entry,key):
@@ -366,15 +368,11 @@ def run_test(entry,key,result,function):
     output = function(entry,key)
     assert output == result, f"{key}, {result} != {output}"
 
-# Tests
-#print(get_owner_names(data[key]))
-#for block in data['11./5/1.-212']: print(block)
-#run_tests([
-#    (data_cornwall,[
-#        ('101-1-1',['Nguyen Lap','Fowlie Greta'])
-#    ])
-#],get_owner_names)
 
+# In[62]:
+
+
+# Test bronxville
 testset_bronxville = [
     ('18./1/2',['Coffey John', 'Coffey Anne', 'Ameriprise Financial-D.Amoruso']),
     ('14./3/4.B',['Hyde Lindsay', 'Hyde Arthur D IV']),
@@ -394,32 +392,27 @@ testset_bronxville = [
     ('2./2/17',['Mosbacher Emil','L L C','c/o Mosbacher Properties Group','LLC']),
 ]
 
+for key,result in testset_bronxville:
+    run_test(data_bronxville[key],key,result,get_owner_names)
+
+all_names = []
+for entry in data_bronxville:
+    all_names.append(get_owner_names(data_bronxville[entry],entry))
+
+assert '' in ['', 'test']
+assert '' not in all_names
+#assert [] not in all_names
+assert None not in all_names
+
+
+# In[63]:
+
+
+# Test cornwall
 testset_cornwall = [
     ('101-1-1',['Nguyen Lap','Fowlie Greta']),
     ('102-4-5',['Igo Ellen M']),
 ]
-
-testset_scarsdale = [
-    ('01.05.12',['DALLAL STEVEN','DALLAL TERESA']),
-    ('08.19.32',['MCHENRY BRENDAN']),
-    ('19.01.40',['MITCHELL ROBERT A','MITCHELL DANA E']),
-    ('01.02.20A',['HOFF BARTHELSON','MUSIC SCHOOL','% KEN COLE EXEC DIR']),
-    ('11.05.9',['KROHNENGOLD STUART']),
-    ('05.02.64',['HITCHCOCK PRESBYTERIAN','CHURCH']),
-    ('06.06.4',['LEVINE ERIC B','SIMON TERRI E']),
-    ('05.03.72',['NG JOSEPH']),
-    ('13.04.52',['NEIRA ALBERT G']),
-    ('09.11.50.52',['SILBERBERG HOWARD']),
-    ('06.08.18',['LANDAUER BRIAN','LANDAUER MADELYN']),
-    ('02.05.9',['SCARSDALE CHATEAUX OWNERS','% BARHITE AND HOLZINGER']),
-    ('20.01.7',['636 EXPRESS LLC','SUITE 1191']),
-    ('21.01.24',['8 STONEWALL LANE LLC']),
-    ('21.01.42',['LEVITT BARRIE']),
-    ('10.31.10',['VILLAGE OF SCARSDALE','EAST SIDE CLARENCE RD','TREASURER']),
-]
-
-for key,result in testset_bronxville:
-    run_test(data_bronxville[key],key,result,get_owner_names)
 
 for key,result in testset_cornwall:
     entry = []
@@ -448,6 +441,30 @@ for key,result in testset_cornwall:
             entry.append(line)
     run_test(entry,key,result,get_owner_names)
 
+
+# In[64]:
+
+
+# Test scarsdale
+testset_scarsdale = [
+    ('01.05.12',['DALLAL STEVEN','DALLAL TERESA']),
+    ('08.19.32',['MCHENRY BRENDAN']),
+    ('19.01.40',['MITCHELL ROBERT A','MITCHELL DANA E']),
+    ('01.02.20A',['HOFF BARTHELSON','MUSIC SCHOOL','% KEN COLE EXEC DIR']),
+    ('11.05.9',['KROHNENGOLD STUART']),
+    ('05.02.64',['HITCHCOCK PRESBYTERIAN','CHURCH']),
+    ('06.06.4',['LEVINE ERIC B','SIMON TERRI E']),
+    ('05.03.72',['NG JOSEPH']),
+    ('13.04.52',['NEIRA ALBERT G']),
+    ('09.11.50.52',['SILBERBERG HOWARD']),
+    ('06.08.18',['LANDAUER BRIAN','LANDAUER MADELYN']),
+    ('02.05.9',['SCARSDALE CHATEAUX OWNERS','% BARHITE AND HOLZINGER']),
+    ('20.01.7',['636 EXPRESS LLC','SUITE 1191']),
+    ('21.01.24',['8 STONEWALL LANE LLC']),
+    ('21.01.42',['LEVITT BARRIE']),
+    ('10.31.10',['VILLAGE OF SCARSDALE','EAST SIDE CLARENCE RD','TREASURER']),
+]
+
 for key,result in testset_scarsdale:
     entry = []
     for line in data_scarsdale[key]:
@@ -464,7 +481,8 @@ for key,result in testset_scarsdale:
             bool(re.search('@ [0-9]',line[0])) or \
             bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
             break
-        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
+        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or \
+            ('FRNT' in line[0] and 'DPTH' in line[1]):
             if line[0][-4:] == 'FRNT': pass
             else: break
         else:
@@ -494,17 +512,65 @@ for key,result in testset_scarsdale:
                     entry.append(line)
     run_test(entry,key,result,get_owner_names)
 
-#run_tests(testset,get_owner_names)
 
-all_names = []
-for entry in data_bronxville:
-    all_names.append(get_owner_names(data_bronxville[entry],entry))
+# In[76]:
 
-assert '' in ['', 'test']
-assert '' not in all_names
-#assert [] not in all_names
-assert None not in all_names
 
+testset_harrison = [
+    ('0011.-1',['RYEWOOD FARMS HOMEOWNERS','ASSOCIATION INC','WESTFAIR PROP MANAG INC','STE 330']),
+    ('0856.-17',['MORGADO, RICHARD A']),
+]
+
+for key,result in testset_harrison:
+    entry= []
+    for line in data_harrison[key]:
+        if 'FULL MKT VAL' in line[0] or \
+            'DEED BK' in line[0] or \
+            'EAST-' in line[0] or \
+            'ACREAGE' in line[0] or \
+            'add to' in line[0] or \
+            'add map' in line[0] or \
+            'MAP' in line[0] or \
+            'TAXABLE' in line[0] or \
+            'CONTIGUOUS PARCEL' in line[0] or \
+            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
+            bool(re.search('@ [0-9]',line[0])) or \
+            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
+            break
+        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or \
+            ('FRNT' in line[0] and 'DPTH' in line[1]):
+            if line[0][-4:] == 'FRNT': pass
+            else: break
+        else:
+            patterns = [
+                ('FD[0-9]{3}',' '.join(line)),
+                ('RG[0-9]{3}',' '.join(line)),
+                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
+            ]
+            temp = None
+            append_test = True
+            for pattern,text in patterns:
+                temp = re.search(pattern,text)
+                if temp:
+                    append_test = False
+            if not append_test:
+                break
+            else:
+                newline = None
+                for ln,subline in enumerate(line):
+                    if 'HARRISON CENTRAL' in subline:
+                        if ln > 1:
+                            newline = [' '.join(line[:ln])]
+                            newline.extend(line[ln:])
+                            entry.append(newline)
+                        else: break
+                if not newline:
+                    entry.append(line)
+    print(entry)
+    run_test(entry,key,result,get_owner_names)
+
+
+# #### Get owner address
 
 # In[51]:
 
