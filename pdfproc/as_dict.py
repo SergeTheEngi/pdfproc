@@ -82,7 +82,7 @@ class Extractor:
         return None,None
         
 
-    def assemble_header(self, page_text, header_start, header_end):
+    def assemble_header(self,page_text,header_start,header_end):
         ''' Tool for assmebling header from a US final assessment roll '''
         header = []
         n = 0
@@ -116,6 +116,81 @@ class Extractor:
                     raise ValueError("How did you got here?")
                 n += 1
             return header
+
+    def get_page_data(self,page_text,header_end):
+        page_data = {}; n = 0; harvest = False
+        for bn,block in enumerate(page_text[self.key_block][header_end[0]:]):
+            for line in block[self.key_line]:
+                line_text = line['spans'][0]['text']
+                separator = re.search(
+                    self.re_separator,
+                    line_text
+                )
+                if separator:
+                    entry_id=re.search(self.re_id,separator.group()).group()
+                    page_data[entry_id] = [[]]
+                    harvest = True
+                    n = 0
+                else:
+                    page_end = re.search(
+                        self.re_page_end,
+                        line_text
+                    )
+                    if page_end: return page_data
+                if harvest: page_data[entry_id][n].append(line_text.strip())
+            if harvest: page_data[entry_id].append([])
+            n += 1
+
+    def get_data(self,datasets:list):
+        import multiprocessing
+        
+        def get_data(q,source,name,from_page=0,verbose=False,print_failed=True):
+            data = {}
+            failed = []
+            
+            for p in range(from_page,source.page_count):
+                page = source.load_page(p)
+                page_text=page.get_text('dict')
+            
+                hs,he = self.get_header(page_text)
+                #header = assemble_header(page_text,hs,he)
+            
+                if hs != None and he != None:
+                    page_data = self.get_page_data(page_text,he)
+                    if verbose: print("page",p,page_data.keys())
+                    for id in page_data:
+                        data[id] = page_data[id]
+                else:
+                    failed.append(p+1)
+                    if verbose: print("page",p)
+                
+            if print_failed: print("failed to find headers:",failed)
+            q.put((data,name))
+
+        with multiprocessing.Manager() as manager:
+            q = manager.Queue()
+            processes = []
+            results = {}
+            
+            for dataset,name in datasets:
+                p = multiprocessing.Process(
+                        target=get_data,
+                        args=(q,dataset,name)
+                )
+                p.start()
+                processes.append(p)
+
+            for p in processes:
+                p.join()
+
+            while not q.empty():
+                result,key = q.get()
+                results[key] = result
+
+            # TODO: Doesn't work. Why?
+            #q.close()
+        
+        return results
 
 # Helper functions
 import re as re

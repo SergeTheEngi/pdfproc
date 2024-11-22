@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[1]:
 
 
 import time
@@ -24,7 +24,7 @@ scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 harrison = pymupdf.open('Harrison.pdf')
 
 
-# In[7]:
+# In[2]:
 
 
 # Inspect the data
@@ -50,7 +50,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[4]:
+# In[3]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -64,10 +64,10 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 
-# In[11]:
+# In[4]:
 
 
-# Test the extractor
+# Test header extractor
 bronxville_page = bronxville.load_page(1)
 bronxville_text = bronxville_page.get_text('dict')
 cornwall_page = cornwall.load_page(0)
@@ -116,94 +116,11 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[10]:
+# In[5]:
 
 
-def get_page_data(page_text,header_end):
-    page_data = {}; n = 0; harvest = False
-    for bn,block in enumerate(page_text['blocks'][header_end[0]:]):
-        for line in block['lines']:
-            line_text = line['spans'][0]['text']
-            separator = re.search(
-                re_separator,
-                line_text
-            )
-            if separator:
-                id=re.search(re_id,separator.group()).group()
-                page_data[id] = [[]]
-                harvest = True
-                n = 0
-            else:
-                page_end = re.search(
-                    re_page_end,
-                    line_text
-                )
-                if page_end: return page_data
-            if harvest: page_data[id][n].append(line_text.strip())
-        if harvest: page_data[id].append([])
-        n += 1
-
-
-# In[13]:
-
-
-# Multiprocessing version of get_data
-def get_data_main(datasets:list):
-    import multiprocessing
-    
-    def get_data(q,source,name,from_page=0,verbose=False,print_failed=True):
-        c = time.time()
-        
-        data = {}
-        failed = []
-        
-        for p in range(from_page,source.page_count):
-            page = source.load_page(p)
-            page_text=page.get_text('dict')
-        
-            hs,he = get_header(page_text)
-            #header = assemble_header(page_text,hs,he)
-        
-            if hs != None and he != None:
-                page_data = get_page_data(page_text,he)
-                if verbose: print("page",p,page_data.keys())
-                for id in page_data:
-                    data[id] = page_data[id]
-            else:
-                failed.append(p+1)
-                if verbose: print("page",p)
-            
-        if print_failed: print("failed to find headers:",failed)
-        d = time.time()
-        if verbose: print("completed in",d-c)
-        q.put((data,name))
-
-    with multiprocessing.Manager() as manager:
-        q = manager.Queue()
-        processes = []
-        results = {}
-        
-        for dataset,name in datasets:
-            p = multiprocessing.Process(target=get_data, args=(q,dataset,name))
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
-
-        while not q.empty():
-            result,key = q.get()
-            results[key] = result
-
-        #q.close()
-    
-    return results
-
-#data_bronxville = get_data(bronxville,1)
-#data_cornwall = get_data(cornwall,0)
-#data_scarsdale = get_data(scarsdale,1)
-#data_harrison = get_data(harrison,0)
-alldata = get_data_main([
+# Extract data
+alldata = ext.get_data([
     (bronxville,'bronxville'),
     (cornwall,'cornwall'),
     (scarsdale,'scarsdale'),
@@ -218,7 +135,7 @@ data_harrison = copy.deepcopy(alldata['harrison'])
 del alldata
 
 
-# In[14]:
+# In[7]:
 
 
 # Shape data
@@ -234,7 +151,7 @@ for key in data_scarsdale:
 
 # #### Get owner names
 
-# In[15]:
+# In[8]:
 
 
 def get_owner_names(entry,key):
@@ -277,7 +194,7 @@ def run_test(entry,key,result,function):
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[9]:
 
 
 # Test bronxville
@@ -313,7 +230,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[17]:
+# In[10]:
 
 
 # Test cornwall
@@ -350,7 +267,7 @@ for key,result in testset_cornwall:
     run_test(entry,key,result,get_owner_names)
 
 
-# In[18]:
+# In[11]:
 
 
 # Test scarsdale
@@ -421,7 +338,7 @@ for key,result in testset_scarsdale:
     run_test(entry,key,result,get_owner_names)
 
 
-# In[19]:
+# In[12]:
 
 
 testset_harrison = [
@@ -479,7 +396,7 @@ for key,result in testset_harrison:
 
 # #### Get owner address
 
-# In[20]:
+# In[13]:
 
 
 def get_owner_address_blocks(entry):
@@ -510,7 +427,7 @@ def run_test(entry,key,result,function):
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[21]:
+# In[14]:
 
 
 # Test bronxville
@@ -539,7 +456,7 @@ assert '' not in all_owner_addrs
 assert None not in all_owner_addrs
 
 
-# In[22]:
+# In[15]:
 
 
 # Test cornwall
@@ -588,7 +505,7 @@ for key,result in testset_cornwall:
     run_test(entry,key,result,get_owner_address_blocks)
 
 
-# In[23]:
+# In[16]:
 
 
 # Test scarsdale
@@ -649,7 +566,7 @@ for key,result in testset_scarsdale:
     run_test(entry,key,result,get_owner_address_blocks)
 
 
-# In[119]:
+# In[17]:
 
 
 def get_owner_address_lines(entry,position):
@@ -688,7 +605,7 @@ for key,result in testset_harrison:
     assert get_owner_address_lines(entry,(0,27)) == result, f"{key}, {get_owner_address_lines(entry,(0,27))} != {result}"
 
 
-# In[24]:
+# In[18]:
 
 
 # Test harrison
@@ -738,7 +655,7 @@ for key,result in testset_harrison:
     run_test(entry,key,result,get_owner_address_blocks)
 
 
-# In[25]:
+# In[19]:
 
 
 def get_property_type(entry,key):
@@ -806,7 +723,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[26]:
+# In[20]:
 
 
 def get_property_address(entry,key):
@@ -891,7 +808,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[27]:
+# In[21]:
 
 
 def get_zoning(entry,pattern):
@@ -974,7 +891,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[28]:
+# In[22]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1034,7 +951,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[29]:
+# In[23]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -1118,7 +1035,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[30]:
+# In[24]:
 
 
 def get_taxable(entry,taxable_name):
