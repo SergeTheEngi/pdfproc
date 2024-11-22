@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[6]:
 
 
 import time
@@ -23,7 +23,7 @@ scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 harrison = pymupdf.open('Harrison.pdf')
 
 
-# In[6]:
+# In[7]:
 
 
 # Inspect the data
@@ -49,7 +49,7 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[12]:
+# In[8]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -57,7 +57,7 @@ re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
 
-# In[13]:
+# In[9]:
 
 
 def get_header(page_text,verbose=False):
@@ -178,7 +178,7 @@ assert header_new == [
 
 # Create entries by separators, split entries into columns
 
-# In[91]:
+# In[10]:
 
 
 def get_page_data(page_text,header_end):
@@ -206,7 +206,7 @@ def get_page_data(page_text,header_end):
         n += 1
 
 
-# In[92]:
+# In[13]:
 
 
 # Multiprocessing version of get_data
@@ -280,62 +280,23 @@ data_harrison = copy.deepcopy(alldata['harrison'])
 del alldata
 
 
-# In[93]:
-
-
-print('bronxville',len(data_bronxville)) # 1730
-print('cornwall',len(data_cornwall))     # 4934
-print('scarsdale',len(data_scarsdale))   # 5960
-print('harrison',len(data_harrison))     # 7076
-
-
-# In[96]:
-
-
-# Check whether data needs to be reshaped
-for block in data_harrison['0011.-1']:
-    for line in block: print([line])
-
-
-print(len(data_harrison['0011.-9']))
-
-
-# In[97]:
+# In[14]:
 
 
 # Shape data
 
 for key in data_cornwall:
-    unwrap_sublists_recursive(data_cornwall,key)
+    data_cornwall[key] = unwrap_sublists_recursive(data_cornwall,key)
     data_cornwall[key] = break_lines(data_cornwall[key])
 
 for key in data_scarsdale:
-    unwrap_sublists_recursive(data_scarsdale,key)
+    data_scarsdale[key] = unwrap_sublists_recursive(data_scarsdale,key)
     data_scarsdale[key] = break_lines(data_scarsdale[key])
-
-#for key in data_harrison:
-#    unwrap_sublists_recursive(data_harrison,key)
-#    data_harrison[key] = break_lines(data_harrison[key])
-for key in data_harrison:
-    newdata = []
-    assert len(data_harrison[key]) == 1, f"{key},{len(data_harrison[key])}"
-    data_harrison[key] = data_harrison[key][0]
-
-
-# In[106]:
-
-
-# Check data integrity
-#for block in data_harrison['0011.-1']:
-#    for line in block: print([line],end='')
-#    print()
-
-for line in data_harrison['0011.-1']: print([line])
 
 
 # #### Get owner names
 
-# In[20]:
+# In[15]:
 
 
 def get_owner_names(entry,key):
@@ -378,7 +339,7 @@ def run_test(entry,key,result,function):
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[21]:
+# In[16]:
 
 
 # Test bronxville
@@ -414,7 +375,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[22]:
+# In[17]:
 
 
 # Test cornwall
@@ -451,7 +412,7 @@ for key,result in testset_cornwall:
     run_test(entry,key,result,get_owner_names)
 
 
-# In[23]:
+# In[18]:
 
 
 # Test scarsdale
@@ -522,7 +483,7 @@ for key,result in testset_scarsdale:
     run_test(entry,key,result,get_owner_names)
 
 
-# In[26]:
+# In[19]:
 
 
 testset_harrison = [
@@ -580,7 +541,7 @@ for key,result in testset_harrison:
 
 # #### Get owner address
 
-# In[52]:
+# In[20]:
 
 
 def get_owner_address_blocks(entry):
@@ -611,7 +572,7 @@ def run_test(entry,key,result,function):
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[55]:
+# In[21]:
 
 
 # Test bronxville
@@ -640,7 +601,7 @@ assert '' not in all_owner_addrs
 assert None not in all_owner_addrs
 
 
-# In[56]:
+# In[22]:
 
 
 # Test cornwall
@@ -689,7 +650,7 @@ for key,result in testset_cornwall:
     run_test(entry,key,result,get_owner_address_blocks)
 
 
-# In[57]:
+# In[23]:
 
 
 # Test scarsdale
@@ -789,7 +750,7 @@ for key,result in testset_harrison:
     assert get_owner_address_lines(entry,(0,27)) == result, f"{key}, {get_owner_address_lines(entry,(0,27))} != {result}"
 
 
-# In[120]:
+# In[24]:
 
 
 # Test harrison
@@ -839,7 +800,7 @@ for key,result in testset_harrison:
     run_test(entry,key,result,get_owner_address_blocks)
 
 
-# In[52]:
+# In[25]:
 
 
 def get_property_type(entry,key):
@@ -907,7 +868,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[53]:
+# In[26]:
 
 
 def get_property_address(entry,key):
@@ -992,7 +953,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[54]:
+# In[27]:
 
 
 def get_zoning(entry,pattern):
@@ -1075,7 +1036,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[55]:
+# In[28]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1135,7 +1096,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[56]:
+# In[29]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -1219,7 +1180,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[57]:
+# In[30]:
 
 
 def get_taxable(entry,taxable_name):

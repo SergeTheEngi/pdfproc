@@ -7,7 +7,7 @@ Process Harrison:
     - [x] Assemble headers
     - [x] Collect page data
 - Process data:
-    - [x] Extract owner names
+    - [ ] Extract owner names
     - [ ] Extract owner address
     - [ ] Extract property type
     - [ ] Extract property address

@@ -1,4 +1,5 @@
 import re
+import copy
 
 class Inspector:
     ''' Probing tool for a dictionary of a pdf created by pymupdf '''
@@ -144,13 +145,15 @@ def unwrap_sublists(var:list):
             out.extend(item)
     return out
 
-def unwrap_sublists_recursive(data,key):
+def unwrap_sublists_recursive(data_source,key):
+    data = copy.deepcopy(data_source[key])
     go = True
     while go:
-        if type(data[key]) == list:
-            data[key] = unwrap_sublists(data[key])
-            if not any(isinstance(i, list) for i in data[key]):
+        if type(data) == list:
+            data = unwrap_sublists(data)
+            if not any(isinstance(i, list) for i in data):
                 go = False
         else:
             print(f"{key} is not a list. Exiting")
             go = False
+    return data
