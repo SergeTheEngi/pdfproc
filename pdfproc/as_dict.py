@@ -41,10 +41,22 @@ class Extractor:
         self.key_block = key_block
         self.key_line = key_line
 
-    def get_header(page_text):
-        ''' UNDERBAKED tool for finding header in a US final assessment roll '''
+    def get_header(self,page_text,verbose=False):
+        ''' Tool for finding header in a US final assessment roll '''
         header_start = None
+        if self.key_block not in page_text.keys():
+            print(f"E: Page structure lacks '{self.key_block}'")
+            return None,None
         for bn,block in enumerate(page_text[self.key_block]):
+            if verbose:
+                print(bn,type(block),end="")
+                if type(block) == dict:
+                    print(block.keys())
+                else:
+                    print()
+            if self.key_line not in block.keys():
+                print(f"E: Block structure lacks '{self.key_line}'")
+                return None,None
             for ln,line in enumerate(block[self.key_line]):
                 line_text = line['spans'][0]['text']
                 
@@ -54,12 +66,56 @@ class Extractor:
                     
                 # Find header end (first separator line)
                 separator = re.search(
-                    re_separator,
+                    self.re_separator,
                     line_text
                 )
                 if header_start and separator:
                     header_end = (bn,ln)
                     return header_start, header_end
+
+        if header_start == None and separator == None:
+            print("W: Failed to find header")
+        elif header_start == None and separator != None:
+            print("W: Failed to find header start")
+        elif header_start != None and separator == None:
+            print("W: Failed to find header end")
+        return None,None
+        
+
+    def assemble_header(self, page_text, header_start, header_end):
+        ''' Tool for assmebling header from a US final assessment roll '''
+        header = []
+        n = 0
+        if header_start[0] == header_end[0]:
+            header.append([])
+            for line in page_text\
+                    [self.key_block][header_start[0]][self.key_line]\
+                    [header_start[1]:header_end[1]]:
+                header[n].append(line['spans'][0]['text'])
+            return header
+        else:
+            for bn in range(header_start[0],header_end[0]):
+                header.append([])
+                if bn == header_start[0]:
+                    for ln in range(
+                        header_start[1],
+                        len(page_text[self.key_block][bn][self.key_line])
+                    ):
+                        header[n].append(page_text\
+                                [self.key_block][bn][self.key_line][ln]\
+                                ['spans'][0]['text'])
+                elif bn > header_start[0] and bn < header_end[0]:
+                    for line in page_text[self.key_block][bn][self.key_line]:
+                        header[n].append(line['spans'][0]['text'])
+                elif bn == header_end[0]:
+                    for ln in range(header_end[1]):
+                        header[n].append(page_text\
+                                [self.key_block][bn][self.key_line][ln]\
+                                ['spans'][0]['text'])
+                else:
+                    raise ValueError("How did you got here?")
+                n += 1
+            return header
 
 # Helper functions
 import re as re

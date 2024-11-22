@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
+# In[3]:
 
 
 import time
@@ -10,6 +10,7 @@ import pymupdf
 import re
 import copy
 from openpyxl import Workbook
+import pdfproc
 from pdfproc.as_dict import \
     break_lines, \
     find_line, \
@@ -49,131 +50,68 @@ for block in header:
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[8]:
+# In[4]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
 
+ext = pdfproc.as_dict.Extractor(
+    re_id,
+    re_separator,
+    re_page_end
+)
 
-# In[9]:
+
+# In[11]:
 
 
-def get_header(page_text,verbose=False):
-    header_start = None
-    if 'blocks' not in page_text.keys():
-        print("Page structure lacks 'blocks'")
-        return None,None
-    for bn,block in enumerate(page_text['blocks']):
-        if verbose:
-            print(bn,type(block),end="")
-            if type(block) == dict:
-                print(block.keys())
-            else:
-                print()
-        if 'lines' not in block.keys():
-            print("Block structure lacks 'lines'")
-            return None,None
-        for ln,line in enumerate(block['lines']):
-            line_text = line['spans'][0]['text']
-            
-            # Find first header line
-            if 'TAX MAP PARCEL' in line_text:
-               header_start = (bn,ln)
-                
-            # Find header end (first separator line)
-            separator = re.search(
-                re_separator,
-                line_text
-            )
-            if header_start and separator:
-                header_end = (bn,ln)
-                return header_start, header_end
+# Test the extractor
+bronxville_page = bronxville.load_page(1)
+bronxville_text = bronxville_page.get_text('dict')
+cornwall_page = cornwall.load_page(0)
+cornwall_text = cornwall_page.get_text('dict')
 
-    if header_start == None and separator == None:
-        print("Failed to find header")
-    elif header_start == None and separator != None:
-        print("Failed to find header start")
-    elif header_start != None and separator == None:
-        print("Failed to find header end")
-    return None,None
-        
-
-def assemble_header(page_text, header_start, header_end):
-    header = []
-    n = 0
-    if header_start[0] == header_end[0]:
-        header.append([])
-        for line in page_text['blocks'][header_start[0]]['lines'][header_start[1]:header_end[1]]:
-            header[n].append(line['spans'][0]['text'])
-        return header
-    else:
-        for bn in range(header_start[0],header_end[0]):
-            header.append([])
-            if bn == header_start[0]:
-                for ln in range(header_start[1],len(page_text['blocks'][bn]['lines'])):
-                    header[n].append(page_text['blocks'][bn]['lines'][ln]['spans'][0]['text'])
-            elif bn > header_start[0] and bn < header_end[0]:
-                for line in page_text['blocks'][bn]['lines']:
-                    header[n].append(line['spans'][0]['text'])
-            elif bn == header_end[0]:
-                for ln in range(header_end[1]):
-                    header[n].append(page_text['blocks'][bn]['lines'][ln]['spans'][0]['text'])
-            else:
-                raise ValueError("How did you got here?")
-            n += 1
-        return header
-
-# Tests
-page_testing = bronxville.load_page(1)
-page_testing_text = page_testing.get_text('dict')
-page_new = cornwall.load_page(0)
-page_new_text = page_new.get_text('dict')
-
-## Test get_header
-header_start,header_end = get_header(page_testing_text)
-header_start_new, header_end_new = get_header(page_new_text)
-#print(header_start,header_end)
-#print(page_testing_text['blocks'][header_start[0]]['lines'][header_start[1]]['spans'][0]['text'])
-#print(page_testing_text['blocks'][header_end[0]]['lines'][header_end[1]]['spans'][0]['text'])
-assert (header_start,header_end) == ((5,2),(7,0))
-assert (header_start_new,header_end_new) == ((1,0),(1,3))
-
-print("\n ###### ")
-
-## Test assemble_header
-header_testing = assemble_header(page_testing_text, header_start, header_end)
-header_new = assemble_header(page_new_text, header_start_new, header_end_new)
-#for bl,block in enumerate(header):
-#    print("\nblock",bl)
-#    for ln,line in enumerate(block):
-#        print(ln,line,end='')
-#print(header)
-assert header_testing == [
-    [
-        'TAX MAP PARCEL NUMBER        PROPERTY LOCATION & CLASS  ASSESSMENT  EXEMPTION CODE------------------COUNTY--------TOWN------SCHOOL ',
-        'CURRENT OWNERS NAME ',
-        '       SCHOOL DISTRICT  ',
-        '     LAND      TAX DESCRIPTION ',
-        ' ',
-        '  TAXABLE VALUE '
-    ],
-    [
-        'CURRENT OWNERS ADDRESS        PARCEL SIZE/GRID COORD     TOTAL      SPECIAL DISTRICTS ',
-        ' ',
-        ' ',
-        ' ',
-        ' ACCOUNT NO. '
-    ],
+testset = [
+        (bronxville_text,{
+            'get_header':((5,2),(7,0)),
+            'assemble_header':[
+                [
+                    'TAX MAP PARCEL NUMBER        PROPERTY LOCATION & CLASS  ASSESSMENT  EXEMPTION CODE------------------COUNTY--------TOWN------SCHOOL ',
+                    'CURRENT OWNERS NAME ',
+                    '       SCHOOL DISTRICT  ',
+                    '     LAND      TAX DESCRIPTION ',
+                    ' ',
+                    '  TAXABLE VALUE '
+                ],
+                [
+                    'CURRENT OWNERS ADDRESS        PARCEL SIZE/GRID COORD     TOTAL      SPECIAL DISTRICTS ',
+                    ' ',
+                    ' ',
+                    ' ',
+                    ' ACCOUNT NO. '
+                ],
+            ]
+        }),
+        (cornwall_text,{
+            'get_header':((1,0),(1,3)),
+            'assemble_header':[
+                [
+                    'TAX MAP PARCEL NUMBER          PROPERTY LOCATION & CLASS  ASSESSMENT  EXEMPTION CODE-----VILLAGE------COUNTY--------TOWN------SCHOOL',
+                    'CURRENT OWNERS NAME            SCHOOL DISTRICT               LAND      TAX DESCRIPTION            TAXABLE VALUE',
+                    'CURRENT OWNERS ADDRESS         PARCEL SIZE/GRID COORD       TOTAL      SPECIAL DISTRICTS                                 ACCOUNT NO.'
+                ]
+            ]
+        })
 ]
-assert header_new == [
-    [
-        'TAX MAP PARCEL NUMBER          PROPERTY LOCATION & CLASS  ASSESSMENT  EXEMPTION CODE-----VILLAGE------COUNTY--------TOWN------SCHOOL',
-        'CURRENT OWNERS NAME            SCHOOL DISTRICT               LAND      TAX DESCRIPTION            TAXABLE VALUE',
-        'CURRENT OWNERS ADDRESS         PARCEL SIZE/GRID COORD       TOTAL      SPECIAL DISTRICTS                                 ACCOUNT NO.'
-    ]
-]
+
+for test,result in testset:
+    header_start,header_end = ext.get_header(test)
+    assert (header_start,header_end) == result['get_header']
+    
+    header = ext.assemble_header(test,header_start,header_end)
+    assert header == result['assemble_header']
 
 
 # Create entries by separators, split entries into columns
