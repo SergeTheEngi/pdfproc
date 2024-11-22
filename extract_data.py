@@ -135,11 +135,10 @@ data_harrison = copy.deepcopy(alldata['harrison'])
 del alldata
 
 
-# In[7]:
+# In[6]:
 
 
 # Shape data
-
 for key in data_cornwall:
     data_cornwall[key] = unwrap_sublists_recursive(data_cornwall,key)
     data_cornwall[key] = break_lines(data_cornwall[key])
@@ -151,7 +150,7 @@ for key in data_scarsdale:
 
 # #### Get owner names
 
-# In[8]:
+# In[7]:
 
 
 def get_owner_names(entry,key):
@@ -189,12 +188,8 @@ def get_owner_names(entry,key):
         owner_names[i] = re.sub('DEED BOOK.+','',owner_names[i])
     return owner_names
 
-def run_test(entry,key,result,function):
-    output = function(entry,key)
-    assert output == result, f"{key}, {result} != {output}"
 
-
-# In[9]:
+# In[19]:
 
 
 # Test bronxville
@@ -218,7 +213,22 @@ testset_bronxville = [
 ]
 
 for key,result in testset_bronxville:
-    run_test(data_bronxville[key],key,result,get_owner_names)
+    entry = []
+    temp_data = normalize_data(data_bronxville[key])
+    for block in temp_data:
+        if len(block) > 0 and 'PRIOR OWNER' in block[0]: break
+        if len(block) > 0:
+            if '  ' in block[0]:
+                block[0] = block[0].split('  ')[0]
+            temp = block[0].replace(' FULL MARKET VALUE','')
+            temp = temp.replace('FULL MARKET VALUE','')
+            temp = temp.replace(' Bronxville Sch','')
+            temp = temp.replace('Bronxville Sch','')
+            temp = re.sub(' DEED BOOK.+','',temp)
+            temp = re.sub('DEED BOOK.+','',temp)
+            entry.append(temp)
+    output = ext.get_owner_names(entry,key)
+    assert output == result, f"{key}, {result} != {output}"
 
 all_names = []
 for entry in data_bronxville:
@@ -230,7 +240,7 @@ assert '' not in all_names
 assert None not in all_names
 
 
-# In[10]:
+# In[25]:
 
 
 # Test cornwall
@@ -263,11 +273,12 @@ for key,result in testset_cornwall:
                 temp = re.search(pattern,line[0])
                 if temp: append_test = False
             if not append_test: break
-            entry.append(line)
-    run_test(entry,key,result,get_owner_names)
+            entry.append(line[0])
+    output = ext.get_owner_names(entry,key)
+    assert output == result, f"{key}, {result} != {output}"
 
 
-# In[11]:
+# In[28]:
 
 
 # Test scarsdale
@@ -331,11 +342,13 @@ for key,result in testset_scarsdale:
                         if ln > 1:
                             newline = [' '.join(line[:ln])]
                             newline.extend(line[ln:])
-                            entry.append(newline)
+                            entry.append(newline[0])
                         else: break
                 if not newline:
-                    entry.append(line)
-    run_test(entry,key,result,get_owner_names)
+                    entry.append(line[0])
+    #print(entry)
+    output = ext.get_owner_names(entry,key)
+    assert output == result, f"{key}, {result} != {output}"
 
 
 # In[12]:

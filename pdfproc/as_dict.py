@@ -142,9 +142,33 @@ class Extractor:
             n += 1
 
     def get_data(self,datasets:list):
+        '''
+        Input list of dataset tuples as (dataset, 'dataset_name').
+        Input datasets are final assessment roll pdfs:
+        `dataset = pymupdf.open('myfa.pdf')`
+
+        Returns dictionary of extracted datasets as {'dataset_name':dataset}
+        Returned dataset is a dictionary of raw entries. Each entry is a list
+        of blocks. Each block is a list of lines in whatever arrangement it is
+        in the pdf:
+        ```
+        dataset = {
+            'id':[ # Entry level
+                [ # Block level
+                    'text is here','another piece of text'
+                ],
+                ['This is the second block, but it contains only one line']
+            ]
+        }
+        ```
+
+        Sometimes line displayed in a pdf structurally is a block, sometimes
+        entry consists of a single block, and each line in the block is an
+        actual line.
+        '''
         import multiprocessing
         
-        def get_data(q,source,name,from_page=0,verbose=False,print_failed=True):
+        def worker(q,source,name,from_page=0,verbose=False,print_failed=True):
             data = {}
             failed = []
             
@@ -174,7 +198,7 @@ class Extractor:
             
             for dataset,name in datasets:
                 p = multiprocessing.Process(
-                        target=get_data,
+                        target=worker,
                         args=(q,dataset,name)
                 )
                 p.start()
@@ -192,9 +216,21 @@ class Extractor:
         
         return results
 
-# Helper functions
-import re as re
+    def get_owner_names(self,entry,key):
+        entry = list(filter(None,entry))
+        entry_id = max([i for i,item in enumerate(entry) if key in item])
+        owner_names = []
+        for item in entry[entry_id + 1:-2]:
+            owner_names.append(item.strip())
+        for item in entry[-2:]:
+            company = re.search('(l ?l ?c)|(L ?L ?C)',item)
+            if company:
+                owner_names.append(item.strip())
+                company = None
+        return owner_names
 
+
+# Helper functions
 def break_lines(entry):
     out = []
     for line in entry:
