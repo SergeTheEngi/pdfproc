@@ -141,9 +141,13 @@ class Extractor:
             if harvest: page_data[entry_id].append([])
             n += 1
 
-    def get_data(self,datasets:list):
+    def get_data(self,args:list):
         '''
-        Input list of dataset tuples as (dataset, 'dataset_name').
+        Input list of argument dictionaries containing arguments for the worker
+        function as:
+        ```
+        {'source':dataset, 'name':'dataset_name', 'columns':['col1','col2']}`
+        ```
         Input datasets are final assessment roll pdfs:
         `dataset = pymupdf.open('myfa.pdf')`
 
@@ -168,7 +172,13 @@ class Extractor:
         '''
         import multiprocessing
         
-        def worker(q,source,name,from_page=0,verbose=False,print_failed=True):
+        def worker(q,
+                   source,
+                   name,
+                   from_page=0,
+                   columns=None,
+                   verbose=False,
+                   print_failed=True):
             data = {}
             failed = []
             
@@ -177,16 +187,25 @@ class Extractor:
                 page_text=page.get_text('dict')
             
                 hs,he = self.get_header(page_text)
-                #header = assemble_header(page_text,hs,he)
             
                 if hs != None and he != None:
                     page_data = self.get_page_data(page_text,he)
                     if verbose: print("page",p,page_data.keys())
-                    for id in page_data:
-                        data[id] = page_data[id]
+                    if columns != None:
+                        header = self.assemble_header(page_text,hs,he)
+                        column_positions = get_columns(header,columns)
+                        for id in page_data:
+                            data[id] = {
+                                'data':page_data[id],
+                                'columns':column_positions
+                            }
+                    else:
+                        for id in page_data:
+                            data[id] = page_data[id]
                 else:
                     failed.append(p+1)
                     if verbose: print("page",p)
+
                 
             if print_failed: print("failed to find headers:",failed)
             q.put((data,name))
@@ -195,11 +214,13 @@ class Extractor:
             q = manager.Queue()
             processes = []
             results = {}
-            
-            for dataset,name in datasets:
+
+            for item in args:
+                arguments = {'q':q}
+                arguments.update(item)
                 p = multiprocessing.Process(
                         target=worker,
-                        args=(q,dataset,name)
+                        kwargs=arguments
                 )
                 p.start()
                 processes.append(p)
@@ -243,6 +264,21 @@ def find_line(entry,query):
         temp = ' '.join(temp.split())
         if query in temp: return temp
     return 1
+
+def get_columns(header,columns:list):
+    ''' Pass an extracted header (as a list of blocks containing a single block
+    with actual lines) and list of column patterns to look for, and it return
+    their starting positions'''
+    assert len(header) == 1, "Header length is not 1"
+    positions = {}
+    for line in header[0]:
+        for pattern in columns:
+            pos = line.find(pattern)
+            if pos == -1: continue
+            else: positions[pattern] = pos
+    diff = set(columns).symmetric_difference(set(positions))
+    assert len(diff) == 0, f"Failed to find columns: {list(diff)}"
+    return positions
 
 def normalize_data(entry,verbose=False):
     data = [[]]; n = 0; Skip = False
