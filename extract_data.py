@@ -54,7 +54,7 @@ print([page_text['blocks'][1]['lines'][5]['spans'][0]['text']])
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[3]:
+# In[2]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -68,7 +68,7 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 
-# In[4]:
+# In[3]:
 
 
 # Test header extractor
@@ -120,7 +120,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[5]:
+# In[4]:
 
 
 # Extract data
@@ -144,7 +144,7 @@ data_harrison = copy.deepcopy(alldata['harrison'])
 del alldata
 
 
-# In[6]:
+# In[5]:
 
 
 # Shape data
@@ -314,74 +314,22 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[12]:
+# In[9]:
 
 
-print(data_harrison['0011.-1']['columns'])
-for line in data_harrison['0011.-1']['data'][0]: print([line])
-
-
-# In[23]:
-
-
+# Test harrison
 testset_harrison = [
     ('0011.-1',['RYEWOOD FARMS HOMEOWNERS','ASSOCIATION INC','WESTFAIR PROP MANAG INC','STE 330']),
     ('0856.-17',['MORGADO, RICHARD A']),
     ('0545.-46',['FRANCK, PEGGY MILLER'])
 ]
 
-# Old entry assembly, may be useful
-'''
-    for line in data_harrison[key]:
-        if 'FULL MKT VAL' in line[0] or \
-            'DEED BK' in line[0] or \
-            'EAST-' in line[0] or \
-            'ACREAGE' in line[0] or \
-            'add to' in line[0] or \
-            'add map' in line[0] or \
-            'MAP' in line[0] or \
-            'TAXABLE' in line[0] or \
-            'CONTIGUOUS PARCEL' in line[0] or \
-            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
-            bool(re.search('@ [0-9]',line[0])) or \
-            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
-            break
-        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or \
-            ('FRNT' in line[0] and 'DPTH' in line[1]):
-            if line[0][-4:] == 'FRNT': pass
-            else: break
-        else:
-            patterns = [
-                ('FD[0-9]{3}',' '.join(line)),
-                ('RG[0-9]{3}',' '.join(line)),
-                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
-            ]
-            temp = None
-            append_test = True
-            for pattern,text in patterns:
-                temp = re.search(pattern,text)
-                if temp:
-                    append_test = False
-            if not append_test:
-                break
-            else:
-                newline = None
-                for ln,subline in enumerate(line):
-                    if 'HARRISON CENTRAL' in subline:
-                        if ln > 1:
-                            newline = [' '.join(line[:ln])]
-                            newline.extend(line[ln:])
-                            entry.append(newline)
-                        else: break
-                if not newline:
-'''
-
 for key,result in testset_harrison:
     entry= []
     for line in data_harrison[key]['data'][0][1:]:
         if key in line: entry.append(key)
         else:
-            temp = line[4:31].strip()
+            temp = line[data_harrison[key]['columns']['TAX MAP']:data_harrison[key]['columns']['PROPERTY LOCATION']].strip()
             entry.append(temp)
     output = ext.get_owner_names(entry,key)
     assert output == result, f"{key}, {result} != {output}"
@@ -389,38 +337,7 @@ for key,result in testset_harrison:
 
 # #### Get owner address
 
-# In[13]:
-
-
-def get_owner_address_blocks(entry):
-    col1 = []; company = None
-    owner_address_data=normalize_data(entry)
-    for bn,block in enumerate(owner_address_data):
-        if len(block) > 0:
-            company = re.search('(l ?l ?c)|(L ?L ?C)',block[0])
-            if company:
-                block.pop(0)
-                company = None
-    for block in owner_address_data:
-        #print(block)
-        try:
-            if 'PRIOR OWNER' in block[0]: break
-            col1.append(block[0])
-        except: pass
-    col1 = list(filter(None,col1))
-    owner_addr = col1[-2:]
-    for i,name in enumerate(owner_addr):
-        if '   ' in owner_addr[i]:
-            owner_addr[i] = name.split('   ')[0]
-        
-    return ', '.join(owner_addr)
-
-def run_test(entry,key,result,function):
-    output = function(entry)
-    assert output == result, f"{key}, {result} != {output}"
-
-
-# In[14]:
+# In[10]:
 
 
 # Test bronxville
@@ -438,18 +355,22 @@ testset_bronxville = [
 ]
 
 for key,result in testset_bronxville:
-    run_test(data_bronxville[key],key,result,get_owner_address_blocks)
+    entry = []
+    data = normalize_data(data_bronxville[key])
+    for block in data:
+        if len(block) > 0:
+            if 'PRIOR OWNER' in block[0]: break
+            company = re.search('(l ?l ?c)|(L ?L ?C)',block[0])
+            if company:
+                block.pop(0)
+                company = None
+        else: continue
+        if len(block) > 0: entry.append(block[0])
+    output = ext.get_owner_address(entry)
+    assert output == result, f"{key}, {result} != {output}"
 
-all_owner_addrs = []
-for entry in data_bronxville:
-    all_owner_addrs.append(get_owner_address_blocks(data_bronxville[entry]))
 
-assert '' in ['', 'test']
-assert '' not in all_owner_addrs
-assert None not in all_owner_addrs
-
-
-# In[9]:
+# In[11]:
 
 
 # Test cornwall
@@ -494,11 +415,12 @@ for key,result in testset_cornwall:
                 temp = re.search(pattern,line[0])
                 if temp: append_test = False
             if not append_test: break
-            entry.append(line)
-    run_test(entry,key,result,get_owner_address_blocks)
+            entry.append(line[0])
+    output = ext.get_owner_address(entry)
+    assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[12]:
 
 
 # Test scarsdale
@@ -555,8 +477,30 @@ for key,result in testset_scarsdale:
             if not append_test:
                 break
             else:
-                entry.append(line)
-    run_test(entry,key,result,get_owner_address_blocks)
+                entry.append(line[0])
+    output = ext.get_owner_address(entry)
+    assert output == result, f"{key}, {result} != {output}"
+
+
+# In[13]:
+
+
+# Test harrison
+testset_harrison = [
+    ('0011.-1','56 LAFAYETTE AVE, WHITE PLAINS NY 10603'),
+    ('0824.-19','146 FREMONT ST, HARRISON NY 10528'),
+    ('0892.-32','105 CORPORATE PARK DR-APT, WEST HARRISON NY 10604')
+]
+
+for key,result in testset_harrison:
+    entry= []
+    for line in data_harrison[key]['data'][0][1:]:
+        start = data_harrison[key]['columns']['TAX MAP']
+        end = data_harrison[key]['columns']['PROPERTY LOCATION']
+        temp = line[start:end].strip()
+        entry.append(temp)
+    output = ext.get_owner_address(entry)
+    assert output == result, f"{key}, {[result]} != {[output]}"
 
 
 # In[17]:
@@ -596,56 +540,6 @@ for key,result in testset_harrison:
         else:
             entry.append(line)
     assert get_owner_address_lines(entry,(0,27)) == result, f"{key}, {get_owner_address_lines(entry,(0,27))} != {result}"
-
-
-# In[18]:
-
-
-# Test harrison
-testset_harrison = [
-    ('0011.-1','56 LAFAYETTE AVE, WHITE PLAINS NY 10603'),
-    ('0824.-19','146 FREMONT ST, HARRISON NY 10528')
-]
-
-for key,result in testset_harrison:
-    entry = []
-    for line in data_harrison[key]:
-        if 'FULL MKT VAL' in line[0] or \
-            'DEED BK' in line[0] or \
-            'EAST-' in line[0] or \
-            'ACREAGE' in line[0] or \
-            'add to' in line[0] or \
-            'add map' in line[0] or \
-            'MAP' in line[0] or \
-            'TAXABLE' in line[0] or \
-            'CONTIGUOUS PARCEL' in line[0] or \
-            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
-            bool(re.search('@ [0-9]',line[0])) or \
-            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
-                break
-        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
-            if line[0][-4:] == 'FRNT': pass
-            else:
-                break
-        else:
-            patterns = [
-                ('FD[0-9]{3}',' '.join(line)),
-                ('RG[0-9]{3}',' '.join(line)),
-                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
-            ]
-            temp = None
-            append_test = True
-            for pattern,text in patterns:
-                temp = re.search(pattern,text)
-                if temp:
-                    if key == '10.31.10': print(temp.group())
-                    append_test = False
-            if not append_test:
-                break
-            else:
-                entry.append(line)
-    print(entry)
-    run_test(entry,key,result,get_owner_address_blocks)
 
 
 # In[19]:
