@@ -117,7 +117,7 @@ class Extractor:
                 n += 1
             return header
 
-    def get_page_data(self,page_text,header_end):
+    def get_page_data(self,page_text,header_end,strip_lines=True):
         page_data = {}; n = 0; harvest = False
         for bn,block in enumerate(page_text[self.key_block][header_end[0]:]):
             for line in block[self.key_line]:
@@ -137,7 +137,10 @@ class Extractor:
                         line_text
                     )
                     if page_end: return page_data
-                if harvest: page_data[entry_id][n].append(line_text.strip())
+                if harvest and strip_lines:
+                    page_data[entry_id][n].append(line_text.strip())
+                elif harvest and not strip_lines:
+                    page_data[entry_id][n].append(line_text)
             if harvest: page_data[entry_id].append([])
             n += 1
 
@@ -177,6 +180,7 @@ class Extractor:
                    name,
                    from_page=0,
                    columns=None,
+                   strip_lines=True,
                    verbose=False,
                    print_failed=True):
             data = {}
@@ -189,7 +193,7 @@ class Extractor:
                 hs,he = self.get_header(page_text)
             
                 if hs != None and he != None:
-                    page_data = self.get_page_data(page_text,he)
+                    page_data = self.get_page_data(page_text,he,strip_lines)
                     if verbose: print("page",p,page_data.keys())
                     if columns != None:
                         header = self.assemble_header(page_text,hs,he)
