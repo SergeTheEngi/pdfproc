@@ -7,12 +7,12 @@ Process Harrison:
     - [x] Assemble headers
     - [x] Collect page data
 - Process data:
-    - [ ] Extract owner names
-    - [ ] Extract owner address
-    - [ ] Extract property type
-    - [ ] Extract property address
-    - [ ] Extract zoning
-    - [ ] Extract acreage
-    - [ ] Extract market value
-    - [ ] Extract taxables
+    - [x] Access owner names
+    - [x] Access owner address
+    - [ ] Access property type
+    - [ ] Access property address
+    - [ ] Access zoning
+    - [ ] Access acreage
+    - [ ] Access market value
+    - [ ] Access taxables
 - [ ] Review the data, fix the errors
