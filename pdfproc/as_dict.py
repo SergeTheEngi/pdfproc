@@ -242,6 +242,7 @@ class Extractor:
         return results
 
     def get_owner_names(self,entry,key):
+        ''' Pass entry as list of strings from an appropriate column'''
         entry = list(filter(None,entry))
         entry_id = max([i for i,item in enumerate(entry) if key in item])
         owner_names = []
@@ -253,6 +254,18 @@ class Extractor:
                 owner_names.append(item.strip())
                 company = None
         return owner_names
+    
+    def get_owner_address(self,entry):
+        ''' Pass entry as list of strings from an appropriate column '''
+        company = None
+        entry = list(filter(None,entry))
+        owner_addr = entry[-2:]
+        for i,name in enumerate(owner_addr):
+            if '   ' in owner_addr[i]:
+                owner_addr[i] = name.split('   ')[0]
+        for i,name in enumerate(owner_addr):
+            owner_addr[i] = ' '.join(name.split())
+        return ', '.join(owner_addr)
 
 
 # Helper functions
