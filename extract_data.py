@@ -14,8 +14,8 @@ import pdfproc
 from pdfproc.as_dict import \
     break_lines, \
     find_line, \
+    get_columns, \
     normalize_data, \
-    unwrap_sublists, \
     unwrap_sublists_recursive
 
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
@@ -27,21 +27,25 @@ harrison = pymupdf.open('Harrison.pdf')
 # In[2]:
 
 
-# Inspect the data
-page = harrison.load_page(1)
-page_text = page.get_text('dict')
+def inspect(data):# Inspect the data
+    page = data.load_page(1)
+    page_text = page.get_text('dict')
 
-#print(page_text)
+    header_start,header_end = ext.get_header(page_text)
+    header = ext.assemble_header(page_text, header_start, header_end)
 
-#for block in page_text['blocks']:
-#    for line in block['lines']:
-#        print(line['spans'][0]['text'])
+    cols = get_columns(header,['TAX MAP','PROPERTY LOCATION','ASSESSMENT','EXEMPTION'])
 
-header_start,header_end = get_header(page_text)
-header = assemble_header(page_text, header_start, header_end)
+    for col in cols:
+        print(f"{col} : {cols[col]}")
+    for block in header:
+        for line in block: print([line])
 
-for block in header:
-    for line in block: print([line])
+#inspect(harrison)
+
+mypage = harrison.load_page(0)
+page_text = mypage.get_text('dict')
+print([page_text['blocks'][1]['lines'][5]['spans'][0]['text']])
 
 
 # ## Extracting the data
@@ -121,10 +125,15 @@ for test,result in testset:
 
 # Extract data
 alldata = ext.get_data([
-    (bronxville,'bronxville'),
-    (cornwall,'cornwall'),
-    (scarsdale,'scarsdale'),
-    (harrison,'harrison')
+    {'source':bronxville,'name':'bronxville'},
+    {'source':cornwall,'name':'cornwall'},
+    {'source':scarsdale,'name':'scarsdale'},
+    {
+        'source':harrison,
+        'name':'harrison',
+        'columns':['TAX MAP','PROPERTY LOCATION','EXEMPTION','TAXABLE VALUE'],
+        'strip_lines':False
+    }
 ])
 
 data_bronxville = copy.deepcopy(alldata['bronxville'])
@@ -139,10 +148,12 @@ del alldata
 
 
 # Shape data
+# Shape cornwall
 for key in data_cornwall:
     data_cornwall[key] = unwrap_sublists_recursive(data_cornwall,key)
     data_cornwall[key] = break_lines(data_cornwall[key])
 
+# Shape scarsdale
 for key in data_scarsdale:
     data_scarsdale[key] = unwrap_sublists_recursive(data_scarsdale,key)
     data_scarsdale[key] = break_lines(data_scarsdale[key])
@@ -150,46 +161,7 @@ for key in data_scarsdale:
 
 # #### Get owner names
 
-# In[7]:
-
-
-def get_owner_names(entry,key):
-    col1 = []
-    owner_names_data = normalize_data(entry)
-    #print(owner_names_data)
-    for block in owner_names_data:
-        try:
-            #if 'PRIOR OWNER' in block[0] or 'FULL MARKET VALUE' in block[0]: break
-            if 'PRIOR OWNER' in block[0]: break
-            col1.append(block[0])
-        except: pass
-    #print(col1)
-    col1 = list(filter(None,col1))
-    #for block in col1: print(block)
-    col1_id = max([i for i,item in enumerate(col1) if key in item])
-    #print(col1_id)
-    owner_names = []
-    #owner_names.append(col1[2])
-    for item in col1[col1_id + 1:-2]:
-        owner_names.append(item)
-    for item in col1[-2:]:
-        company = re.search('(l ?l ?c)|(L ?L ?C)',item)
-        if company:
-            owner_names.append(item)
-            company = None
-    for i,name in enumerate(owner_names):
-        if '  ' in owner_names[i]:
-            owner_names[i] = name.split('  ')[0]
-        owner_names[i] = owner_names[i].replace(' FULL MARKET VALUE','')
-        owner_names[i] = owner_names[i].replace('FULL MARKET VALUE','')
-        owner_names[i] = owner_names[i].replace(' Bronxville Sch','')
-        owner_names[i] = owner_names[i].replace('Bronxville Sch','')
-        owner_names[i] = re.sub(' DEED BOOK.+','',owner_names[i])
-        owner_names[i] = re.sub('DEED BOOK.+','',owner_names[i])
-    return owner_names
-
-
-# In[19]:
+# In[6]:
 
 
 # Test bronxville
@@ -230,17 +202,8 @@ for key,result in testset_bronxville:
     output = ext.get_owner_names(entry,key)
     assert output == result, f"{key}, {result} != {output}"
 
-all_names = []
-for entry in data_bronxville:
-    all_names.append(get_owner_names(data_bronxville[entry],entry))
 
-assert '' in ['', 'test']
-assert '' not in all_names
-#assert [] not in all_names
-assert None not in all_names
-
-
-# In[25]:
+# In[7]:
 
 
 # Test cornwall
@@ -278,7 +241,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[28]:
+# In[8]:
 
 
 # Test scarsdale
@@ -354,13 +317,21 @@ for key,result in testset_scarsdale:
 # In[12]:
 
 
+print(data_harrison['0011.-1']['columns'])
+for line in data_harrison['0011.-1']['data'][0]: print([line])
+
+
+# In[23]:
+
+
 testset_harrison = [
     ('0011.-1',['RYEWOOD FARMS HOMEOWNERS','ASSOCIATION INC','WESTFAIR PROP MANAG INC','STE 330']),
     ('0856.-17',['MORGADO, RICHARD A']),
+    ('0545.-46',['FRANCK, PEGGY MILLER'])
 ]
 
-for key,result in testset_harrison:
-    entry= []
+# Old entry assembly, may be useful
+'''
     for line in data_harrison[key]:
         if 'FULL MKT VAL' in line[0] or \
             'DEED BK' in line[0] or \
@@ -403,8 +374,17 @@ for key,result in testset_harrison:
                             entry.append(newline)
                         else: break
                 if not newline:
-                    entry.append(line)
-    run_test(entry,key,result,get_owner_names)
+'''
+
+for key,result in testset_harrison:
+    entry= []
+    for line in data_harrison[key]['data'][0][1:]:
+        if key in line: entry.append(key)
+        else:
+            temp = line[4:31].strip()
+            entry.append(temp)
+    output = ext.get_owner_names(entry,key)
+    assert output == result, f"{key}, {result} != {output}"
 
 
 # #### Get owner address
@@ -469,7 +449,7 @@ assert '' not in all_owner_addrs
 assert None not in all_owner_addrs
 
 
-# In[15]:
+# In[9]:
 
 
 # Test cornwall
