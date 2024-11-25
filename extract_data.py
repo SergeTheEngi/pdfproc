@@ -590,7 +590,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[16]:
+# In[51]:
 
 
 def get_property_address(entry,key):
@@ -640,6 +640,12 @@ testset_scarsdale = [
     ('02.05.2A.2','CHRISTIE PL'),
 ]
 
+testset_harrison = [
+    ('0011.-1','HARRISON AVE'),
+    ('0422.-10','93 WHITE ST'),
+    ('0883.-31','207-209 GAINSBORG AVE')
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_property_address)
 
@@ -667,6 +673,22 @@ for key,result in testset_scarsdale:
         entry[0].insert(0,'')
     run_test(entry,key,result,get_property_address)
 
+for key,result in testset_harrison:
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        entry[0][1] = ' '.join(entry[0][1:])
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
+    run_test(entry,key,result,get_property_address)
+
 all_property_addrs = []
 for entry in data_bronxville:
     all_property_addrs.append(get_property_address(data_bronxville[entry],entry))
@@ -675,7 +697,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[17]:
+# In[53]:
 
 
 def get_zoning(entry,pattern):
@@ -723,6 +745,12 @@ testset_scarsdale = [
     ('11.05.9','SCARSDALE CENTRAL'),
 ]
 
+testset_harrison = [
+    ('0883.-31','HARRISON CENTRAL'),
+    ('0103.-13','HARRISON CENTRAL'),
+    ('1005.-32','HARRISON CENTRAL')
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_zoning,'Bronxville Sch  ?\\d{6} ')
 
@@ -741,6 +769,21 @@ for key in data_scarsdale:
     result = None; entry = None
     entry = copy.deepcopy(data_scarsdale[key][1:])
     result = get_zoning(entry,'SCARSDALE CENTRAL')
+    assert result != None
+
+# Harrison tests
+for key,result in testset_harrison:
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    result = get_zoning(entry,'HARRISON CENTRAL')
+
+for key in data_harrison:
+    result = None; entry = None
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    result = get_zoning(entry,'HARRISON CENTRAL')
     assert result != None
 
 # Old tests
