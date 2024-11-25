@@ -976,7 +976,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[24]:
+# In[60]:
 
 
 def get_taxable(entry,taxable_name):
@@ -1032,6 +1032,13 @@ testset_scarsdale = [
     ('11.05.9',[882375,882375,882375]),
 ]
 
+testset_harrison = [
+    ('0011.-1',[2000,2000,2000]),
+    ('0883.-31',[12152,12152,11990]),
+    ('0103.-13',[1280,1280,1280]),
+    ('1005.-32',[19950,19950,19950]),
+]
+
 taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_all_taxables,taxable_names)
@@ -1044,6 +1051,15 @@ for key,result in testset_cornwall:
 taxable_names = ['COUNTY TAXABLE','VILLAGE TAXABLE','SCHOOL TAXABLE']
 for key,result in testset_scarsdale:
     entry = copy.deepcopy(data_scarsdale[key][1:])
+    run_test(entry,key,result,get_all_taxables,taxable_names)
+
+taxable_names = ['COUNTY TAXABLE','TOWN TAXABLE','SCHOOL TAXABLE']
+for key,result in testset_harrison:
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
     run_test(entry,key,result,get_all_taxables,taxable_names)
 
 taxable_names = ['COUNTY TAXABLE VALUE','VILLAGE TAXABLE VALUE','SCHOOL TAXABLE VALUE']
