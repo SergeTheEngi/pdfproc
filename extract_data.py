@@ -697,7 +697,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[53]:
+# In[54]:
 
 
 def get_zoning(entry,pattern):
@@ -776,7 +776,7 @@ for key,result in testset_harrison:
     entry = copy.deepcopy(data_harrison[key]['data'])
     entry = unwrap_sublists_recursive(entry)
     entry = break_lines(entry)[1:]
-    result = get_zoning(entry,'HARRISON CENTRAL')
+    run_test(entry,key,result,get_zoning,'HARRISON CENTRAL')
 
 for key in data_harrison:
     result = None; entry = None
@@ -801,7 +801,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[18]:
+# In[57]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -841,6 +841,13 @@ testset_scarsdale = [
     ('08.22.20',None),
 ]
 
+testset_harrison = [
+    ('0011.-1',1.10),
+    ('0883.-31',0.11),
+    ('0103.-13',0.05),
+    ('1005.-32',1.07),
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_acreage)
 
@@ -850,6 +857,14 @@ for key,result in testset_cornwall:
 
 for key,result in testset_scarsdale:
     entry = copy.deepcopy(data_scarsdale[key][1:])
+    run_test(entry,key,result,get_acreage,'ACREAGE')
+
+for key,result in testset_harrison:
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
     run_test(entry,key,result,get_acreage,'ACREAGE')
 
 all_acreage = []

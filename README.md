@@ -10,9 +10,9 @@ Process Harrison:
     - [x] Access owner names
     - [x] Access owner address
     - [x] Access property type
-    - [ ] Access property address
-    - [ ] Access zoning
-    - [ ] Access acreage
+    - [x] Access property address
+    - [x] Access zoning
+    - [x] Access acreage
     - [ ] Access market value
     - [ ] Access taxables
 - [ ] Review the data, fix the errors
