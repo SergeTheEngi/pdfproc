@@ -876,7 +876,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[23]:
+# In[58]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -934,6 +934,13 @@ testset_scarsdale = [
     ('11.05.9',1177441),
 ]
 
+testset_harrison = [
+    ('0011.-1',176991),
+    ('0883.-31',1150442),
+    ('0103.-13',113274),
+    ('1005.-32',1765486),
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_full_market_value)
 
@@ -944,6 +951,15 @@ for key,result in testset_cornwall:
 for key,result in testset_scarsdale:
     entry = copy.deepcopy(data_scarsdale[key][1:])
     run_test(entry,key,result,get_full_market_value,keywords=['FULL MKT VAL','VAL'])
+
+for key,result in testset_harrison:
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    run_test(entry,key,result,get_full_market_value,keywords=['FULL MKT VAL','VAL'])
+
 
 all_market_values = []
 for entry in data_bronxville:
