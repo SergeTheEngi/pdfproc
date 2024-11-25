@@ -365,8 +365,8 @@ def unwrap_sublists(var:list):
             out.extend(item)
     return out
 
-def unwrap_sublists_recursive(data_source,key):
-    data = copy.deepcopy(data_source[key])
+def unwrap_sublists_recursive(entry):
+    data = copy.deepcopy(entry)
     go = True
     while go:
         if type(data) == list:
@@ -374,6 +374,6 @@ def unwrap_sublists_recursive(data_source,key):
             if not any(isinstance(i, list) for i in data):
                 go = False
         else:
-            print(f"{key} is not a list. Exiting")
+            print("Entry is not a list. Exiting")
             go = False
     return data
