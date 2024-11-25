@@ -1073,7 +1073,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[58]:
+# In[62]:
 
 
 wb = Workbook()
@@ -1090,113 +1090,54 @@ ws['G1'] = 'ACREAGE'
 ws['H1'] = 'FULL MARKET VALUE'
 ws['I1'] = 'COUNTY TAXABLE'
 ws['J1'] = 'SCHOOL TAXABLE'
-ws['K1'] = 'VILLAGE TAXABLE'
+ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[59]:
+# In[63]:
 
 
 # Extract the data
 row = 2
 a = time.time()
-for key in data_scarsdale:
+for key in data_harrison:
     print(key)
     ws[f"A{row}"] = key
     
     # Owner names
-    entry = []
-    for line in data_scarsdale[key]:
-        if 'FULL MKT VAL' in line[0] or \
-            'DEED BK' in line[0] or \
-            'EAST-' in line[0] or \
-            'ACREAGE' in line[0] or \
-            'add to' in line[0] or \
-            'add map' in line[0] or \
-            'MAP' in line[0] or \
-            'TAXABLE' in line[0] or \
-            'CONTIGUOUS PARCEL' in line[0] or \
-            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
-            bool(re.search('@ [0-9]',line[0])) or \
-            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
-            break
-        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
-            if line[0][-4:] == 'FRNT': pass
-            else: break
+    entry= []
+    for line in data_harrison[key]['data'][0][1:]:
+        if key in line: entry.append(key)
         else:
-            patterns = [
-                ('FD[0-9]{3}',' '.join(line)),
-                ('RG[0-9]{3}',' '.join(line)),
-                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
-            ]
-            temp = None
-            append_test = True
-            for pattern,text in patterns:
-                temp = re.search(pattern,text)
-                if temp:
-                    append_test = False
-            if not append_test:
-                break
-            else:
-                newline = None
-                for ln,subline in enumerate(line):
-                    if 'SCARSDALE CENTRAL' in subline:
-                        if ln > 1:
-                            newline = [' '.join(line[:ln])]
-                            newline.extend(line[ln:])
-                            entry.append(newline)
-                        else: break
-                if not newline:
-                    entry.append(line)
-    ws[f"B{row}"] = ', '.join(get_owner_names(entry,key))
+            temp = line[data_harrison[key]['columns']['TAX MAP']:data_harrison[key]['columns']['PROPERTY LOCATION']].strip()
+            entry.append(temp)
+    ws[f"B{row}"] = ', '.join(ext.get_owner_names(entry,key))
 
     # Owner address
     entry = []
-    for line in data_scarsdale[key]:
-        if 'FULL MKT VAL' in line[0] or \
-            'DEED BK' in line[0] or \
-            'EAST-' in line[0] or \
-            'ACREAGE' in line[0] or \
-            'add to' in line[0] or \
-            'add map' in line[0] or \
-            'MAP' in line[0] or \
-            'TAXABLE' in line[0] or \
-            'CONTIGUOUS PARCEL' in line[0] or \
-            bool(re.search('[A-Z]{2}[0-9]{3}',line[0])) or \
-            bool(re.search('@ [0-9]',line[0])) or \
-            bool(re.fullmatch('BANK [0-9]{2,3}',line[0])):
-                break
-        elif ('FRNT' in line[0] and 'DPTH' in line[0]) or ('FRNT' in line[0] and 'DPTH' in line[1]):
-            if line[0][-4:] == 'FRNT': pass
-            else:
-                break
-        else:
-            patterns = [
-                ('FD[0-9]{3}',' '.join(line)),
-                ('RG[0-9]{3}',' '.join(line)),
-                ('[0-9\\,]{4,}+ ?EX',' '.join(line[:2]))
-            ]
-            temp = None
-            append_test = True
-            for pattern,text in patterns:
-                temp = re.search(pattern,text)
-                if temp:
-                    if key == '10.31.10': print(temp.group())
-                    append_test = False
-            if not append_test:
-                break
-            else:
-                entry.append(line)
-    ws[f"C{row}"] = get_owner_address(entry)
+    for line in data_harrison[key]['data'][0][1:]:
+        start = data_harrison[key]['columns']['TAX MAP']
+        end = data_harrison[key]['columns']['PROPERTY LOCATION']
+        temp = line[start:end].strip()
+        entry.append(temp)
+    ws[f"C{row}"] = ext.get_owner_address(entry)
 
     # Property type
-    entry = copy.deepcopy(data_scarsdale[key])
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)
     if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
     trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
     if trash: del entry[2][1]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
     ws[f"D{row}"] = get_property_type(entry,key)
 
     # Property address
-    entry = copy.deepcopy(data_scarsdale[key][1:])
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
     if len(entry[0]) > 1:
         last_item = entry[0].pop()
         entry[0].insert(0,last_item)
@@ -1208,22 +1149,37 @@ for key in data_scarsdale:
     ws[f"E{row}"] = get_property_address(entry,key)
 
     # Zoning
-    entry = copy.deepcopy(data_scarsdale[key][1:])
-    ws[f"F{row}"] = get_zoning(entry,'SCARSDALE CENTRAL')
+    result = None; entry = None
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    ws[f"F{row}"] = get_zoning(entry,'HARRISON CENTRAL')
 
     # Acreage
-    entry = copy.deepcopy(data_scarsdale[key][1:])
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
     ws[f"G{row}"] = get_acreage(entry,'ACREAGE')
 
     # Full market value
-    entry = copy.deepcopy(data_scarsdale[key][1:])
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
     ws[f"H{row}"] = get_full_market_value(entry,keywords=['FULL MKT VAL','VAL'])
 
     # Taxables
-    entry = copy.deepcopy(data_scarsdale[key][1:])
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
     ws[f"I{row}"] = get_taxable(entry,'COUNTY TAXABLE')
     ws[f"J{row}"] = get_taxable(entry,'SCHOOL TAXABLE')
-    ws[f"K{row}"] = get_taxable(entry,'VILLAGE TAXABLE')
+    ws[f"K{row}"] = get_taxable(entry,'TOWN TAXABLE')
     row += 1
 
 wb.save('extracted_data.xlsx')

@@ -14,5 +14,5 @@ Process Harrison:
     - [x] Access zoning
     - [x] Access acreage
     - [x] Access market value
-    - [ ] Access taxables
-- [ ] Review the data, fix the errors
+    - [x] Access taxables
+- [x] Review the data, fix the errors
