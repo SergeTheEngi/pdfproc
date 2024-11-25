@@ -150,12 +150,12 @@ del alldata
 # Shape data
 # Shape cornwall
 for key in data_cornwall:
-    data_cornwall[key] = unwrap_sublists_recursive(data_cornwall,key)
+    data_cornwall[key] = unwrap_sublists_recursive(data_cornwall[key])
     data_cornwall[key] = break_lines(data_cornwall[key])
 
 # Shape scarsdale
 for key in data_scarsdale:
-    data_scarsdale[key] = unwrap_sublists_recursive(data_scarsdale,key)
+    data_scarsdale[key] = unwrap_sublists_recursive(data_scarsdale[key])
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
 
@@ -503,46 +503,9 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[17]:
+# #### Get property type
 
-
-def get_owner_address_lines(entry,position):
-    '''position = (fromchar,tochar)'''
-    fromchar,tochar = position
-    result = []
-    for item in entry[-2:]:
-        result.append(' '.join(item[fromchar:tochar].split()))
-    return ', '.join(result)
-
-# Test harrison
-testset_harrison = [
-    ('0011.-1','56 LAFAYETTE AVE, WHITE PLAINS NY 10603'),
-    ('0824.-19','146 FREMONT ST, HARRISON NY 10528')
-]
-
-for key,result in testset_harrison:
-    #entry = copy.deepcopy(data_harrison[key])
-    entry = []
-    for line in data_harrison[key]:
-        if 'FULL MKT VAL' in line[0:27] or \
-            'DEED BK' in line[0:27] or \
-            'EAST-' in line[0:27] or \
-            'ACREAGE' in line[0:27] or \
-            'add to' in line[0:27] or \
-            'add map' in line[0:27] or \
-            'MAP' in line[0:27] or \
-            'TAXABLE' in line[0:27] or \
-            'CONTIGUOUS PARCEL' in line[0:27] or \
-            bool(re.search('[A-Z]{2}[0-9]{3}',line[0:27])) or \
-            bool(re.search('@ [0-9]',line[0:27])) or \
-            bool(re.fullmatch('BANK [0-9]{2,3}',line[0:27])):
-                break
-        else:
-            entry.append(line)
-    assert get_owner_address_lines(entry,(0,27)) == result, f"{key}, {get_owner_address_lines(entry,(0,27))} != {result}"
-
-
-# In[19]:
+# In[32]:
 
 
 def get_property_type(entry,key):
@@ -587,6 +550,12 @@ testset_scarsdale = [
     ('11.05.9','210 1 FAMILY RES'),
 ]
 
+testset_harrison = [
+    ('0011.-1','311 RES VACANT LAND'),
+    ('0601.-17','210 1 FAMILY RES'),
+    ('1002.-27','210 1 FAMILY RES')
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_property_type)
 
@@ -602,6 +571,17 @@ for key,result in testset_scarsdale:
     if trash: del entry[2][1]
     run_test(entry,key,result,get_property_type)
 
+for key,result in testset_harrison:
+    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)
+    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
+    if trash: del entry[2][1]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    run_test(entry,key,result,get_property_type)
+
 all_types = []
 for entry in data_bronxville:
     all_types.append(get_property_type(data_bronxville[entry],entry))
@@ -610,7 +590,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[20]:
+# In[16]:
 
 
 def get_property_address(entry,key):
@@ -695,7 +675,7 @@ assert '' in ['', 'test']
 assert '' not in all_property_addrs
 
 
-# In[21]:
+# In[17]:
 
 
 def get_zoning(entry,pattern):
@@ -778,7 +758,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[22]:
+# In[18]:
 
 
 def get_acreage(entry,keyword='ACRES'):
