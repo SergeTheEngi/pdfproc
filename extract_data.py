@@ -779,7 +779,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[54]:
+# In[82]:
 
 
 def get_zoning(entry,pattern):
@@ -833,6 +833,12 @@ testset_harrison = [
     ('1005.-32','HARRISON CENTRAL')
 ]
 
+testset_newcastle = [
+    ('71.9-1-14','YORKTOWN CENTRAL'),
+    ('71.13-3-17','CHAPPAQUA CENTRAL'),
+    ('79.15-1-12','OSSINING UNION FREE')
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_zoning,'Bronxville Sch  ?\\d{6} ')
 
@@ -867,6 +873,21 @@ for key in data_harrison:
     entry = break_lines(entry)[1:]
     result = get_zoning(entry,'HARRISON CENTRAL')
     assert result != None
+
+# Newcastle tests
+for key,result in testset_newcastle:
+    entry = copy.deepcopy(data_newcastle[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    run_test(entry,key,result,get_zoning,'(YORKTOWN|CHAPPAQUA|BEDFORD|BYRAM HILLS) CENTRAL|OSSINING UNION FREE|PLEASANTVILLE UFSD')
+
+for key in data_newcastle:
+    result = None; entry = None
+    entry = copy.deepcopy(data_newcastle[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    result = get_zoning(entry,'(YORKTOWN|CHAPPAQUA|BEDFORD|BYRAM HILLS) CENTRAL|OSSINING UNION FREE|PLEASANTVILLE UFSD')
+    assert result != None, f"get_zoning({key}) == None"
 
 # Old tests
 all_zoning = []
