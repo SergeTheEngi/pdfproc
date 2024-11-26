@@ -338,14 +338,17 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[35]:
+# In[134]:
 
 
 # Test newcastle
 testset_newcastle = [
     ('59.13-2-1',['MORGAN TRUST DECLARATION','DUBODEL ALEXANDRA']),
     ('92.20-2-1.-227',['CONYERS VINCENT ERWIN']),
-    ('108.5-1-8',['TOWN OF NEW CASTLE'])
+    ('108.5-1-8',['TOWN OF NEW CASTLE']),
+    ('101.8-2-9',['BAYSWATER HAMMON RIDGE', 'C/O BAYSWATER DEVELOPMENT']),
+    ('71.13-2-29',['SUECHTING RUTH WEIDT', 'IRREVOCABLE TRUST']),
+    ('101.8-2-6',['HAMMOND RIDGE HOME-', 'OWNERS ASSOCIATION', 'C/O KATONAH MGT SERVICES'])
 ]
 
 for key,result in testset_newcastle:
@@ -355,6 +358,15 @@ for key,result in testset_newcastle:
         else:
             temp = line[data_newcastle[key]['columns']['TAX MAP']:data_newcastle[key]['columns']['PROPERTY LOCATION']].strip()
             entry.append(temp)
+    moved = False
+    for n,item in enumerate(entry):
+        if bool(re.search('FLOOR [0-9]{2}|[0-9]{1,2}TH FLOOR|PO BOX [0-9]{,4}|#[0-9]{5}|SUITE [0-9A-Z]{,3}',item)):
+            if moved:
+                moved = False
+            else:
+                entry[n+1] = ', '.join([item,entry[n+1]])
+                entry[n] = ''
+                moved = True
     output = ext.get_owner_names(entry,key)
     assert output == result, f"{key}, {result} != {output}"
 
@@ -527,14 +539,16 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[40]:
+# In[135]:
 
 
 # Test newcastle
 testset_newcastle = [
     ('999.999-2-28','STATE OF NEW YORK'),
     ('101.15-1-13','148 MARTINE AVE, WHITE PLAINS NY 10601'),
-    ('91.12-1-5','171 CAMPFIRE RD, CHAPPAQUA NY 10514')
+    ('91.12-1-5','171 CAMPFIRE RD, CHAPPAQUA NY 10514'),
+    ('91.15-1-22','STATE OF NEW YORK'),
+    ('101.8-2-9','PO BOX 7430, PORT ST. LUCIE, FLORIDA 34985')
 ]
 
 for key,result in testset_newcastle:
@@ -544,6 +558,14 @@ for key,result in testset_newcastle:
         end = data_newcastle[key]['columns']['PROPERTY LOCATION']
         temp = line[start:end].strip()
         entry.append(temp)
+    for n,item in enumerate(entry):
+        if bool(re.search('FLOOR [0-9]{2}|[0-9]{1,2}TH FLOOR|PO BOX [0-9]{,4}|#[0-9]{5}|SUITE [0-9A-Z]{,3}',item)):
+            if moved:
+                moved = False
+            else:
+                entry[n+1] = ', '.join([item,entry[n+1]])
+                entry[n] = ''
+                moved = True
     output = ext.get_owner_address(entry,key)
     assert output == result, f"{key}, {[result]} != {[output]}"
 
@@ -1224,7 +1246,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[95]:
+# In[136]:
 
 
 wb = Workbook()
@@ -1244,7 +1266,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[96]:
+# In[137]:
 
 
 # Extract the data
@@ -1261,7 +1283,15 @@ for key in data_newcastle:
         else:
             temp = line[data_newcastle[key]['columns']['TAX MAP']:data_newcastle[key]['columns']['PROPERTY LOCATION']].strip()
             entry.append(temp)
-    output = ext.get_owner_names(entry,key)
+    moved = False
+    for n,item in enumerate(entry):
+        if bool(re.search('FLOOR [0-9]{2}|[0-9]{1,2}TH FLOOR|PO BOX [0-9]{,4}|#[0-9]{5}|SUITE [0-9A-Z]{,3}',item)):
+            if moved:
+                moved = False
+            else:
+                entry[n+1] = ', '.join([item,entry[n+1]])
+                entry[n] = ''
+                moved = True
     ws[f"B{row}"] = ', '.join(ext.get_owner_names(entry,key))
 
     # Owner address
@@ -1271,8 +1301,15 @@ for key in data_newcastle:
         end = data_newcastle[key]['columns']['PROPERTY LOCATION']
         temp = line[start:end].strip()
         entry.append(temp)
-    output = ext.get_owner_address(entry,key)
-    ws[f"C{row}"] = ext.get_owner_address(entry)
+    for n,item in enumerate(entry):
+        if bool(re.search('FLOOR [0-9]{2}|[0-9]{1,2}TH FLOOR|PO BOX [0-9]{,4}|#[0-9]{5}|SUITE [0-9A-Z]{,3}',item)):
+            if moved:
+                moved = False
+            else:
+                entry[n+1] = ', '.join([item,entry[n+1]])
+                entry[n] = ''
+                moved = True
+    ws[f"C{row}"] = ext.get_owner_address(entry,key)
 
     # Property type
     entry = copy.deepcopy(data_newcastle[key]['data'])
