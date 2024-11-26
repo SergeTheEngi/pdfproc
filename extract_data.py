@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[3]:
 
 
 import time
@@ -21,10 +21,11 @@ from pdfproc.as_dict import \
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
-harrison = pymupdf.open('Harrison.pdf')
+harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
+newcastle = pymupdf.open('Town of Newcastle.pdf')
 
 
-# In[2]:
+# In[7]:
 
 
 def inspect(data):# Inspect the data
@@ -41,11 +42,7 @@ def inspect(data):# Inspect the data
     for block in header:
         for line in block: print([line])
 
-#inspect(harrison)
-
-mypage = harrison.load_page(0)
-page_text = mypage.get_text('dict')
-print([page_text['blocks'][1]['lines'][5]['spans'][0]['text']])
+inspect(harrison)
 
 
 # ## Extracting the data
@@ -54,7 +51,7 @@ print([page_text['blocks'][1]['lines'][5]['spans'][0]['text']])
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[2]:
+# In[4]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -68,7 +65,7 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 
-# In[3]:
+# In[5]:
 
 
 # Test header extractor
@@ -120,7 +117,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[4]:
+# In[14]:
 
 
 # Extract data
@@ -133,6 +130,11 @@ alldata = ext.get_data([
         'name':'harrison',
         'columns':['TAX MAP','PROPERTY LOCATION','EXEMPTION','TAXABLE VALUE'],
         'strip_lines':False
+    },{
+        'source':newcastle,
+        'name':'newcastle',
+        'columns':['TAX MAP','PROPERTY LOCATION','EXEMPTION','TAXABLE VALUE'],
+        'strip_lines':False
     }
 ])
 
@@ -140,11 +142,12 @@ data_bronxville = copy.deepcopy(alldata['bronxville'])
 data_cornwall = copy.deepcopy(alldata['cornwall'])
 data_scarsdale = copy.deepcopy(alldata['scarsdale'])
 data_harrison = copy.deepcopy(alldata['harrison'])
+data_newcastle = copy.deepcopy(alldata['newcastle'])
 
 del alldata
 
 
-# In[5]:
+# In[16]:
 
 
 # Shape data
@@ -161,7 +164,7 @@ for key in data_scarsdale:
 
 # #### Get owner names
 
-# In[6]:
+# In[17]:
 
 
 # Test bronxville
@@ -203,7 +206,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[7]:
+# In[18]:
 
 
 # Test cornwall
@@ -241,7 +244,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[19]:
 
 
 # Test scarsdale
@@ -314,7 +317,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[20]:
 
 
 # Test harrison
@@ -330,6 +333,27 @@ for key,result in testset_harrison:
         if key in line: entry.append(key)
         else:
             temp = line[data_harrison[key]['columns']['TAX MAP']:data_harrison[key]['columns']['PROPERTY LOCATION']].strip()
+            entry.append(temp)
+    output = ext.get_owner_names(entry,key)
+    assert output == result, f"{key}, {result} != {output}"
+
+
+# In[24]:
+
+
+# Test newcastle
+testset_newcastle = [
+    ('59.13-2-1',['MORGAN TRUST DECLARATION','DUBODEL ALEXANDRA']),
+    ('92.20-2-1.-227',['CONYERS VINCENT ERWIN']),
+    ('108.5-1-8',['TOWN OF NEW CASTLE'])
+]
+
+for key,result in testset_newcastle:
+    entry= []
+    for line in data_newcastle[key]['data'][0][1:]:
+        if key in line: entry.append(key)
+        else:
+            temp = line[data_newcastle[key]['columns']['TAX MAP']:data_newcastle[key]['columns']['PROPERTY LOCATION']].strip()
             entry.append(temp)
     output = ext.get_owner_names(entry,key)
     assert output == result, f"{key}, {result} != {output}"

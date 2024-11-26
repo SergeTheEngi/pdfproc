@@ -1,6 +1,6 @@
 # Current tasks
 
-Process Harrison:
+Process Newcastle:
 - [x] Inspect the data
 - Collect data:
     - [x] Get headers
@@ -8,11 +8,11 @@ Process Harrison:
     - [x] Collect page data
 - Process data:
     - [x] Access owner names
-    - [x] Access owner address
-    - [x] Access property type
-    - [x] Access property address
-    - [x] Access zoning
-    - [x] Access acreage
-    - [x] Access market value
-    - [x] Access taxables
-- [x] Review the data, fix the errors
+    - [ ] Access owner address
+    - [ ] Access property type
+    - [ ] Access property address
+    - [ ] Access zoning
+    - [ ] Access acreage
+    - [ ] Access market value
+    - [ ] Access taxables
+- [ ] Review the data, fix the errors
