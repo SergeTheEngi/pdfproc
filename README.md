@@ -15,4 +15,5 @@ Process Newcastle:
     - [x] Access acreage
     - [x] Access market value
     - [x] Access taxables
+- [x] Assemble output
 - [ ] Review the data, fix the errors

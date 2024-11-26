@@ -655,7 +655,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[77]:
+# In[94]:
 
 
 def get_property_address(entry,key):
@@ -671,7 +671,11 @@ def get_property_address(entry,key):
         ]
         if True in checks:
             raise ValueError(f"entry {entry[1][0]} in {key}: Address len is more than 1")
-    return address[0]
+    if len(address) == 0:
+        print(f"WARN: {key} has no address")
+        return ''
+    else:
+        return address[0]
 
 def run_test(entry,key,result,function):
     output = function(entry,key)
@@ -714,7 +718,8 @@ testset_harrison = [
 testset_newcastle = [
     ('92.14-1-1','14 VALLEY VIEW'),
     ('71.9-1-9.-66','66 BURR FARMS RD'),
-    ('999.999-1-975.1','SPECIAL FRANCHISE')
+    ('999.999-1-975.1','SPECIAL FRANCHISE'),
+    ('91.11-2-53','')
 ]
 
 for key,result in testset_bronxville:
@@ -1219,7 +1224,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[62]:
+# In[95]:
 
 
 wb = Workbook()
@@ -1239,50 +1244,57 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[63]:
+# In[96]:
 
 
 # Extract the data
 row = 2
 a = time.time()
-for key in data_harrison:
+for key in data_newcastle:
     print(key)
     ws[f"A{row}"] = key
     
     # Owner names
     entry= []
-    for line in data_harrison[key]['data'][0][1:]:
+    for line in data_newcastle[key]['data'][0][1:]:
         if key in line: entry.append(key)
         else:
-            temp = line[data_harrison[key]['columns']['TAX MAP']:data_harrison[key]['columns']['PROPERTY LOCATION']].strip()
+            temp = line[data_newcastle[key]['columns']['TAX MAP']:data_newcastle[key]['columns']['PROPERTY LOCATION']].strip()
             entry.append(temp)
+    output = ext.get_owner_names(entry,key)
     ws[f"B{row}"] = ', '.join(ext.get_owner_names(entry,key))
 
     # Owner address
-    entry = []
-    for line in data_harrison[key]['data'][0][1:]:
-        start = data_harrison[key]['columns']['TAX MAP']
-        end = data_harrison[key]['columns']['PROPERTY LOCATION']
+    entry= []
+    for line in data_newcastle[key]['data'][0][1:]:
+        start = data_newcastle[key]['columns']['TAX MAP']
+        end = data_newcastle[key]['columns']['PROPERTY LOCATION']
         temp = line[start:end].strip()
         entry.append(temp)
+    output = ext.get_owner_address(entry,key)
     ws[f"C{row}"] = ext.get_owner_address(entry)
 
     # Property type
-    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = copy.deepcopy(data_newcastle[key]['data'])
     entry = unwrap_sublists_recursive(entry)
     entry = break_lines(entry)
     if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
     trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
     if trash: del entry[2][1]
     for n,e in enumerate(entry):
+        for ln,line in enumerate(e):
+            if bool(re.fullmatch('[A-Z]{2}',line)):
+                e[ln] = ''
         entry[n] = list(filter(None,e))
     ws[f"D{row}"] = get_property_type(entry,key)
 
     # Property address
-    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = copy.deepcopy(data_newcastle[key]['data'])
     entry = unwrap_sublists_recursive(entry)
     entry = break_lines(entry)[1:]
     for n,e in enumerate(entry):
+        for ln,line in enumerate(entry[n]):
+            entry[n][ln] = re.sub('(NON-)?HOMESTEAD','',line)
         entry[n] = list(filter(None,e))
     if len(entry[0]) > 1:
         last_item = entry[0].pop()
@@ -1295,14 +1307,13 @@ for key in data_harrison:
     ws[f"E{row}"] = get_property_address(entry,key)
 
     # Zoning
-    result = None; entry = None
-    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = copy.deepcopy(data_newcastle[key]['data'])
     entry = unwrap_sublists_recursive(entry)
     entry = break_lines(entry)[1:]
-    ws[f"F{row}"] = get_zoning(entry,'HARRISON CENTRAL')
+    ws[f"F{row}"] = get_zoning(entry,'(YORKTOWN|CHAPPAQUA|BEDFORD|BYRAM HILLS) CENTRAL|OSSINING UNION FREE|PLEASANTVILLE UFSD')
 
     # Acreage
-    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = copy.deepcopy(data_newcastle[key]['data'])
     entry = unwrap_sublists_recursive(entry)
     entry = break_lines(entry)[1:]
     for n,e in enumerate(entry):
@@ -1310,7 +1321,7 @@ for key in data_harrison:
     ws[f"G{row}"] = get_acreage(entry,'ACREAGE')
 
     # Full market value
-    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = copy.deepcopy(data_newcastle[key]['data'])
     entry = unwrap_sublists_recursive(entry)
     entry = break_lines(entry)[1:]
     for n,e in enumerate(entry):
@@ -1318,7 +1329,7 @@ for key in data_harrison:
     ws[f"H{row}"] = get_full_market_value(entry,keywords=['FULL MKT VAL','VAL'])
 
     # Taxables
-    entry = copy.deepcopy(data_harrison[key]['data'])
+    entry = copy.deepcopy(data_newcastle[key]['data'])
     entry = unwrap_sublists_recursive(entry)
     entry = break_lines(entry)[1:]
     for n,e in enumerate(entry):
