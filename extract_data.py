@@ -904,7 +904,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[57]:
+# In[83]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -951,6 +951,12 @@ testset_harrison = [
     ('1005.-32',1.07),
 ]
 
+testset_newcastle = [
+    ('101.15-1-11',3.37),
+    ('80.19-2-18',1.00),
+    ('93.6-2-12',1.00)
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_acreage)
 
@@ -969,6 +975,15 @@ for key,result in testset_harrison:
     for n,e in enumerate(entry):
         entry[n] = list(filter(None,e))
     run_test(entry,key,result,get_acreage,'ACREAGE')
+
+for key,result in testset_newcastle:
+    entry = copy.deepcopy(data_newcastle[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    run_test(entry,key,result,get_acreage,'ACREAGE')
+
 
 all_acreage = []
 for entry in data_bronxville:

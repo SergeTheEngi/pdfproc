@@ -11,8 +11,8 @@ Process Newcastle:
     - [x] Access owner address
     - [x] Access property type
     - [x] Access property address
-    - [ ] Access zoning
-    - [ ] Access acreage
+    - [x] Access zoning
+    - [x] Access acreage
     - [ ] Access market value
     - [ ] Access taxables
 - [ ] Review the data, fix the errors
