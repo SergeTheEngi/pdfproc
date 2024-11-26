@@ -10,7 +10,7 @@ Process Newcastle:
     - [x] Access owner names
     - [x] Access owner address
     - [x] Access property type
-    - [ ] Access property address
+    - [x] Access property address
     - [ ] Access zoning
     - [ ] Access acreage
     - [ ] Access market value

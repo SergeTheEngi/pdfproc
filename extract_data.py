@@ -655,7 +655,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[51]:
+# In[77]:
 
 
 def get_property_address(entry,key):
@@ -669,8 +669,8 @@ def get_property_address(entry,key):
             len(address) == 2 and address[0] != address[1],
             '836' not in get_property_type(entry,key)
         ]
-        if False not in checks:
-            raise ValueError(f"entry {entry[1][0]}: Address len is more than 1")
+        if True in checks:
+            raise ValueError(f"entry {entry[1][0]} in {key}: Address len is more than 1")
     return address[0]
 
 def run_test(entry,key,result,function):
@@ -709,6 +709,12 @@ testset_harrison = [
     ('0011.-1','HARRISON AVE'),
     ('0422.-10','93 WHITE ST'),
     ('0883.-31','207-209 GAINSBORG AVE')
+]
+
+testset_newcastle = [
+    ('92.14-1-1','14 VALLEY VIEW'),
+    ('71.9-1-9.-66','66 BURR FARMS RD'),
+    ('999.999-1-975.1','SPECIAL FRANCHISE')
 ]
 
 for key,result in testset_bronxville:
@@ -754,12 +760,23 @@ for key,result in testset_harrison:
         entry[0].insert(0,'')
     run_test(entry,key,result,get_property_address)
 
-all_property_addrs = []
-for entry in data_bronxville:
-    all_property_addrs.append(get_property_address(data_bronxville[entry],entry))
-
-assert '' in ['', 'test']
-assert '' not in all_property_addrs
+for key,result in testset_newcastle:
+    entry = copy.deepcopy(data_newcastle[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)[1:]
+    for n,e in enumerate(entry):
+        for ln,line in enumerate(entry[n]):
+            entry[n][ln] = re.sub('(NON-)?HOMESTEAD','',line)
+        entry[n] = list(filter(None,e))
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        entry[0][1] = ' '.join(entry[0][1:])
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
+    run_test(entry,key,result,get_property_address)
 
 
 # In[54]:
