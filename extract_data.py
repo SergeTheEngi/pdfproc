@@ -51,7 +51,7 @@ inspect(harrison)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[2]:
+# In[27]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -65,7 +65,7 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 
-# In[3]:
+# In[28]:
 
 
 # Test header extractor
@@ -117,7 +117,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[4]:
+# In[29]:
 
 
 # Extract data
@@ -147,7 +147,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[5]:
+# In[30]:
 
 
 # Shape data
@@ -164,7 +164,7 @@ for key in data_scarsdale:
 
 # #### Get owner names
 
-# In[6]:
+# In[31]:
 
 
 # Test bronxville
@@ -206,7 +206,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[7]:
+# In[32]:
 
 
 # Test cornwall
@@ -244,7 +244,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[33]:
 
 
 # Test scarsdale
@@ -317,7 +317,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[34]:
 
 
 # Test harrison
@@ -338,7 +338,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[10]:
+# In[35]:
 
 
 # Test newcastle
@@ -361,7 +361,7 @@ for key,result in testset_newcastle:
 
 # #### Get owner address
 
-# In[11]:
+# In[36]:
 
 
 # Test bronxville
@@ -394,7 +394,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[12]:
+# In[37]:
 
 
 # Test cornwall
@@ -444,7 +444,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[13]:
+# In[38]:
 
 
 # Test scarsdale
@@ -506,7 +506,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[14]:
+# In[39]:
 
 
 # Test harrison
@@ -527,7 +527,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[17]:
+# In[40]:
 
 
 # Test newcastle
@@ -550,7 +550,7 @@ for key,result in testset_newcastle:
 
 # #### Get property type
 
-# In[32]:
+# In[46]:
 
 
 def get_property_type(entry,key):
@@ -601,6 +601,12 @@ testset_harrison = [
     ('1002.-27','210 1 FAMILY RES')
 ]
 
+testset_newcastle = [
+    ('59.13-2-1','210 1 FAMILY RES'),
+    ('999.999-1-975.1','860 SPECIAL FRANCHISE PR'),
+    ('92.14-1-1','210 1 FAMILY RES')
+]
+
 for key,result in testset_bronxville:
     run_test(data_bronxville[key],key,result,get_property_type)
 
@@ -624,6 +630,20 @@ for key,result in testset_harrison:
     trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
     if trash: del entry[2][1]
     for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    run_test(entry,key,result,get_property_type)
+
+for key,result in testset_newcastle:
+    entry = copy.deepcopy(data_newcastle[key]['data'])
+    entry = unwrap_sublists_recursive(entry)
+    entry = break_lines(entry)
+    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
+    trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
+    if trash: del entry[2][1]
+    for n,e in enumerate(entry):
+        for ln,line in enumerate(e):
+            if bool(re.fullmatch('[A-Z]{2}',line)):
+                e[ln] = ''
         entry[n] = list(filter(None,e))
     run_test(entry,key,result,get_property_type)
 

@@ -8,8 +8,8 @@ Process Newcastle:
     - [x] Collect page data
 - Process data:
     - [x] Access owner names
-    - [ ] Access owner address
-    - [ ] Access property type
+    - [x] Access owner address
+    - [x] Access property type
     - [ ] Access property address
     - [ ] Access zoning
     - [ ] Access acreage
