@@ -255,7 +255,7 @@ class Extractor:
                 company = None
         return owner_names
     
-    def get_owner_address(self,entry):
+    def get_owner_address(self,entry,key=None):
         ''' Pass entry as list of strings from an appropriate column '''
         company = None
         entry = list(filter(None,entry))
@@ -263,9 +263,11 @@ class Extractor:
         for i,name in enumerate(owner_addr):
             if '   ' in owner_addr[i]:
                 owner_addr[i] = name.split('   ')[0]
-        for i,name in enumerate(owner_addr):
-            owner_addr[i] = ' '.join(name.split())
-        return ', '.join(owner_addr)
+        out = []
+        for name in owner_addr:
+            if name == key: continue
+            else: out.append(' '.join(name.split()))
+        return ', '.join(out)
 
 
 # Helper functions

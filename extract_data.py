@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[1]:
 
 
 import time
@@ -25,7 +25,7 @@ harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 newcastle = pymupdf.open('Town of Newcastle.pdf')
 
 
-# In[7]:
+# In[18]:
 
 
 def inspect(data):# Inspect the data
@@ -51,7 +51,7 @@ inspect(harrison)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[4]:
+# In[2]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -65,7 +65,7 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 
-# In[5]:
+# In[3]:
 
 
 # Test header extractor
@@ -117,7 +117,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[14]:
+# In[4]:
 
 
 # Extract data
@@ -147,7 +147,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[16]:
+# In[5]:
 
 
 # Shape data
@@ -164,7 +164,7 @@ for key in data_scarsdale:
 
 # #### Get owner names
 
-# In[17]:
+# In[6]:
 
 
 # Test bronxville
@@ -206,7 +206,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[18]:
+# In[7]:
 
 
 # Test cornwall
@@ -244,7 +244,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[19]:
+# In[8]:
 
 
 # Test scarsdale
@@ -317,7 +317,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[20]:
+# In[9]:
 
 
 # Test harrison
@@ -338,7 +338,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[24]:
+# In[10]:
 
 
 # Test newcastle
@@ -361,7 +361,7 @@ for key,result in testset_newcastle:
 
 # #### Get owner address
 
-# In[10]:
+# In[11]:
 
 
 # Test bronxville
@@ -394,7 +394,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[11]:
+# In[12]:
 
 
 # Test cornwall
@@ -444,7 +444,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[12]:
+# In[13]:
 
 
 # Test scarsdale
@@ -506,7 +506,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[13]:
+# In[14]:
 
 
 # Test harrison
@@ -524,6 +524,27 @@ for key,result in testset_harrison:
         temp = line[start:end].strip()
         entry.append(temp)
     output = ext.get_owner_address(entry)
+    assert output == result, f"{key}, {[result]} != {[output]}"
+
+
+# In[17]:
+
+
+# Test newcastle
+testset_newcastle = [
+    ('999.999-2-28','STATE OF NEW YORK'),
+    ('101.15-1-13','148 MARTINE AVE, WHITE PLAINS NY 10601'),
+    ('91.12-1-5','171 CAMPFIRE RD, CHAPPAQUA NY 10514')
+]
+
+for key,result in testset_newcastle:
+    entry= []
+    for line in data_newcastle[key]['data'][0][1:]:
+        start = data_newcastle[key]['columns']['TAX MAP']
+        end = data_newcastle[key]['columns']['PROPERTY LOCATION']
+        temp = line[start:end].strip()
+        entry.append(temp)
+    output = ext.get_owner_address(entry,key)
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
