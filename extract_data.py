@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 
 import time
@@ -22,10 +22,11 @@ bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
-newcastle = pymupdf.open('Town of Newcastle.pdf')
+newcastle = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
+mamaroneck = pymupdf.open('Mamaroneck.pdf')
 
 
-# In[18]:
+# In[5]:
 
 
 def inspect(data):# Inspect the data
@@ -42,7 +43,7 @@ def inspect(data):# Inspect the data
     for block in header:
         for line in block: print([line])
 
-inspect(harrison)
+inspect(mamaroneck)
 
 
 # ## Extracting the data
@@ -51,7 +52,7 @@ inspect(harrison)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[27]:
+# In[3]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -65,7 +66,7 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 
-# In[28]:
+# In[4]:
 
 
 # Test header extractor
@@ -117,7 +118,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[29]:
+# In[6]:
 
 
 # Extract data
@@ -135,7 +136,8 @@ alldata = ext.get_data([
         'name':'newcastle',
         'columns':['TAX MAP','PROPERTY LOCATION','EXEMPTION','TAXABLE VALUE'],
         'strip_lines':False
-    }
+    },
+    {'source':mamaroneck,'name':'mamaroneck'},
 ])
 
 data_bronxville = copy.deepcopy(alldata['bronxville'])
@@ -143,8 +145,52 @@ data_cornwall = copy.deepcopy(alldata['cornwall'])
 data_scarsdale = copy.deepcopy(alldata['scarsdale'])
 data_harrison = copy.deepcopy(alldata['harrison'])
 data_newcastle = copy.deepcopy(alldata['newcastle'])
+data_mamaroneck = copy.deepcopy(alldata['mamaroneck'])
 
 del alldata
+
+
+# In[34]:
+
+
+def sus_all(data,key):
+    value_location = {
+        'delim':None,
+        'id':None,
+        'owner_names':None,
+        'owner_address':None,
+        'property_type':None,
+        'property_address':None,
+        'zoning':None,
+        'acreage':None,
+        'fmv':None,
+    }
+    entry = copy.deepcopy(data[key])
+    i = 0
+    while i < 3:
+        j = 0
+        while j < len(entry[0]):
+            line = entry[0][j]
+            if value_location['delim'] == None:
+                delim = None
+                delim = re.search(re_separator,line)
+                if delim:
+                    value_location['delim'] = (0,j)
+                    value_location['property_address'] = (0,j+1)
+                    del entry[0][j]
+                    del entry[0][j+1]
+            #if value_location['delim']
+            j+=1
+        if i == 2: print(entry)
+        i+=1
+            
+    for item in value_location:
+        if value_location[item] != None:
+            print(data[key][value_location[item][0]][value_location[item][1]])
+        
+
+sus_all(data_mamaroneck,'6-1-14')
+#print(data_mamaroneck['6-1-14'])
 
 
 # In[30]:
