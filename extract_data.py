@@ -150,7 +150,7 @@ data_mamaroneck = copy.deepcopy(alldata['mamaroneck'])
 del alldata
 
 
-# In[88]:
+# In[96]:
 
 
 def sus_all(data,key):
@@ -189,25 +189,41 @@ def sus_all(data,key):
         # TODO: check current line against all patterns upon finding a pattern. Function should return number of matches and keys from them.
         # TODO: If there are multiple matches, add functionality to cut everything that is not the match we're looking for out of the string
         # and put it back instead of just deleting the element.
+        # One good solution for that would be pre-computing all patterns for a line and using match case
         while j < len(entry[0]):
             line = entry[0][j]
+            matches = {
+                'delim':values['delim'] == None and bool(re.search(patterns['delim'],line)),
+                'id':values['id'] == None and bool(re.search(patterns['id'],line)),
+                'zoning':values['zoning'] == None and bool(re.search(patterns['zoning'],line)),
+                'county_taxable':values['county_taxable'] == None and bool(re.search(patterns['county_taxable'],line)),
+                'town_taxable':values['town_taxable'] == None and bool(re.search(patterns['town_taxable'],line)),
+                'school_taxable':values['school_taxable'] == None and bool(re.search(patterns['school_taxable'],line)),
+                'fmv':values['fmv'] == None and bool(re.search(patterns['fmv'],line)),
+                'acreage':values['acreage'] == None and bool(re.search(patterns['acreage'],line)),
+                'exemptions':bool(re.search(patterns['exemptions'],line)),
+                'coord':values['coord'] == None and bool(re.search(patterns['coord'],line)),
+                'deed_book':values['deed_book'] == None and bool(re.search(patterns['deed_book'],line)),
+                'districts':bool(re.search(patterns['districts'],line)),
+                'dist_tax_values':bool(re.search(patterns['dist_tax_values'],line)),
+            }
             # do delim before id so id in the delim doesn't get detected
-            if values['delim'] == None and bool(re.search(patterns['delim'],line)):
+            if matches.get('delim'):
                 values['delim'] = line
                 values['property_address'] = lines[j+1]
                 values['account'] = lines[j+2]
                 del entry[0][j:j+3]
                 break
-            elif values['id'] == None and bool(re.search(patterns['id'],line)):
+            elif matches.get('id'):
                 values['id'] = line
                 values['property_type'] = lines[j+1]
                 del entry[0][j:j+2]
                 break
-            elif values['zoning'] == None and bool(re.search(patterns['zoning'],line)):
+            elif matches.get('zoning'):
                 values['zoning'] = line
                 del entry[0][j]
                 break
-            elif values['county_taxable'] == None and bool(re.search(patterns['county_taxable'],line)):
+            elif matches.get('county_taxable'):
                 # Check if `line` contains the vaule or only header
                 if bool(re.search(patterns['county_taxable']+' +[0-9]+',line)):
                     values['county_taxable'] = line
@@ -216,7 +232,7 @@ def sus_all(data,key):
                     values['county_taxable'] = [line, lines[j+1]]
                     del entry[0][j:j+2]
                 break
-            elif values['town_taxable'] == None and bool(re.search(patterns['town_taxable'],line)):
+            elif matches.get('town_taxable'):
                 # Check if `line` contains the vaule or only header
                 if bool(re.search(patterns['town_taxable']+' +[0-9]+',line)):
                     values['town_taxable'] = line
@@ -225,7 +241,7 @@ def sus_all(data,key):
                     values['town_taxable'] = [line, lines[j+1]]
                     del entry[0][j:j+2]
                 break
-            elif values['school_taxable'] == None and bool(re.search(patterns['school_taxable'],line)):
+            elif matches.get('school_taxable'):
                 # Check if `line` contains the vaule or only header
                 if bool(re.search(patterns['school_taxable']+' +[0-9]+',line)):
                     values['school_taxable'] = line
@@ -234,7 +250,7 @@ def sus_all(data,key):
                     values['school_taxable'] = [line, lines[j+1]]
                     del entry[0][j:j+2]
                 break
-            elif values['fmv'] == None and bool(re.search(patterns['fmv'],line)):
+            elif matches.get('fmv'):
                 # Check if `line` contains the vaule or only header
                 if bool(re.search(patterns['fmv']+' +[0-9]+',line)):
                     values['fmv'] = line
@@ -243,7 +259,7 @@ def sus_all(data,key):
                     values['fmv'] = [line, lines[j+1]]
                     del entry[0][j:j+2]
                 break
-            elif values['acreage'] == None and bool(re.search(patterns['acreage'],line)):
+            elif matches.get('acreage'):
                 # Check if `line` contains the vaule or only header
                 if bool(re.search(patterns['acreage']+' +[0-9.]+',line)):
                     values['acreage'] = line
@@ -252,7 +268,7 @@ def sus_all(data,key):
                     values['acreage'] = [line, lines[j+1]]
                     del entry[0][j:j+2]
                 break
-            elif bool(re.search(patterns['exemptions'],line)):
+            elif matches.get('exemptions'):
                 # Check if `line` contains exemption code and values
                 if bool(re.search(patterns['exemptions']+' +[0-9]{5} +[0-9,]+ +[0-9,]+ +[0-9,]+',line)):
                     print('found full exemption')
@@ -270,19 +286,19 @@ def sus_all(data,key):
                         del entry[0][j:j+n]
                         break
                 break
-            elif values['coord'] == None and bool(re.search(patterns['coord'],line)):
+            elif matches.get('coord'):
                 values['coord'] = line
                 del entry[0][j]
                 break
-            elif values['deed_book'] == None and bool(re.search(patterns['deed_book'],line)):
+            elif matches.get('deed_book'):
                 values['deed_book'] = line
                 del entry[0][j]
                 break
-            elif bool(re.search(patterns['districts'],line)):
+            elif matches.get('districts'):
                 values['districts'].append(line)
                 del entry[0][j]
                 break
-            elif bool(re.search(patterns['dist_tax_values'],line)):
+            elif matches.get('dist_tax_values'):
                 values['dist_tax_values'].append(line)
                 del entry[0][j]
                 break
