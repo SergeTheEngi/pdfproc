@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[34]:
 
 
 import time
@@ -26,7 +26,7 @@ newcastle = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
 mamaroneck = pymupdf.open('Mamaroneck.pdf')
 
 
-# In[5]:
+# In[37]:
 
 
 def inspect(data):# Inspect the data
@@ -52,7 +52,7 @@ inspect(mamaroneck)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[3]:
+# In[35]:
 
 
 re_id = '[0-9\\.\\-/A-Z]+'
@@ -66,7 +66,7 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 
-# In[4]:
+# In[36]:
 
 
 # Test header extractor
@@ -118,7 +118,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[6]:
+# In[38]:
 
 
 # Extract data
@@ -150,47 +150,153 @@ data_mamaroneck = copy.deepcopy(alldata['mamaroneck'])
 del alldata
 
 
-# In[34]:
+# In[88]:
 
 
 def sus_all(data,key):
-    value_location = {
-        'delim':None,
+    values = {
+        # Target values
         'id':None,
-        'owner_names':None,
-        'owner_address':None,
-        'property_type':None,
-        'property_address':None,
-        'zoning':None,
-        'acreage':None,
-        'fmv':None,
+        'owner_names':None, 'owner_address':None,
+        'property_type':None, 'property_address':None,'zoning':None,'acreage':None,'fmv':None,
+        'county_taxable':None, 'town_taxable':None, 'school_taxable':None,
+        # Other values
+        'delim':None,
+        'account':None,
+        'exemptions':[],
+        'coord':None,
+        'deed_book':None,
+        'districts':[],
+        'dist_tax_values':[],
+    }
+    patterns = {
+        'id':key,
+        'zoning':'Mamaroneck +[0-9]{6}','acreage':'ACRES',
+        'county_taxable':'COUNTY +TAXABLE +VALUE','town_taxable':'TOWN +TAXABLE +VALUE','school_taxable':'SCHOOL +TAXABLE +VALUE',
+        'fmv':'FULL +MARKET +VALUE',
+        'delim':re_separator,
+        'exemptions':'[A-Z]{3} STAR',
+        'coord':'EAST-[0-9]{7} NRTH-[0-9]{7}','deed_book':'DEED BOOK [0-9]{5} [A-Z]{2}-[0-9]{,4}',
+        'districts':'[A-Z]{2}[0-9]{3}','dist_tax_values':'[0-9,]+ TO( C)?'
     }
     entry = copy.deepcopy(data[key])
+    lines = entry[0]
     i = 0
-    while i < 3:
+    print("### pre-processing\n",entry)
+    while i < len(values):
         j = 0
+        # For now, it only traverses lines of block 0.
+        # TODO: check current line against all patterns upon finding a pattern. Function should return number of matches and keys from them.
+        # TODO: If there are multiple matches, add functionality to cut everything that is not the match we're looking for out of the string
+        # and put it back instead of just deleting the element.
         while j < len(entry[0]):
             line = entry[0][j]
-            if value_location['delim'] == None:
-                delim = None
-                delim = re.search(re_separator,line)
-                if delim:
-                    value_location['delim'] = (0,j)
-                    value_location['property_address'] = (0,j+1)
+            # do delim before id so id in the delim doesn't get detected
+            if values['delim'] == None and bool(re.search(patterns['delim'],line)):
+                values['delim'] = line
+                values['property_address'] = lines[j+1]
+                values['account'] = lines[j+2]
+                del entry[0][j:j+3]
+                break
+            elif values['id'] == None and bool(re.search(patterns['id'],line)):
+                values['id'] = line
+                values['property_type'] = lines[j+1]
+                del entry[0][j:j+2]
+                break
+            elif values['zoning'] == None and bool(re.search(patterns['zoning'],line)):
+                values['zoning'] = line
+                del entry[0][j]
+                break
+            elif values['county_taxable'] == None and bool(re.search(patterns['county_taxable'],line)):
+                # Check if `line` contains the vaule or only header
+                if bool(re.search(patterns['county_taxable']+' +[0-9]+',line)):
+                    values['county_taxable'] = line
                     del entry[0][j]
-                    del entry[0][j+1]
-            #if value_location['delim']
+                else:
+                    values['county_taxable'] = [line, lines[j+1]]
+                    del entry[0][j:j+2]
+                break
+            elif values['town_taxable'] == None and bool(re.search(patterns['town_taxable'],line)):
+                # Check if `line` contains the vaule or only header
+                if bool(re.search(patterns['town_taxable']+' +[0-9]+',line)):
+                    values['town_taxable'] = line
+                    del entry[0][j]
+                else:
+                    values['town_taxable'] = [line, lines[j+1]]
+                    del entry[0][j:j+2]
+                break
+            elif values['school_taxable'] == None and bool(re.search(patterns['school_taxable'],line)):
+                # Check if `line` contains the vaule or only header
+                if bool(re.search(patterns['school_taxable']+' +[0-9]+',line)):
+                    values['school_taxable'] = line
+                    del entry[0][j]
+                else:
+                    values['school_taxable'] = [line, lines[j+1]]
+                    del entry[0][j:j+2]
+                break
+            elif values['fmv'] == None and bool(re.search(patterns['fmv'],line)):
+                # Check if `line` contains the vaule or only header
+                if bool(re.search(patterns['fmv']+' +[0-9]+',line)):
+                    values['fmv'] = line
+                    del entry[0][j]
+                else:
+                    values['fmv'] = [line, lines[j+1]]
+                    del entry[0][j:j+2]
+                break
+            elif values['acreage'] == None and bool(re.search(patterns['acreage'],line)):
+                # Check if `line` contains the vaule or only header
+                if bool(re.search(patterns['acreage']+' +[0-9.]+',line)):
+                    values['acreage'] = line
+                    del entry[0][j]
+                else:
+                    values['acreage'] = [line, lines[j+1]]
+                    del entry[0][j:j+2]
+                break
+            elif bool(re.search(patterns['exemptions'],line)):
+                # Check if `line` contains exemption code and values
+                if bool(re.search(patterns['exemptions']+' +[0-9]{5} +[0-9,]+ +[0-9,]+ +[0-9,]+',line)):
+                    print('found full exemption')
+                    values['exemptions'].append(line)
+                    del entry[0][j]
+                    break
+                # Try to assemble exemption
+                exemption = line
+                for n in range(1,5):
+                    if bool(re.fullmatch('[0-9, ]+',lines[j+n])):
+                        exemption = exemption + ' ' + lines[j+n]
+                    else:
+                        assert bool(re.fullmatch(patterns['exemptions']+' +[0-9]{5} +[0-9,]+ +[0-9,]+ +[0-9,]+',exemption))
+                        values['exemptions'].append(exemption)
+                        del entry[0][j:j+n]
+                        break
+                break
+            elif values['coord'] == None and bool(re.search(patterns['coord'],line)):
+                values['coord'] = line
+                del entry[0][j]
+                break
+            elif values['deed_book'] == None and bool(re.search(patterns['deed_book'],line)):
+                values['deed_book'] = line
+                del entry[0][j]
+                break
+            elif bool(re.search(patterns['districts'],line)):
+                values['districts'].append(line)
+                del entry[0][j]
+                break
+            elif bool(re.search(patterns['dist_tax_values'],line)):
+                values['dist_tax_values'].append(line)
+                del entry[0][j]
+                break
             j+=1
-        if i == 2: print(entry)
+        if i == len(values)-1: print("### post-processing\n",entry)
         i+=1
-            
-    for item in value_location:
-        if value_location[item] != None:
-            print(data[key][value_location[item][0]][value_location[item][1]])
-        
 
-sus_all(data_mamaroneck,'6-1-14')
-#print(data_mamaroneck['6-1-14'])
+    return values
+
+all_values = sus_all(data_mamaroneck,'6-1-14')
+print("### all values")
+for item in all_values: print(f"{item} : {all_values[item]}")
+for item in all_values:
+    assert all_values[item] != None and all_values[item] != [], f"Failed to find {item}"
 
 
 # In[30]:
