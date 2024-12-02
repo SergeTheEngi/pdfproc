@@ -25,7 +25,7 @@ class Inspector:
 
 
 class Extractor:
-    ''' Extracting tool for a dictionary of a pdf crated by pymupdf '''
+    ''' Extracting tool for a dictionary created by pymupdf '''
 
     def __init__(self,
                  re_id = '[0-9\\.\\-/A-Z]+',
@@ -188,7 +188,7 @@ class Extractor:
             
             for p in range(from_page,source.page_count):
                 page = source.load_page(p)
-                page_text=page.get_text('dict')
+                page_text = page.get_text('dict')
             
                 hs,he = self.get_header(page_text)
             
