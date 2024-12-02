@@ -24,10 +24,12 @@ Process Greenburgh:
         - [ ] Infer taxables
             - [x] County
             - [x] Town
-            - [ ] School
+            - [x] School
     - Additional:
         - [x] delim
         - [x] id
+        - [x] account
+        - [x] village taxable
 - [ ] Assemble output
 - [ ] Review the data, fix the errors
 

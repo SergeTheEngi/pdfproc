@@ -178,7 +178,7 @@ for key in data_scarsdale:
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
 
-# In[62]:
+# In[80]:
 
 
 # Version of sus_all from Mamaroneck developments, but for list of lines data
@@ -193,6 +193,7 @@ def sus_all(data,key):
         'delim':None,
         'account':None,
         'exemptions':[],
+        'village_taxable':None,
         'coord':None,
         'deed_book':None,
         'districts':[],
@@ -201,11 +202,11 @@ def sus_all(data,key):
     patterns = {
         'id':key,
         'zoning':'Mamaroneck +[0-9]{6}','acreage':'ACREAGE',
-        'county_taxable':'CNTY +TAXABLE','town_taxable':'TOWN +TAXABLE','school_taxable':'SCHOOL +TAXABLE',
+        'county_taxable':'CNTY +TAXABLE','town_taxable':'TOWN +TAXABLE','school_taxable':'SCHOOL +TAXABLE','village_taxable':'VILLAGE +TAXABLE',
         'fmv':'FULL MKT VAL',
         'delim':re_separator,'account':'ACCT:',
         'exemptions':'[A-Z]{3} STAR',
-        'coord':'EAST-[0-9]{7} NRTH-[0-9]{7}','deed_book':'DEED BOOK [0-9]{5} [A-Z]{2}-[0-9]{,4}',
+        'coord':'EAST-[0-9]{7} NRTH-[0-9]{7}','deed_book':'DEED BK [0-9]{5}?',
         'districts':'[A-Z]{2}[0-9]{3}','dist_tax_values':'[0-9,]+ TO( C)?'
     }
     lines = list(filter(None,copy.deepcopy(data[key])))
@@ -226,6 +227,7 @@ def sus_all(data,key):
                 'county_taxable':values['county_taxable'] == None and bool(re.search(patterns['county_taxable'],line)),
                 'town_taxable':values['town_taxable'] == None and bool(re.search(patterns['town_taxable'],line)),
                 'school_taxable':values['school_taxable'] == None and bool(re.search(patterns['school_taxable'],line)),
+                'village_taxable':values['village_taxable'] == None and bool(re.search(patterns['village_taxable'],line)),
                 'fmv':values['fmv'] == None and bool(re.search(patterns['fmv'],line)),
                 'acreage':values['acreage'] == None and bool(re.search(patterns['acreage'],line)),
                 'exemptions':bool(re.search(patterns['exemptions'],line)),
@@ -240,13 +242,25 @@ def sus_all(data,key):
                 del lines[j]
                 continue
             if matches.get('account'):
-                values['account'] = line
-                del lines[j]
+                if bool(re.fullmatch('[0-9]+',lines[j-1])):
+                    values['account'] = ' '.join([line,lines[j-1]])
+                    for n in range(1,5):
+                        if bool(re.search('[0-9]{3} [A-Z][a-z]+',lines[j+n])):
+                            values['property_type'] = lines[j+n]
+                            del lines[j+n]
+                            del lines[j-1:j+1]
+                            break
+                    if values['property_type'] == None:
+                        print(f"{lines[j+3]}")
+                        raise ValueError(f"Cannot find property type of {key}")
+                        del lines[j-1:j+1]
+                    continue
+                else:
+                    raise ValueError(f"Value before {patterns['account']} isn't a number")
                 continue
             elif matches.get('id'):
                 values['id'] = line
-                values['property_type'] = lines[j+1]
-                del lines[j:j+2]
+                del lines[j]
                 continue
             elif matches.get('zoning'):
                 values['zoning'] = line
@@ -272,7 +286,7 @@ def sus_all(data,key):
                 continue
             elif matches.get('county_taxable'):
                 # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['county_taxable']+' +[0-9]+',line)):
+                if bool(re.search(patterns['county_taxable']+' +[0-9,]+',line)):
                     values['county_taxable'] = line
                     del lines[j]
                 else:
@@ -281,7 +295,7 @@ def sus_all(data,key):
                 continue
             elif matches.get('town_taxable'):
                 # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['town_taxable']+' +[0-9]+',line)):
+                if bool(re.search(patterns['town_taxable']+' +[0-9,]+',line)):
                     values['town_taxable'] = line
                     del lines[j]
                 else:
@@ -290,7 +304,7 @@ def sus_all(data,key):
                 continue
             elif matches.get('school_taxable'):
                 # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['school_taxable']+' +[0-9]+',line)):
+                if bool(re.search(patterns['school_taxable']+' +[0-9,]+',line)):
                     values['school_taxable'] = line
                     del lines[j]
                 elif bool(re.search('[0-9,]+',lines[j+1])) and ',' in lines[j+1]:
@@ -298,6 +312,17 @@ def sus_all(data,key):
                     del lines[j:j+2]
                 else:
                     values['school_taxable'] = [line]
+                    del lines[j]
+                continue
+            elif matches.get('village_taxable'):
+                if bool(re.search(patterns['village_taxable']+' +[0-9,]+',line)):
+                    values['village_taxable'] = line
+                    del lines[j]
+                elif bool(re.search('[0-9,]+',lines[j+1])) and ',' in lines[j+1]:
+                    values['village_taxable'] = [line, lines[j+1]]
+                    del lines[j:j+2]
+                else:
+                    values['village_taxable'] = [line]
                     del lines[j]
                 continue
             elif matches.get('exemptions'):
@@ -323,8 +348,13 @@ def sus_all(data,key):
                 del lines[j]
                 continue
             elif matches.get('deed_book'):
-                values['deed_book'] = line
-                del lines[j]
+                if bool(re.search('[A-Z]{2} [0-9]{3,4}',lines[j-1])):
+                    values['deed_book'] = ' '.join([line,lines[j-1]])
+                    del lines[j-1:j+1]
+                else: 
+                    values['deed_book'] = line
+                    print(f"WARN: no value next to {pattern['deed_book']} in {key}")
+                    del lines[j]
                 continue
             elif matches.get('districts'):
                 values['districts'].append(line)
