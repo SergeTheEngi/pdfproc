@@ -10,6 +10,7 @@ Process Greenburgh:
     - [x] Assemble headers
     - [x] Collect page data
         - New data layout: one block of line pieces
+    - [x] Extract entries from pages
 - Process data:
     - [ ] Access owner names
     - [ ] Access owner address

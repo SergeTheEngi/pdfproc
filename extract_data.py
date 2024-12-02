@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[7]:
 
 
 import time
@@ -48,7 +48,7 @@ lol = pdfproc.as_lines.Extractor(
 )
 
 
-# In[3]:
+# In[8]:
 
 
 # Page splitting by form feed characters
@@ -58,21 +58,28 @@ grb_pages = lol.get_pages('Town of Greenburgh.txt')
 assert len(grb_pages) == grb_dict.page_count
 
 
-# In[8]:
+# In[9]:
 
 
 # Data extraction from lol pages
 dataset = copy.deepcopy(grb_pages)
 
-failed = []
+failed = []; data = {}
 for pn,page in enumerate(dataset):
     header = lol.get_header(page)
     if header != None:
-        pass
+        data.update(lol.get_page_data(page[header['end']:]))
     else:
         failed.append(pn+1)
 
 print('Failed to find header:\n',failed)
+
+
+# In[11]:
+
+
+data.keys()
+print(data['6.10-1-10.1'])
 
 
 # ## Extracting the data
