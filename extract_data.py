@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[34]:
+# In[41]:
 
 
 import time
@@ -17,33 +17,88 @@ from pdfproc.as_dict import \
     get_columns, \
     normalize_data, \
     unwrap_sublists_recursive
+import pdfproc.as_lines
 
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 newcastle = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
-mamaroneck = pymupdf.open('Mamaroneck.pdf')
+# Trying to extract text using pdftotext:
+with open('Town of Greenburgh.txt','r') as f:
+    greenburgh_text = f.readlines()
+    greenburgh_text = [line.strip() for line in greenburgh_text]
+
+re_id = '[0-9\\.\\-/A-Z]+'
+re_separator = f"\\*+ ?{re_id} ?\\*+"
+re_page_end = '\\*+'
+# New values
+re_hs = 'TAX MAP PARCEL'
+
+ext = pdfproc.as_dict.Extractor(
+    re_id,
+    re_separator,
+    re_page_end
+)
+
+lol = pdfproc.as_lines.Extractor(
+    re_id,
+    re_separator,
+    re_hs,
+)
 
 
-# In[37]:
+# In[62]:
 
 
-def inspect(data):# Inspect the data
-    page = data.load_page(1)
-    page_text = page.get_text('dict')
+# Try page splitting by form feed characters
+with open('Town of Greenburgh.txt','br') as f:
+    greenburgh_binary = f.readlines()
 
-    header_start,header_end = ext.get_header(page_text)
-    header = ext.assemble_header(page_text, header_start, header_end)
+with open('Town of Greenburgh.txt','r') as f:
+    greenburgh_text = f.readlines()
 
-    cols = get_columns(header,['TAX MAP','PROPERTY LOCATION','ASSESSMENT','EXEMPTION'])
+assert len(greenburgh_binary) == len(greenburgh_text)
 
-    for col in cols:
-        print(f"{col} : {cols[col]}")
-    for block in header:
-        for line in block: print([line])
+linefeed_loc = []
+for ln,line in enumerate(greenburgh_binary):
+    if bool(re.search(b'\x0c',line)):
+        linefeed_loc.append(ln)
 
-inspect(mamaroneck)
+greenburgh_pages = []
+prev_loc = None
+for loc in linefeed_loc:
+    if prev_loc != None:
+        greenburgh_pages.append(greenburgh_text[prev_loc:loc])
+    else:
+        greenburgh_pages.append(greenburgh_text[0:loc])
+    prev_loc = loc 
+
+greenburgh_dict = pymupdf.open('Town of Greenburgh.pdf')
+print(len(greenburgh_pages),greenburgh_dict.page_count)
+assert len(greenburgh_pages) == greenburgh_dict.page_count
+
+
+# In[11]:
+
+
+# Inspect the data
+
+
+dataset = copy.deepcopy(greenburgh_text)
+
+#pages = []
+#pages.append(lol.get_page_data(dataset,True))
+#print(pages[0])
+
+print(lol.get_header(dataset))
+print(lol.get_header(dataset[34:]))
+#print(dataset[34+177].replace('\x0c','tits'))
+#assert bool(re.search('(\x0c)',dataset[34+178]))
+for line in dataset[150:200]:
+    if bool(re.search(br'\f',line)):
+        print(line)
+#    if b'\f' in line:
 
 
 # ## Extracting the data
@@ -52,21 +107,7 @@ inspect(mamaroneck)
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[35]:
-
-
-re_id = '[0-9\\.\\-/A-Z]+'
-re_separator = f"\\*+ ?{re_id} ?\\*+"
-re_page_end = '\\*+'
-
-ext = pdfproc.as_dict.Extractor(
-    re_id,
-    re_separator,
-    re_page_end
-)
-
-
-# In[36]:
+# In[7]:
 
 
 # Test header extractor
@@ -118,7 +159,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[38]:
+# In[8]:
 
 
 # Extract data
@@ -136,8 +177,7 @@ alldata = ext.get_data([
         'name':'newcastle',
         'columns':['TAX MAP','PROPERTY LOCATION','EXEMPTION','TAXABLE VALUE'],
         'strip_lines':False
-    },
-    {'source':mamaroneck,'name':'mamaroneck'},
+    }
 ])
 
 data_bronxville = copy.deepcopy(alldata['bronxville'])
@@ -145,174 +185,8 @@ data_cornwall = copy.deepcopy(alldata['cornwall'])
 data_scarsdale = copy.deepcopy(alldata['scarsdale'])
 data_harrison = copy.deepcopy(alldata['harrison'])
 data_newcastle = copy.deepcopy(alldata['newcastle'])
-data_mamaroneck = copy.deepcopy(alldata['mamaroneck'])
 
 del alldata
-
-
-# In[96]:
-
-
-def sus_all(data,key):
-    values = {
-        # Target values
-        'id':None,
-        'owner_names':None, 'owner_address':None,
-        'property_type':None, 'property_address':None,'zoning':None,'acreage':None,'fmv':None,
-        'county_taxable':None, 'town_taxable':None, 'school_taxable':None,
-        # Other values
-        'delim':None,
-        'account':None,
-        'exemptions':[],
-        'coord':None,
-        'deed_book':None,
-        'districts':[],
-        'dist_tax_values':[],
-    }
-    patterns = {
-        'id':key,
-        'zoning':'Mamaroneck +[0-9]{6}','acreage':'ACRES',
-        'county_taxable':'COUNTY +TAXABLE +VALUE','town_taxable':'TOWN +TAXABLE +VALUE','school_taxable':'SCHOOL +TAXABLE +VALUE',
-        'fmv':'FULL +MARKET +VALUE',
-        'delim':re_separator,
-        'exemptions':'[A-Z]{3} STAR',
-        'coord':'EAST-[0-9]{7} NRTH-[0-9]{7}','deed_book':'DEED BOOK [0-9]{5} [A-Z]{2}-[0-9]{,4}',
-        'districts':'[A-Z]{2}[0-9]{3}','dist_tax_values':'[0-9,]+ TO( C)?'
-    }
-    entry = copy.deepcopy(data[key])
-    lines = entry[0]
-    i = 0
-    print("### pre-processing\n",entry)
-    while i < len(values):
-        j = 0
-        # For now, it only traverses lines of block 0.
-        # TODO: check current line against all patterns upon finding a pattern. Function should return number of matches and keys from them.
-        # TODO: If there are multiple matches, add functionality to cut everything that is not the match we're looking for out of the string
-        # and put it back instead of just deleting the element.
-        # One good solution for that would be pre-computing all patterns for a line and using match case
-        while j < len(entry[0]):
-            line = entry[0][j]
-            matches = {
-                'delim':values['delim'] == None and bool(re.search(patterns['delim'],line)),
-                'id':values['id'] == None and bool(re.search(patterns['id'],line)),
-                'zoning':values['zoning'] == None and bool(re.search(patterns['zoning'],line)),
-                'county_taxable':values['county_taxable'] == None and bool(re.search(patterns['county_taxable'],line)),
-                'town_taxable':values['town_taxable'] == None and bool(re.search(patterns['town_taxable'],line)),
-                'school_taxable':values['school_taxable'] == None and bool(re.search(patterns['school_taxable'],line)),
-                'fmv':values['fmv'] == None and bool(re.search(patterns['fmv'],line)),
-                'acreage':values['acreage'] == None and bool(re.search(patterns['acreage'],line)),
-                'exemptions':bool(re.search(patterns['exemptions'],line)),
-                'coord':values['coord'] == None and bool(re.search(patterns['coord'],line)),
-                'deed_book':values['deed_book'] == None and bool(re.search(patterns['deed_book'],line)),
-                'districts':bool(re.search(patterns['districts'],line)),
-                'dist_tax_values':bool(re.search(patterns['dist_tax_values'],line)),
-            }
-            # do delim before id so id in the delim doesn't get detected
-            if matches.get('delim'):
-                values['delim'] = line
-                values['property_address'] = lines[j+1]
-                values['account'] = lines[j+2]
-                del entry[0][j:j+3]
-                break
-            elif matches.get('id'):
-                values['id'] = line
-                values['property_type'] = lines[j+1]
-                del entry[0][j:j+2]
-                break
-            elif matches.get('zoning'):
-                values['zoning'] = line
-                del entry[0][j]
-                break
-            elif matches.get('county_taxable'):
-                # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['county_taxable']+' +[0-9]+',line)):
-                    values['county_taxable'] = line
-                    del entry[0][j]
-                else:
-                    values['county_taxable'] = [line, lines[j+1]]
-                    del entry[0][j:j+2]
-                break
-            elif matches.get('town_taxable'):
-                # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['town_taxable']+' +[0-9]+',line)):
-                    values['town_taxable'] = line
-                    del entry[0][j]
-                else:
-                    values['town_taxable'] = [line, lines[j+1]]
-                    del entry[0][j:j+2]
-                break
-            elif matches.get('school_taxable'):
-                # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['school_taxable']+' +[0-9]+',line)):
-                    values['school_taxable'] = line
-                    del entry[0][j]
-                else:
-                    values['school_taxable'] = [line, lines[j+1]]
-                    del entry[0][j:j+2]
-                break
-            elif matches.get('fmv'):
-                # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['fmv']+' +[0-9]+',line)):
-                    values['fmv'] = line
-                    del entry[0][j]
-                else:
-                    values['fmv'] = [line, lines[j+1]]
-                    del entry[0][j:j+2]
-                break
-            elif matches.get('acreage'):
-                # Check if `line` contains the vaule or only header
-                if bool(re.search(patterns['acreage']+' +[0-9.]+',line)):
-                    values['acreage'] = line
-                    del entry[0][j]
-                else:
-                    values['acreage'] = [line, lines[j+1]]
-                    del entry[0][j:j+2]
-                break
-            elif matches.get('exemptions'):
-                # Check if `line` contains exemption code and values
-                if bool(re.search(patterns['exemptions']+' +[0-9]{5} +[0-9,]+ +[0-9,]+ +[0-9,]+',line)):
-                    print('found full exemption')
-                    values['exemptions'].append(line)
-                    del entry[0][j]
-                    break
-                # Try to assemble exemption
-                exemption = line
-                for n in range(1,5):
-                    if bool(re.fullmatch('[0-9, ]+',lines[j+n])):
-                        exemption = exemption + ' ' + lines[j+n]
-                    else:
-                        assert bool(re.fullmatch(patterns['exemptions']+' +[0-9]{5} +[0-9,]+ +[0-9,]+ +[0-9,]+',exemption))
-                        values['exemptions'].append(exemption)
-                        del entry[0][j:j+n]
-                        break
-                break
-            elif matches.get('coord'):
-                values['coord'] = line
-                del entry[0][j]
-                break
-            elif matches.get('deed_book'):
-                values['deed_book'] = line
-                del entry[0][j]
-                break
-            elif matches.get('districts'):
-                values['districts'].append(line)
-                del entry[0][j]
-                break
-            elif matches.get('dist_tax_values'):
-                values['dist_tax_values'].append(line)
-                del entry[0][j]
-                break
-            j+=1
-        if i == len(values)-1: print("### post-processing\n",entry)
-        i+=1
-
-    return values
-
-all_values = sus_all(data_mamaroneck,'6-1-14')
-print("### all values")
-for item in all_values: print(f"{item} : {all_values[item]}")
-for item in all_values:
-    assert all_values[item] != None and all_values[item] != [], f"Failed to find {item}"
 
 
 # In[30]:
