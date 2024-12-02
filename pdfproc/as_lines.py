@@ -35,13 +35,22 @@ class Extractor:
                 assert header['end'] != None
                 return header
     
-    def get_page_data(self,dataset,verbose=False):
-        header = self.get_header(dataset)
-        start = header['end']
-        header = self.get_header(dataset[header['end']:])
-        end = start + header['start']
+    def get_page_data(self,dataset,strip_lines=True,verbose=False):
+        page_data = {}; harvest = False
+        collect = False
+        for line in dataset:
+            separator = None
+            separator = re.search(self.re_separator,line)
+            if separator:
+                entry_id = re.search(self.re_id,separator.group()).group()
+                page_data[entry_id] = [[]]
+                harvest = True
+            if harvest and strip_lines:
+                page_data[entry_id].append(line.strip())
+            elif harvest and not strip_lines:
+                page_data[entry_id].append(line)
         if verbose: print(start,end)
-        return dataset[start:end]
+        return page_data
 
     def get_pages(self,file,verbose=False):
         ''' Reads a file and returns list of pages as lists of lines.
