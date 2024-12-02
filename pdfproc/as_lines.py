@@ -42,3 +42,30 @@ class Extractor:
         end = start + header['start']
         if verbose: print(start,end)
         return dataset[start:end]
+
+    def get_pages(self,file,verbose=False):
+        ''' Reads a file and returns list of pages as lists of lines.
+        Input filename to read from. '''
+
+        # Read file as list of binary strings, find all formfeed characters
+        with open(file, 'br') as f:
+            dataset = f.readlines()
+        formfeed_loc = []
+        for ln,line in enumerate(dataset):
+            if bool(re.search(b'\x0c',line)):
+                formfeed_loc.append(ln)
+
+        # Read file as list of common strings, record pages
+        with open(file, 'r') as f:
+            dataset = f.readlines()
+
+        pages = []
+        prev_loc = None
+        for loc in formfeed_loc:
+            if prev_loc != None:
+                pages.append(dataset[prev_loc:loc])
+            else:
+                pages.append(dataset[0:loc])
+            prev_loc = loc
+
+        return pages
