@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[41]:
+# In[1]:
 
 
 import time
@@ -24,7 +24,7 @@ cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 newcastle = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
-# Trying to extract text using pdftotext:
+# Extract text using pdftotext:
 with open('Town of Greenburgh.txt','r') as f:
     greenburgh_text = f.readlines()
     greenburgh_text = [line.strip() for line in greenburgh_text]
@@ -48,57 +48,31 @@ lol = pdfproc.as_lines.Extractor(
 )
 
 
-# In[62]:
+# In[3]:
 
 
-# Try page splitting by form feed characters
-with open('Town of Greenburgh.txt','br') as f:
-    greenburgh_binary = f.readlines()
+# Page splitting by form feed characters
 
-with open('Town of Greenburgh.txt','r') as f:
-    greenburgh_text = f.readlines()
+grb_dict = pymupdf.open('Town of Greenburgh.pdf')
+grb_pages = lol.get_pages('Town of Greenburgh.txt')
+assert len(grb_pages) == grb_dict.page_count
 
-assert len(greenburgh_binary) == len(greenburgh_text)
 
-linefeed_loc = []
-for ln,line in enumerate(greenburgh_binary):
-    if bool(re.search(b'\x0c',line)):
-        linefeed_loc.append(ln)
+# In[8]:
 
-greenburgh_pages = []
-prev_loc = None
-for loc in linefeed_loc:
-    if prev_loc != None:
-        greenburgh_pages.append(greenburgh_text[prev_loc:loc])
+
+# Data extraction from lol pages
+dataset = copy.deepcopy(grb_pages)
+
+failed = []
+for pn,page in enumerate(dataset):
+    header = lol.get_header(page)
+    if header != None:
+        pass
     else:
-        greenburgh_pages.append(greenburgh_text[0:loc])
-    prev_loc = loc 
+        failed.append(pn+1)
 
-greenburgh_dict = pymupdf.open('Town of Greenburgh.pdf')
-print(len(greenburgh_pages),greenburgh_dict.page_count)
-assert len(greenburgh_pages) == greenburgh_dict.page_count
-
-
-# In[11]:
-
-
-# Inspect the data
-
-
-dataset = copy.deepcopy(greenburgh_text)
-
-#pages = []
-#pages.append(lol.get_page_data(dataset,True))
-#print(pages[0])
-
-print(lol.get_header(dataset))
-print(lol.get_header(dataset[34:]))
-#print(dataset[34+177].replace('\x0c','tits'))
-#assert bool(re.search('(\x0c)',dataset[34+178]))
-for line in dataset[150:200]:
-    if bool(re.search(br'\f',line)):
-        print(line)
-#    if b'\f' in line:
+print('Failed to find header:\n',failed)
 
 
 # ## Extracting the data
