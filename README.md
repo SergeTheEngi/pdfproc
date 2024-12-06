@@ -19,6 +19,7 @@ On the other hand, right now the project is pretty small. You probably can figur
 ## Current tasks
 
 > Processing data as dict doesn't work with datasets like mamaroneck and greenburgh. Expect delays.
+> `2024-12-06` Found a way to work around the problem using external tools. Hopefully update soon.
 
 - [x] Fix northcastle
 
