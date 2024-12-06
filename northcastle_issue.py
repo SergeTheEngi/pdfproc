@@ -3,7 +3,7 @@
 
 # # This is not the whole notebook, just a quick fix.
 
-# In[78]:
+# In[20]:
 
 
 import time
@@ -11,6 +11,7 @@ import time
 import pymupdf
 import re
 import copy
+import openpyxl
 from openpyxl import Workbook
 import pdfproc
 from pdfproc.as_dict import \
@@ -41,7 +42,7 @@ values_northcastle = {
 }
 
 
-# In[79]:
+# In[21]:
 
 
 # Extract data
@@ -54,7 +55,7 @@ data_northcastle = copy.deepcopy(alldata['northcastle'])
 del alldata
 
 
-# In[80]:
+# In[26]:
 
 
 # Get zoning
@@ -65,7 +66,11 @@ def find_my_acct(data,key,verbose=False):
         acct = None
         acct = re.search(re_acct,line)
         if acct != None:
-            return acct.group()
+            acct = re.split('  +',line)
+            for piece in acct:
+                if 'ACCT' in piece:
+                    out = re.sub('ACCT: ','',piece)
+                    return out
     if verbose: print(f"WARN: No account in {key}")
     return key
 
@@ -82,7 +87,15 @@ print(f"Failed to get zoning for:\n{failed}")
 print(len(values_northcastle['zoning']),len(data_northcastle))
 
 
-# In[83]:
+# In[27]:
+
+
+for key in values_northcastle['zoning']:
+    if len(values_northcastle['zoning'][key]) > 6:
+        print(values_northcastle['zoning'][key])
+
+
+# In[28]:
 
 
 # Get school districts
@@ -99,4 +112,56 @@ for key in data_northcastle:
             break
 
 print(len(values_northcastle['district']),len(data_northcastle))
+
+
+# ### Write values to the workbook
+
+# In[29]:
+
+
+# Load workbook
+wb = openpyxl.load_workbook(filename='Town of North castle 2024 (Needs Schools and Zoning).xlsx')
+ws = wb['2024']
+
+
+# In[32]:
+
+
+# Load ids and other data
+headers = ws[1]
+for item in headers:
+    print(item,item.value)
+    
+ids = ws['A']
+
+
+# In[33]:
+
+
+# Write school districs and zoning to new columns
+# Add new columns
+ws['J1'] = 'ZONING'
+ws['K1'] = 'SCHOOL DISTRICT'
+
+# Write zoning values
+for key in values_northcastle['zoning']:
+    write = False
+    for cell in ws['A']:
+        if cell.value == key:
+            ws[f"J{cell.row}"] = values_northcastle['zoning'][key]
+            write=True
+            break
+    assert write == True
+    
+# Write district values
+for key in values_northcastle['district']:
+    write = False
+    for cell in ws['A']:
+        if cell.value == key:
+            ws[f"K{cell.row}"] = values_northcastle['district'][key]
+            write=True
+            break
+    assert write == True
+
+wb.save('Northcastle.xlsx')
 

@@ -20,6 +20,8 @@ On the other hand, right now the project is pretty small. You probably can figur
 
 > Processing data as dict doesn't work with datasets like mamaroneck and greenburgh. Expect delays.
 
+- [x] Fix northcastle
+
 Process Greenburgh:
 - [x] Inspect the data
 - [x] Find new data extraction method
