@@ -18,16 +18,14 @@ from pdfproc.as_dict import \
     normalize_data, \
     unwrap_sublists_recursive
 import pdfproc.as_lines
+import poppler
 
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 newcastle = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
-# Extract text using pdftotext:
-with open('Town of Greenburgh.txt','r') as f:
-    greenburgh_text = f.readlines()
-    greenburgh_text = [line.strip() for line in greenburgh_text]
+greenburgh = poppler.load_from_file('Town of Greenburgh.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
@@ -54,31 +52,25 @@ lol = pdfproc.as_lines.Extractor(
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[2]:
+# In[10]:
 
 
-# Page splitting by form feed characters
+# Extract data
 
-grb_dict = pymupdf.open('Town of Greenburgh.pdf')
-grb_pages = lol.get_pages('Town of Greenburgh.txt')
-assert len(grb_pages) == grb_dict.page_count
+failed = []
+for i in range(greenburgh.pages):
+    page = greenburgh.create_page(i)
+    page_text = page.text()
+    page_text = page_text.split('\n')
 
+    try:
+        header = lol.get_header(page_text)
+        data = lol.get_page_data(page_text[header['end']:])
+    except:
+        failed.append(i+1) # Poppler indexes pages from 0
+        #raise
 
-# In[3]:
-
-
-# Data extraction from lol pages
-dataset = copy.deepcopy(grb_pages)
-
-failed = []; data_grb = {}
-for pn,page in enumerate(dataset):
-    header = lol.get_header(page)
-    if header != None:
-        data_grb.update(lol.get_page_data(page[header['end']:]))
-    else:
-        failed.append(pn+1)
-
-print('Failed to find header:\n',failed)
+print(f"failed to extract:\n {failed}")
 
 
 # In[4]:

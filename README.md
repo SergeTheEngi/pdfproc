@@ -20,14 +20,7 @@ On the other hand, right now the project is pretty small. You probably can figur
 
 For python dependencies, see `requirements.txt`.
 
-Some pdf extraction functionality depends on `pdftotext`. It is optional for normal operation, but might help to extract text from stubborn pdfs. In any case you still can use your own tools and pass the extracted text directly.
-
 ## Current tasks
-
-> Processing data as dict doesn't work with datasets like mamaroneck and greenburgh. Expect delays.
-> `2024-12-06` Found a way to work around the problem using external tools. Hopefully update soon.
-
-- [x] Fix northcastle
 
 Process Greenburgh:
 - [x] Inspect the data
@@ -35,28 +28,22 @@ Process Greenburgh:
     - pdftotext does the job?
 - Collect data:
     - [x] Get headers
-    - [x] Assemble headers
     - [x] Collect page data
         - New data layout: one block of line pieces
     - [x] Extract entries from pages
-- Create new function to infer data from a randomly ordered list of lines:
+- Extract data:
     - Main elements:
-        - [ ] Infer owner names
-        - [ ] Infer owner address
-        - [ ] Infer property type
-        - [ ] Infer property address
-        - [ ] Infer zoning
-        - [x] Infer acreage
-        - [ ] Infer market value
-        - [ ] Infer taxables
-            - [x] County
-            - [x] Town
-            - [x] School
-    - Additional:
-        - [x] delim
-        - [x] id
-        - [x] account
-        - [x] village taxable
+        - [ ] owner names
+        - [ ] owner address
+        - [ ] property type
+        - [ ] property address
+        - [ ] zoning
+        - [ ] acreage
+        - [ ] market value
+        - [ ] taxables
+            - [ ] County
+            - [ ] Town
+            - [ ] School
 - [ ] Assemble output
 - [ ] Review the data, fix the errors
 
