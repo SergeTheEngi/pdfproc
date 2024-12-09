@@ -1179,9 +1179,12 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[116]:
+# #### Get zoning
+
+# In[136]:
 
 
+# Tests and the function definition
 def get_zoning(entry,pattern):
     lines = [
         ' '.join(entry[1]),
@@ -1304,10 +1307,10 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[135]:
+# In[137]:
 
 
-# Test greenburgh
+# Test greenburgh with the new generic function
 def get_generic(entry,pattern,verbose=False):
     #entry = copy.deepcopy(entry)
     for line in entry:
@@ -1362,7 +1365,9 @@ for key in data['greenburgh']:
         raise
 
 
-# In[61]:
+# #### Get acreage
+
+# In[138]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1450,6 +1455,55 @@ for entry in data_bronxville:
 
 assert '' in ['', 'test']
 assert '' not in all_acreage
+
+
+# In[141]:
+
+
+# Test greenburgh with the new generic function
+testset_greenburgh = [
+    ('6.10-1-10.1',.2999),
+    ('7.280-125-13',.2099),
+    ('8.540-375-12',.1999),
+]
+
+re_acreage = 'ACREAGE [0-9.]{,7}'
+
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = get_generic(entry,re_acreage)
+        output = output.split()
+        output = float(output[1])
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['greenburgh'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+for key in data['greenburgh']:
+    entry = []
+    verbose = False
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        get_generic(entry,re_acreage,verbose)
+    except:
+        print(entry)
+        raise
 
 
 # In[62]:

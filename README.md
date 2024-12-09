@@ -38,7 +38,7 @@ Process Greenburgh:
         - [x] property type
         - [x] property address
         - [x] zoning
-        - [ ] acreage
+        - [x] acreage
         - [ ] market value
         - [ ] taxables
             - [ ] County
