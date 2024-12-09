@@ -825,7 +825,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[56]:
+# In[57]:
 
 
 # Test greenburgh
@@ -868,7 +868,7 @@ for key,result in testset_greenburgh:
 
 # #### Get property type
 
-# In[46]:
+# In[65]:
 
 
 def get_property_type(entry,key):
@@ -973,7 +973,35 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[94]:
+# In[69]:
+
+
+# Test greenburgh
+testset_greenburgh = [
+    ('6.10-1-10.1','210 One Family Year-Round Residence'),
+    ('7.280-125-13','210 One Family Year-Round Residence'),
+    ('8.540-375-12','210 One Family Year-Round Residence'),
+]
+
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            #print(entry_line)
+            entry.append(entry_line)
+    try:
+        output = get_property_type(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['greenburgh'][key]: print([line])
+        print(entry)
+        raise
+
+
+# In[59]:
 
 
 def get_property_address(entry,key):
@@ -1102,7 +1130,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[82]:
+# In[60]:
 
 
 def get_zoning(entry,pattern):
@@ -1227,7 +1255,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[83]:
+# In[61]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1317,7 +1345,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[85]:
+# In[62]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):

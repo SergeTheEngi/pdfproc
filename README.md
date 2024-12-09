@@ -35,7 +35,7 @@ Process Greenburgh:
     - Main elements:
         - [x] owner names
         - [x] owner address
-        - [ ] property type
+        - [x] property type
         - [ ] property address
         - [ ] zoning
         - [ ] acreage
