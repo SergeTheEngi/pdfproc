@@ -1135,7 +1135,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[114]:
+# In[115]:
 
 
 # Test greenburgh
@@ -1179,7 +1179,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[60]:
+# In[116]:
 
 
 def get_zoning(entry,pattern):
@@ -1302,6 +1302,64 @@ for entry in data_bronxville:
 assert '' in ['', 'test']
 assert '' not in all_zoning
 assert None not in all_zoning
+
+
+# In[135]:
+
+
+# Test greenburgh
+def get_generic(entry,pattern,verbose=False):
+    #entry = copy.deepcopy(entry)
+    for line in entry:
+        result = None
+        if type(line) == list:
+            line = ' '.join(line)
+        result = re.search(pattern,line)
+        if result != None:
+            return result.group()
+        elif verbose:
+            print(line)
+    raise ValueError(f"Cannot find '{pattern}'")
+
+testset_greenburgh = [
+    ('6.10-1-10.1','ACCT: 6167550'),
+    ('7.280-125-13','ACCT: 7255425'),
+    ('8.540-375-12','ACCT: 8531402'),
+]
+
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = get_generic(entry,'ACCT: [0-9]{6,7}')
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['greenburgh'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+for key in data['greenburgh']:
+    entry = []
+    verbose = False
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        get_generic(entry,'ACCT: [0-9]{6,7}',verbose)
+    except:
+        print(entry)
+        raise
 
 
 # In[61]:

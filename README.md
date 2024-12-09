@@ -37,7 +37,7 @@ Process Greenburgh:
         - [x] owner address
         - [x] property type
         - [x] property address
-        - [ ] zoning
+        - [x] zoning
         - [ ] acreage
         - [ ] market value
         - [ ] taxables
