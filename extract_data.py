@@ -1896,7 +1896,7 @@ for key,result in testset_greenburgh:
 
 # #### Assemble workbook
 
-# In[303]:
+# In[318]:
 
 
 wb = Workbook()
@@ -1916,12 +1916,13 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[304]:
+# In[319]:
 
 
 # Extract the data
 row = 2
 a = time.time()
+failed_acreage = []
 for key in data['greenburgh']:
     print(key)
     ws[f"A{row}"] = key
@@ -2029,7 +2030,6 @@ for key in data['greenburgh']:
 
     # Property address
     entry = []
-    entry = []
     for line in data['greenburgh'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
@@ -2071,7 +2071,9 @@ for key in data['greenburgh']:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
-    ws[f"F{row}"] = get_generic(entry,'ACCT: [0-9]{6,7}')
+    out = get_generic(entry,'ACCT: [0-9]{6,7}')
+    out = out.split()
+    ws[f"F{row}"] = float(out[1])
 
     # Acreage
     entry = []
@@ -2079,7 +2081,14 @@ for key in data['greenburgh']:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
-    ws[f"G{row}"] = get_generic(entry,re_acreage,verbose)
+    try:
+        out = get_generic(entry,re_acreage,verbose)
+        out = out.split()
+        out = float(out[-1])
+    except:
+        failed_acreage.append(key)
+        out = None
+    ws[f"G{row}"] = out
 
     # Full market value
     entry = []
@@ -2090,15 +2099,17 @@ for key in data['greenburgh']:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
     try:
-        fmv = get_generic(entry,re_fmv,verbose)
+        out = get_generic(entry,re_fmv,verbose)
+        out = out.split()
+        out = float(out[-1].replace(',',''))
     except:
         try:
             get_generic(entry,'FULL MKT VAL',verbose)
-            fmv = None
+            out = None
         except:
             print(entry)
             raise
-    ws[f"H{row}"] = fmv
+    ws[f"H{row}"] = out
 
     # Taxables
     entry = []
@@ -2115,4 +2126,5 @@ wb.save('extracted_data.xlsx')
 b = time.time()
 
 print(b-a)
+print(failed_acreage)
 
