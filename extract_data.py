@@ -583,7 +583,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[240]:
+# In[267]:
 
 
 # Test greenburgh
@@ -598,6 +598,10 @@ testset_greenburgh = [
     ('6.80-66-3',['MANSURY, MAWAR U']),
     ('1.100-65-79',['COUNTY OF WESTCHESTER']),
     ('4.100-97-2',['VILLAGE OF HASTINGS ON HUDSON']),
+    ('3.60-21-7',['MAYHAWK, JOI']),
+    ('5.20-16-13',['TARRY-ELM ASSOCIATES LLC']),
+    ('1.271-138-1.232',['BROADWAY ON HUDSON ESTATES LLC']),
+    ('2.90-44-21.16',['TOLL NORTHEAST V CORP.']),
 ]
 
 #print(data['greenburgh'].keys())
@@ -625,11 +629,16 @@ for key,result in testset_greenburgh:
                 bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
                 'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
             ]
             if True in checks:
                 continue
-            if 'SUITE' in entry_line[0] or \
-                'UNIT' in entry_line[0]:
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
                 entry[-1] = entry[-1] + ' ' + entry_line[0]
             elif 'C/O' in entry_line[0]:
                 temp = entry[-1]
@@ -637,52 +646,11 @@ for key,result in testset_greenburgh:
                 entry.append(temp)
             else:
                 entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
     try:
         output = ext.get_owner_names(entry,key)
         assert output == result, f"{key}, {result} != {output}"
-    except:
-        for line in data['greenburgh'][key]: print([line])
-        print(entry)
-        raise
-
-for key in errors:
-    entry = []
-    for line in data['greenburgh'][key]:
-        #newline = line.replace('\n','')
-        #newline = newline.strip()
-        if line != '' and line != None and line != []:
-            entry_line = re.split('  +',line)
-            checks  = [
-                'FULL MKT VAL' in entry_line[0],
-                'DEED BK' in entry_line[0],
-                'EAST-' in entry_line[0],
-                'ACREAGE' in entry_line[0],
-                'add to' in entry_line[0],
-                'add map' in entry_line[0],
-                bool(re.search('\bMAP\b',entry_line[0])),
-                'TAXABLE' in entry_line[0],
-                'CONTIGUOUS PARCEL' in entry_line[0],
-                'BANK CODE' in entry_line[0],
-                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
-                bool(re.search('@ [0-9]',entry_line[0])),
-                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
-                bool(re.fullmatch('#[0-9]+',entry_line[0])),
-                'ATTM' in entry_line[0],
-            ]
-            if True in checks:
-                continue
-            if 'SUITE' in entry_line[0] or \
-                'UNIT' in entry_line[0]:
-                entry[-1] = entry[-1] + ' ' + entry_line[0]
-            elif 'C/O' in entry_line[0]:
-                temp = entry[-1]
-                entry[-1] = entry_line[0]
-                entry.append(temp)
-            else:
-                entry.append(entry_line[0])
-    try:
-        output = ext.get_owner_names(entry,key)
-        print(key,output)
     except:
         for line in data['greenburgh'][key]: print([line])
         print(entry)
@@ -888,7 +856,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[57]:
+# In[268]:
 
 
 # Test greenburgh
@@ -904,22 +872,41 @@ for key,result in testset_greenburgh:
         #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
-            #print(entry_line)
-            if 'FULL MKT VAL' in entry_line[0] or \
-                'DEED BK' in entry_line[0] or \
-                'EAST-' in entry_line[0] or \
-                'ACREAGE' in entry_line[0] or \
-                'add to' in entry_line[0] or \
-                'add map' in entry_line[0] or \
-                'MAP' in entry_line[0] or \
-                'TAXABLE' in entry_line[0] or \
-                'CONTIGUOUS PARCEL' in entry_line[0] or \
-                'BANK CODE' in entry_line[0] or \
-                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
-                bool(re.search('@ [0-9]',entry_line[0])) or \
-                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK CODE' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
                 continue
-            entry.append(entry_line[0])
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
     try:
         output = ext.get_owner_address(entry,key)
         assert output == result, f"{key}, {result} != {output}"
@@ -1196,7 +1183,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[115]:
+# In[297]:
 
 
 # Test greenburgh
@@ -1204,6 +1191,8 @@ testset_greenburgh = [
     ('6.10-1-10.1','36 CONCORD RD'),
     ('7.280-125-13','50 FISHER LN'),
     ('8.540-375-12','22 WALBROOKE RD'),
+    ('6.50-31-17','0 BEACON HILL RD (OFF)'),
+    ('6.100-92-10','0 ALMENA AVE'),
 ]
 
 for key,result in testset_greenburgh:
@@ -1215,21 +1204,30 @@ for key,result in testset_greenburgh:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
     del entry[0]
+    nentry = []
+    for line in entry[0]:
+        checks = [
+            not bool(re.fullmatch('[0-9]+',line)),
+            not bool(re.search('ACCT:',line)),
+        ]
+        if False not in checks:
+            nentry.append(line)
+    entry[0] = nentry
     for n,e in enumerate(entry):
         entry[n] = list(filter(None,e))
-        if len(entry[0]) > 1:
-            last_item = entry[0].pop()
-            entry[0].insert(0,last_item)
-        if len(entry[0]) > 2:
-            while len(entry[0]) > 2:
-                if 'ACCT' not in entry[0][2]:
-                    entry[0][1] = entry[0][1] + ' ' + entry[0][2]
-                    del entry[0][2]
-                else:
-                    break
-            entry[0] = entry[0][0:2]
-        if len(entry[0]) == 1:
-            entry[0].insert(0,'')
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        while len(entry[0]) > 2:
+            if 'ACCT' not in entry[0][2]:
+                entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                del entry[0][2]
+            else:
+                break
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
     try:
         output = get_property_address(entry,key)
         assert output == result, f"{key}, {result} != {output}"
@@ -1898,7 +1896,7 @@ for key,result in testset_greenburgh:
 
 # #### Assemble workbook
 
-# In[188]:
+# In[303]:
 
 
 wb = Workbook()
@@ -1918,7 +1916,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[189]:
+# In[304]:
 
 
 # Extract the data
@@ -1931,77 +1929,138 @@ for key in data['greenburgh']:
     # Owner names
     entry = []
     for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
-            if 'FULL MKT VAL' in entry_line[0] or \
-                'DEED BK' in entry_line[0] or \
-                'EAST-' in entry_line[0] or \
-                'ACREAGE' in entry_line[0] or \
-                'add to' in entry_line[0] or \
-                'add map' in entry_line[0] or \
-                'MAP' in entry_line[0] or \
-                'TAXABLE' in entry_line[0] or \
-                'CONTIGUOUS PARCEL' in entry_line[0] or \
-                'BANK CODE' in entry_line[0] or \
-                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
-                bool(re.search('@ [0-9]',entry_line[0])) or \
-                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK CODE' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
                 continue
-            entry.append(entry_line[0])
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
     ws[f"B{row}"] = ', '.join(ext.get_owner_names(entry,key))
 
     # Owner address
     entry = []
     for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
-            if 'FULL MKT VAL' in entry_line[0] or \
-                'DEED BK' in entry_line[0] or \
-                'EAST-' in entry_line[0] or \
-                'ACREAGE' in entry_line[0] or \
-                'add to' in entry_line[0] or \
-                'add map' in entry_line[0] or \
-                'MAP' in entry_line[0] or \
-                'TAXABLE' in entry_line[0] or \
-                'CONTIGUOUS PARCEL' in entry_line[0] or \
-                'BANK CODE' in entry_line[0] or \
-                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
-                bool(re.search('@ [0-9]',entry_line[0])) or \
-                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK CODE' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
                 continue
-            entry.append(entry_line[0])
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
     ws[f"C{row}"] = ext.get_owner_address(entry,key)
 
     # Property type
     entry = []
     for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
+            #print(entry_line)
             entry.append(entry_line)
     ws[f"D{row}"] = get_property_type(entry,key)
 
     # Property address
     entry = []
+    entry = []
     for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
     del entry[0]
+    nentry = []
+    for line in entry[0]:
+        checks = [
+            not bool(re.fullmatch('[0-9]+',line)),
+            not bool(re.search('ACCT:',line)),
+        ]
+        if False not in checks:
+            nentry.append(line)
+    entry[0] = nentry
     for n,e in enumerate(entry):
         entry[n] = list(filter(None,e))
-        if len(entry[0]) > 1:
-            last_item = entry[0].pop()
-            entry[0].insert(0,last_item)
-        if len(entry[0]) > 2:
-            while len(entry[0]) > 2:
-                if 'ACCT' not in entry[0][2]:
-                    entry[0][1] = entry[0][1] + ' ' + entry[0][2]
-                    del entry[0][2]
-                else:
-                    break
-            entry[0] = entry[0][0:2]
-        if len(entry[0]) == 1:
-            entry[0].insert(0,'')
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        while len(entry[0]) > 2:
+            if 'ACCT' not in entry[0][2]:
+                entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                del entry[0][2]
+            else:
+                break
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
     ws[f"E{row}"] = get_property_address(entry,key)
 
     # Zoning
