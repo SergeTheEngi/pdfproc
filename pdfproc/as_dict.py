@@ -43,6 +43,7 @@ class Extractor:
 
     def get_header(self,page_text,verbose=False):
         ''' Tool for finding header in a US final assessment roll '''
+        ''' TODO: rewrite get_header to use actual errors instead of printing bs in my tty '''
         header_start = None
         if self.key_block not in page_text.keys():
             print(f"E: Page structure lacks '{self.key_block}'")
