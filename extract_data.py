@@ -1506,6 +1506,8 @@ for key in data['greenburgh']:
         raise
 
 
+# #### Get full market value
+
 # In[62]:
 
 
@@ -1617,6 +1619,62 @@ for entry in data_bronxville:
 assert '' in ['', 'test']
 assert '' not in all_market_values
 assert None not in all_market_values
+
+
+# In[158]:
+
+
+# Test greenburgh with the new generic function
+testset_greenburgh = [
+    ('6.10-1-10.1',1487500),
+    ('7.280-125-13',619200),
+    ('8.540-375-12',979200),
+]
+
+re_fmv = 'FULL MKT VAL [0-9,]+'
+
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['greenburgh'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+failed = []
+for key in data['greenburgh']:
+    entry = []
+    verbose = False
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        get_generic(entry,re_fmv,verbose)
+    except:
+        try:
+            get_generic(entry,'FULL MKT VAL',verbose)
+            failed.append(key)
+        except:
+            print(entry)
+            raise
+
+print(f"Entries without full market value:\n{failed}")
 
 
 # In[88]:
