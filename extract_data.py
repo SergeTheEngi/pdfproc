@@ -1677,7 +1677,9 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[88]:
+# #### Get taxables
+
+# In[160]:
 
 
 def get_taxable(entry,taxable_name):
@@ -1787,6 +1789,62 @@ for entry in data_bronxville:
 assert '' in ['', 'test']
 assert ['','',''] not in all_taxables
 assert None not in all_taxables
+
+
+# In[170]:
+
+
+# Test greenburgh with the new generic function
+testset_greenburgh = [
+    ('6.10-1-10.1',[1487500,1487500,1487500]),
+    ('7.280-125-13',[619200,619200,542780]),
+    ('8.540-375-12',[979200,979200,979200]),
+]
+
+#re_taxables = [
+#    'CITY TAXABLE [0-9,]+',
+#    'TOWN TAXABLE [0-9,]+',
+#    'SCHOOL TAXABLE [0-9,]+'
+#]
+taxable_names = [
+    'CNTY TAXABLE',
+    'TOWN TAXABLE',
+    'SCHOOL TAXABLE'
+]
+
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = get_all_taxables(entry,taxable_names)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['greenburgh'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+for key in data['greenburgh']:
+    entry = []
+    verbose = False
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        get_generic(entry,re_acreage,verbose)
+    except:
+        print(entry)
+        raise
 
 
 # In[136]:

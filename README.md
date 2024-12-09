@@ -40,10 +40,10 @@ Process Greenburgh:
         - [x] zoning
         - [x] acreage
         - [x] market value
-        - [ ] taxables
-            - [ ] County
-            - [ ] Town
-            - [ ] School
+        - [x] taxables
+            - [x] County
+            - [x] Town
+            - [x] School
 - [ ] Assemble output
 - [ ] Review the data, fix the errors
 
