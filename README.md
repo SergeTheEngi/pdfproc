@@ -34,7 +34,7 @@ Process Greenburgh:
 - Extract data:
     - Main elements:
         - [x] owner names
-        - [ ] owner address
+        - [x] owner address
         - [ ] property type
         - [ ] property address
         - [ ] zoning

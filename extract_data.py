@@ -581,7 +581,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[50]:
+# In[53]:
 
 
 # Test greenburgh
@@ -823,6 +823,47 @@ for key,result in testset_newcastle:
                 moved = True
     output = ext.get_owner_address(entry,key)
     assert output == result, f"{key}, {[result]} != {[output]}"
+
+
+# In[56]:
+
+
+# Test greenburgh
+testset_greenburgh = [
+    ('6.10-1-10.1','36 CONCORD RD, ARDSLEY NY 10502'),
+    ('7.280-125-13','50 FISHER LN, WHITE PLAINS NY 10603'),
+    ('8.540-375-12','22 WALBROOKE RD, SCARSDALE NY 10583'),
+]
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            #print(entry_line)
+            if 'FULL MKT VAL' in entry_line[0] or \
+                'DEED BK' in entry_line[0] or \
+                'EAST-' in entry_line[0] or \
+                'ACREAGE' in entry_line[0] or \
+                'add to' in entry_line[0] or \
+                'add map' in entry_line[0] or \
+                'MAP' in entry_line[0] or \
+                'TAXABLE' in entry_line[0] or \
+                'CONTIGUOUS PARCEL' in entry_line[0] or \
+                'BANK CODE' in entry_line[0] or \
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
+                bool(re.search('@ [0-9]',entry_line[0])) or \
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+                continue
+            entry.append(entry_line[0])
+    try:
+        output = ext.get_owner_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['greenburgh'][key]: print([line])
+        print(entry)
+        raise
 
 
 # #### Get property type
