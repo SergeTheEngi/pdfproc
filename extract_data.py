@@ -108,7 +108,7 @@ for test,result in testset:
 # In[3]:
 
 
-# Extract data
+# Extract data (list of lines)
 data = {
     'greenburgh':{}
 }
@@ -131,7 +131,7 @@ print(f"\nfailed to extract {len(failed)} pages:\n{failed}")
 # In[4]:
 
 
-# Extract data
+# Extract data (pymupdf dictionary)
 alldata = ext.get_data([
     {'source':bronxville,'name':'bronxville'},
     {'source':cornwall,'name':'cornwall'},
@@ -371,6 +371,8 @@ for item in all_values: print(f"{item} : {all_values[item]}")
 for item in all_values:
     assert all_values[item] != None and all_values[item] != [], f"Failed to find {item}"
 
+
+# ### Extraction functions & tests
 
 # #### Get owner names
 
@@ -868,7 +870,7 @@ for key,result in testset_greenburgh:
 
 # #### Get property type
 
-# In[65]:
+# In[75]:
 
 
 def get_property_type(entry,key):
@@ -973,7 +975,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[69]:
+# In[76]:
 
 
 # Test greenburgh
@@ -1001,9 +1003,12 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[59]:
+# #### Get property address
+
+# In[103]:
 
 
+# Mix of function definition and tests
 def get_property_address(entry,key):
     address = [line for line in entry[0][1:] if line != '']
     if key in address:
@@ -1128,6 +1133,50 @@ for key,result in testset_newcastle:
     if len(entry[0]) == 1:
         entry[0].insert(0,'')
     run_test(entry,key,result,get_property_address)
+
+
+# In[114]:
+
+
+# Test greenburgh
+testset_greenburgh = [
+    ('6.10-1-10.1','36 CONCORD RD'),
+    ('7.280-125-13','50 FISHER LN'),
+    ('8.540-375-12','22 WALBROOKE RD'),
+]
+
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    del entry[0]
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+        if len(entry[0]) > 1:
+            last_item = entry[0].pop()
+            entry[0].insert(0,last_item)
+        if len(entry[0]) > 2:
+            while len(entry[0]) > 2:
+                if 'ACCT' not in entry[0][2]:
+                    entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                    del entry[0][2]
+                else:
+                    break
+            entry[0] = entry[0][0:2]
+        if len(entry[0]) == 1:
+            entry[0].insert(0,'')
+    try:
+        output = get_property_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['greenburgh'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        raise
 
 
 # In[60]:
