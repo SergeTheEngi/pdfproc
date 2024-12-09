@@ -583,7 +583,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[53]:
+# In[240]:
 
 
 # Test greenburgh
@@ -592,6 +592,12 @@ testset_greenburgh = [
     ('6.10-1-10.1',['STRONGIN, MEREDITH','STRONGIN, JONATHAN']),
     ('7.280-125-13',['MILLER, KARL M','PARADA, CARLOS']),
     ('8.540-375-12',['DEPIETTO, DAVID']),
+    ('6.100-92-1',['PHETSOMPHOU, TERRY']),
+    ('7.777-5021-5',['CABLEVISION SYSTEM LIGHTPATH']),
+    ('626.89-9999-110.700.2883',['CONSOLIDATED EDISON CO', 'C/O: STEPHANIE J. MERRITT']),
+    ('6.80-66-3',['MANSURY, MAWAR U']),
+    ('1.100-65-79',['COUNTY OF WESTCHESTER']),
+    ('4.100-97-2',['VILLAGE OF HASTINGS ON HUDSON']),
 ]
 
 #print(data['greenburgh'].keys())
@@ -603,25 +609,80 @@ for key,result in testset_greenburgh:
         #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
-            #print(entry_line)
-            if 'FULL MKT VAL' in entry_line[0] or \
-                'DEED BK' in entry_line[0] or \
-                'EAST-' in entry_line[0] or \
-                'ACREAGE' in entry_line[0] or \
-                'add to' in entry_line[0] or \
-                'add map' in entry_line[0] or \
-                'MAP' in entry_line[0] or \
-                'TAXABLE' in entry_line[0] or \
-                'CONTIGUOUS PARCEL' in entry_line[0] or \
-                'BANK CODE' in entry_line[0] or \
-                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
-                bool(re.search('@ [0-9]',entry_line[0])) or \
-                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK CODE' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                'ATTM' in entry_line[0],
+            ]
+            if True in checks:
                 continue
-            entry.append(entry_line[0])
+            if 'SUITE' in entry_line[0] or \
+                'UNIT' in entry_line[0]:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
     try:
         output = ext.get_owner_names(entry,key)
         assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['greenburgh'][key]: print([line])
+        print(entry)
+        raise
+
+for key in errors:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK CODE' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                'ATTM' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            if 'SUITE' in entry_line[0] or \
+                'UNIT' in entry_line[0]:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    try:
+        output = ext.get_owner_names(entry,key)
+        print(key,output)
     except:
         for line in data['greenburgh'][key]: print([line])
         print(entry)
