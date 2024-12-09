@@ -1621,7 +1621,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[158]:
+# In[176]:
 
 
 # Test greenburgh with the new generic function
@@ -1679,18 +1679,22 @@ print(f"Entries without full market value:\n{failed}")
 
 # #### Get taxables
 
-# In[160]:
+# In[184]:
 
 
 def get_taxable(entry,taxable_name):
+    taxable = None
     taxable_line = find_line(entry,taxable_name)
     if taxable_line == 1:
         #print(f"WARN: {entry[1][0]} doesn't have {taxable_name}")
         return None
     
     taxable = re.search(taxable_name + ' [0-9\\,]+',taxable_line)
-    taxable = re.sub(taxable_name + ' ','',taxable.group())
-    return float(taxable.replace(',',''))
+    if taxable != None:
+        taxable = re.sub(taxable_name + ' ','',taxable.group())
+        return float(taxable.replace(',',''))
+    else:
+        return None
     #else:
     #    taxable = entry[bn][ln].split()
     #    for sn,string in enumerate(taxable):
@@ -1791,14 +1795,15 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[170]:
+# In[185]:
 
 
-# Test greenburgh with the new generic function
+# Test greenburgh
 testset_greenburgh = [
     ('6.10-1-10.1',[1487500,1487500,1487500]),
     ('7.280-125-13',[619200,619200,542780]),
     ('8.540-375-12',[979200,979200,979200]),
+    ('6.120-103-1.DP1',[None,None,None]),
 ]
 
 #re_taxables = [
@@ -1827,33 +1832,18 @@ for key,result in testset_greenburgh:
         print("Data item:")
         for line in data['greenburgh'][key]: print([line])
         print(f"\nEntry:\n{entry}")
-        print(entry[1])
-        print(entry[2])
-        raise
-
-for key in data['greenburgh']:
-    entry = []
-    verbose = False
-    for line in data['greenburgh'][key]:
-        #newline = line.replace('\n','')
-        #newline = newline.strip()
-        if line != '' and line != None and line != []:
-            entry_line = re.split('  +',line)
-            entry.append(entry_line)
-    try:
-        get_generic(entry,re_acreage,verbose)
-    except:
-        print(entry)
         raise
 
 
-# In[136]:
+# #### Assemble workbook
+
+# In[188]:
 
 
 wb = Workbook()
 ws = wb.active
 
-ws.title = "2024 final roll - Scarsdale"
+ws.title = "2024 final roll - Greenburgh"
 ws['A1'] = 'id'
 ws['B1'] = 'OWNERS NAME'
 ws['C1'] = 'OWNERS ADDRESS'
@@ -1867,112 +1857,136 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[137]:
+# In[189]:
 
 
 # Extract the data
 row = 2
 a = time.time()
-for key in data_newcastle:
+for key in data['greenburgh']:
     print(key)
     ws[f"A{row}"] = key
     
     # Owner names
-    entry= []
-    for line in data_newcastle[key]['data'][0][1:]:
-        if key in line: entry.append(key)
-        else:
-            temp = line[data_newcastle[key]['columns']['TAX MAP']:data_newcastle[key]['columns']['PROPERTY LOCATION']].strip()
-            entry.append(temp)
-    moved = False
-    for n,item in enumerate(entry):
-        if bool(re.search('FLOOR [0-9]{2}|[0-9]{1,2}TH FLOOR|PO BOX [0-9]{,4}|#[0-9]{5}|SUITE [0-9A-Z]{,3}',item)):
-            if moved:
-                moved = False
-            else:
-                entry[n+1] = ', '.join([item,entry[n+1]])
-                entry[n] = ''
-                moved = True
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            if 'FULL MKT VAL' in entry_line[0] or \
+                'DEED BK' in entry_line[0] or \
+                'EAST-' in entry_line[0] or \
+                'ACREAGE' in entry_line[0] or \
+                'add to' in entry_line[0] or \
+                'add map' in entry_line[0] or \
+                'MAP' in entry_line[0] or \
+                'TAXABLE' in entry_line[0] or \
+                'CONTIGUOUS PARCEL' in entry_line[0] or \
+                'BANK CODE' in entry_line[0] or \
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
+                bool(re.search('@ [0-9]',entry_line[0])) or \
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+                continue
+            entry.append(entry_line[0])
     ws[f"B{row}"] = ', '.join(ext.get_owner_names(entry,key))
 
     # Owner address
-    entry= []
-    for line in data_newcastle[key]['data'][0][1:]:
-        start = data_newcastle[key]['columns']['TAX MAP']
-        end = data_newcastle[key]['columns']['PROPERTY LOCATION']
-        temp = line[start:end].strip()
-        entry.append(temp)
-    for n,item in enumerate(entry):
-        if bool(re.search('FLOOR [0-9]{2}|[0-9]{1,2}TH FLOOR|PO BOX [0-9]{,4}|#[0-9]{5}|SUITE [0-9A-Z]{,3}',item)):
-            if moved:
-                moved = False
-            else:
-                entry[n+1] = ', '.join([item,entry[n+1]])
-                entry[n] = ''
-                moved = True
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            if 'FULL MKT VAL' in entry_line[0] or \
+                'DEED BK' in entry_line[0] or \
+                'EAST-' in entry_line[0] or \
+                'ACREAGE' in entry_line[0] or \
+                'add to' in entry_line[0] or \
+                'add map' in entry_line[0] or \
+                'MAP' in entry_line[0] or \
+                'TAXABLE' in entry_line[0] or \
+                'CONTIGUOUS PARCEL' in entry_line[0] or \
+                'BANK CODE' in entry_line[0] or \
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
+                bool(re.search('@ [0-9]',entry_line[0])) or \
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+                continue
+            entry.append(entry_line[0])
     ws[f"C{row}"] = ext.get_owner_address(entry,key)
 
     # Property type
-    entry = copy.deepcopy(data_newcastle[key]['data'])
-    entry = unwrap_sublists_recursive(entry)
-    entry = break_lines(entry)
-    if any(('FULL MARKET VALUE' in i) for i in entry[-1]): entry = entry[:-1]
-    trash = None; trash = re.search('[A-Z]{2}',entry[2][1])
-    if trash: del entry[2][1]
-    for n,e in enumerate(entry):
-        for ln,line in enumerate(e):
-            if bool(re.fullmatch('[A-Z]{2}',line)):
-                e[ln] = ''
-        entry[n] = list(filter(None,e))
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
     ws[f"D{row}"] = get_property_type(entry,key)
 
     # Property address
-    entry = copy.deepcopy(data_newcastle[key]['data'])
-    entry = unwrap_sublists_recursive(entry)
-    entry = break_lines(entry)[1:]
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    del entry[0]
     for n,e in enumerate(entry):
-        for ln,line in enumerate(entry[n]):
-            entry[n][ln] = re.sub('(NON-)?HOMESTEAD','',line)
         entry[n] = list(filter(None,e))
-    if len(entry[0]) > 1:
-        last_item = entry[0].pop()
-        entry[0].insert(0,last_item)
-    if len(entry[0]) > 2:
-        entry[0][1] = ' '.join(entry[0][1:])
-        entry[0] = entry[0][0:2]
-    if len(entry[0]) == 1:
-        entry[0].insert(0,'')
+        if len(entry[0]) > 1:
+            last_item = entry[0].pop()
+            entry[0].insert(0,last_item)
+        if len(entry[0]) > 2:
+            while len(entry[0]) > 2:
+                if 'ACCT' not in entry[0][2]:
+                    entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                    del entry[0][2]
+                else:
+                    break
+            entry[0] = entry[0][0:2]
+        if len(entry[0]) == 1:
+            entry[0].insert(0,'')
     ws[f"E{row}"] = get_property_address(entry,key)
 
     # Zoning
-    entry = copy.deepcopy(data_newcastle[key]['data'])
-    entry = unwrap_sublists_recursive(entry)
-    entry = break_lines(entry)[1:]
-    ws[f"F{row}"] = get_zoning(entry,'(YORKTOWN|CHAPPAQUA|BEDFORD|BYRAM HILLS) CENTRAL|OSSINING UNION FREE|PLEASANTVILLE UFSD')
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    ws[f"F{row}"] = get_generic(entry,'ACCT: [0-9]{6,7}')
 
     # Acreage
-    entry = copy.deepcopy(data_newcastle[key]['data'])
-    entry = unwrap_sublists_recursive(entry)
-    entry = break_lines(entry)[1:]
-    for n,e in enumerate(entry):
-        entry[n] = list(filter(None,e))
-    ws[f"G{row}"] = get_acreage(entry,'ACREAGE')
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    ws[f"G{row}"] = get_generic(entry,re_acreage,verbose)
 
     # Full market value
-    entry = copy.deepcopy(data_newcastle[key]['data'])
-    entry = unwrap_sublists_recursive(entry)
-    entry = break_lines(entry)[1:]
-    for n,e in enumerate(entry):
-        entry[n] = list(filter(None,e))
-    ws[f"H{row}"] = get_full_market_value(entry,keywords=['FULL MKT VAL','VAL'])
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        fmv = get_generic(entry,re_fmv,verbose)
+    except:
+        try:
+            get_generic(entry,'FULL MKT VAL',verbose)
+            fmv = None
+        except:
+            print(entry)
+            raise
+    ws[f"H{row}"] = fmv
 
     # Taxables
-    entry = copy.deepcopy(data_newcastle[key]['data'])
-    entry = unwrap_sublists_recursive(entry)
-    entry = break_lines(entry)[1:]
-    for n,e in enumerate(entry):
-        entry[n] = list(filter(None,e))
-    ws[f"I{row}"] = get_taxable(entry,'COUNTY TAXABLE')
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    ws[f"I{row}"] = get_taxable(entry,'CNTY TAXABLE')
     ws[f"J{row}"] = get_taxable(entry,'SCHOOL TAXABLE')
     ws[f"K{row}"] = get_taxable(entry,'TOWN TAXABLE')
     row += 1

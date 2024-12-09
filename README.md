@@ -44,7 +44,7 @@ Process Greenburgh:
             - [x] County
             - [x] Town
             - [x] School
-- [ ] Assemble output
+- [x] Assemble output
 - [ ] Review the data, fix the errors
 
 - Mamaroneck:
