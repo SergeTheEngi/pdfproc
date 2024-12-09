@@ -20,12 +20,13 @@ from pdfproc.as_dict import \
 import pdfproc.as_lines
 import poppler
 
+sources = {}
 bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
 cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
 scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 newcastle = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
-greenburgh = poppler.load_from_file('Town of Greenburgh.pdf')
+sources['greenburgh'] = poppler.load_from_file('Town of Greenburgh.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
@@ -52,28 +53,7 @@ lol = pdfproc.as_lines.Extractor(
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[10]:
-
-
-# Extract data
-
-failed = []
-for i in range(greenburgh.pages):
-    page = greenburgh.create_page(i)
-    page_text = page.text()
-    page_text = page_text.split('\n')
-
-    try:
-        header = lol.get_header(page_text)
-        data = lol.get_page_data(page_text[header['end']:])
-    except:
-        failed.append(i+1) # Poppler indexes pages from 0
-        #raise
-
-print(f"failed to extract:\n {failed}")
-
-
-# In[4]:
+# In[2]:
 
 
 # Test header extractor
@@ -125,7 +105,30 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[5]:
+# In[3]:
+
+
+# Extract data
+data = {
+    'greenburgh':{}
+}
+
+failed = []
+for i in range(sources['greenburgh'].pages):
+    page = sources['greenburgh'].create_page(i)
+    page_text = page.text()
+    page_text = page_text.split('\n')
+    try:
+        header = lol.get_header(page_text)
+        data['greenburgh'].update(lol.get_page_data(page_text[header['end']:]))
+    except:
+        failed.append(i+1) # Poppler indexes pages from 0
+        #raise
+
+print(f"\nfailed to extract {len(failed)} pages:\n{failed}")
+
+
+# In[4]:
 
 
 # Extract data
@@ -155,7 +158,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[6]:
+# In[5]:
 
 
 # Shape data
@@ -371,7 +374,7 @@ for item in all_values:
 
 # #### Get owner names
 
-# In[7]:
+# In[6]:
 
 
 # Test bronxville
@@ -413,7 +416,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[7]:
 
 
 # Test cornwall
@@ -451,7 +454,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[8]:
 
 
 # Test scarsdale
@@ -524,7 +527,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[10]:
+# In[9]:
 
 
 # Test harrison
@@ -545,7 +548,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[11]:
+# In[35]:
 
 
 # Test newcastle
@@ -578,20 +581,49 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[50]:
 
 
 # Test greenburgh
-#print(data_grb.keys())
-entry = []
-for line in data_grb['6.10-1-10.1']:
-    #newline = line.replace('\n','')
-    #newline = newline.strip()
-    #entry.append(newline)
-    if line != '' and line != None:
-        entry.append(line)
 
-print(entry)
+testset_greenburgh = [
+    ('6.10-1-10.1',['STRONGIN, MEREDITH','STRONGIN, JONATHAN']),
+    ('7.280-125-13',['MILLER, KARL M','PARADA, CARLOS']),
+    ('8.540-375-12',['DEPIETTO, DAVID']),
+]
+
+#print(data['greenburgh'].keys())
+#print(data['greenburgh']['6.10-1-10.1'])
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            #print(entry_line)
+            if 'FULL MKT VAL' in entry_line[0] or \
+                'DEED BK' in entry_line[0] or \
+                'EAST-' in entry_line[0] or \
+                'ACREAGE' in entry_line[0] or \
+                'add to' in entry_line[0] or \
+                'add map' in entry_line[0] or \
+                'MAP' in entry_line[0] or \
+                'TAXABLE' in entry_line[0] or \
+                'CONTIGUOUS PARCEL' in entry_line[0] or \
+                'BANK CODE' in entry_line[0] or \
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])) or \
+                bool(re.search('@ [0-9]',entry_line[0])) or \
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])):
+                continue
+            entry.append(entry_line[0])
+    try:
+        output = ext.get_owner_names(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['greenburgh'][key]: print([line])
+        print(entry)
+        raise
 
 
 # #### Get owner address

@@ -33,7 +33,7 @@ Process Greenburgh:
     - [x] Extract entries from pages
 - Extract data:
     - Main elements:
-        - [ ] owner names
+        - [x] owner names
         - [ ] owner address
         - [ ] property type
         - [ ] property address
