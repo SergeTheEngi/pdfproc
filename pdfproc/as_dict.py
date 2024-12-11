@@ -56,7 +56,8 @@ class Extractor:
                 else:
                     print()
             if self.key_line not in block.keys():
-                print(f"E: Block structure lacks '{self.key_line}'")
+                if verbose:
+                    print(f"E: Block structure lacks '{self.key_line}'")
                 return None,None
             for ln,line in enumerate(block[self.key_line]):
                 line_text = line['spans'][0]['text']
@@ -74,12 +75,13 @@ class Extractor:
                     header_end = (bn,ln)
                     return header_start, header_end
 
-        if header_start == None and separator == None:
-            print("W: Failed to find header")
-        elif header_start == None and separator != None:
-            print("W: Failed to find header start")
-        elif header_start != None and separator == None:
-            print("W: Failed to find header end")
+        if verbose:
+            if header_start == None and separator == None:
+                print("W: Failed to find header")
+            elif header_start == None and separator != None:
+                print("W: Failed to find header start")
+            elif header_start != None and separator == None:
+                print("W: Failed to find header end")
         return None,None
         
 
