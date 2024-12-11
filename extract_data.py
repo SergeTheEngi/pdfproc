@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# # Init
+
+# In[3]:
 
 
 import time
@@ -10,7 +12,6 @@ import pymupdf
 import re
 import copy
 from openpyxl import Workbook
-#import pdfproc
 import pdfproc.as_dict
 from pdfproc.as_dict import \
     break_lines, \
@@ -22,12 +23,12 @@ import pdfproc.as_lines
 import poppler
 
 sources = {}
-bronxville = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
-cornwall = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
-scarsdale = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
-harrison = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
-newcastle = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
-sources['greenburgh'] = poppler.load_from_file('Town of Greenburgh.pdf')
+sources['bronxville'] = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
+sources['cornwall'] = pymupdf.open('pdfproc/testing_data:2024FA_Cornwall.pdf')
+sources['scarsdale'] = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
+sources['harrison'] = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
+sources['greenburgh'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Greenburgh.pdf')
+sources['newcastle'] = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
@@ -48,19 +49,20 @@ lol = pdfproc.as_lines.Extractor(
 )
 
 
-# ## Extracting the data
+# # Extraction
+# ## Split by text field location
 # 
-# ### Splitting by text field location
+# ### Get header location
 # 
-# Get header location by block and line number, assemble it into a new list of the same shape.
+# By block and line number, and assemble it into a new list of the same shape.
 
-# In[2]:
+# In[5]:
 
 
 # Test header extractor
-bronxville_page = bronxville.load_page(1)
+bronxville_page = sources['bronxville'].load_page(1)
 bronxville_text = bronxville_page.get_text('dict')
-cornwall_page = cornwall.load_page(0)
+cornwall_page = sources['cornwall'].load_page(0)
 cornwall_text = cornwall_page.get_text('dict')
 
 testset = [
@@ -104,9 +106,11 @@ for test,result in testset:
     assert header == result['assemble_header']
 
 
-# Create entries by separators, split entries into columns
+# ### Create entries
+# 
+# Detect by separators
 
-# In[3]:
+# In[6]:
 
 
 # Extract data (list of lines)
@@ -129,21 +133,21 @@ for i in range(sources['greenburgh'].pages):
 print(f"\nfailed to extract {len(failed)} pages:\n{failed}")
 
 
-# In[4]:
+# In[7]:
 
 
 # Extract data (pymupdf dictionary)
 alldata = ext.get_data([
-    {'source':bronxville,'name':'bronxville'},
-    {'source':cornwall,'name':'cornwall'},
-    {'source':scarsdale,'name':'scarsdale'},
+    {'source':sources['bronxville'],'name':'bronxville'},
+    {'source':sources['cornwall'],'name':'cornwall'},
+    {'source':sources['scarsdale'],'name':'scarsdale'},
     {
-        'source':harrison,
+        'source':sources['harrison'],
         'name':'harrison',
         'columns':['TAX MAP','PROPERTY LOCATION','EXEMPTION','TAXABLE VALUE'],
         'strip_lines':False
     },{
-        'source':newcastle,
+        'source':sources['newcastle'],
         'name':'newcastle',
         'columns':['TAX MAP','PROPERTY LOCATION','EXEMPTION','TAXABLE VALUE'],
         'strip_lines':False
@@ -373,9 +377,9 @@ for key in data_scarsdale:
 #    assert all_values[item] != None and all_values[item] != [], f"Failed to find {item}"
 
 
-# ### Extraction functions & tests
+# ## Extraction functions & tests
 
-# #### Get owner names
+# ### Get owner names
 
 # In[7]:
 
@@ -658,7 +662,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# #### Get owner address
+# ### Get owner address
 
 # In[13]:
 
@@ -917,7 +921,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# #### Get property type
+# ### Get property type
 
 # In[19]:
 
@@ -1052,7 +1056,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# #### Get property address
+# ### Get property address
 
 # In[21]:
 
@@ -1239,7 +1243,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# #### Get zoning
+# ### Get zoning
 
 # In[23]:
 
@@ -1458,7 +1462,7 @@ for key in data['greenburgh']:
         raise
 
 
-# #### Get acreage
+# ### Get acreage
 
 # In[26]:
 
@@ -1599,7 +1603,7 @@ for key in data['greenburgh']:
         raise
 
 
-# #### Get full market value
+# ### Get full market value
 
 # In[28]:
 
@@ -1770,7 +1774,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# #### Get taxables
+# ### Get taxables
 
 # In[30]:
 
@@ -1928,7 +1932,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# #### Assemble workbook
+# ### Assemble workbook
 
 # In[32]:
 
