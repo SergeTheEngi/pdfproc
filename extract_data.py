@@ -3,15 +3,22 @@
 
 # # Init
 
-# In[3]:
+# In[1]:
 
 
+# Monitoring
 import time
 
+# PDF extraction engines
 import pymupdf
+import poppler
+
+# Utilities
 import re
 import copy
 from openpyxl import Workbook
+
+# pdfproc
 import pdfproc.as_dict
 from pdfproc.as_dict import \
     break_lines, \
@@ -20,7 +27,6 @@ from pdfproc.as_dict import \
     normalize_data, \
     unwrap_sublists_recursive
 import pdfproc.as_lines
-import poppler
 
 sources = {}
 sources['bronxville'] = pymupdf.open('pdfproc/testing_data:2024FA_Bronxville.pdf')
@@ -29,11 +35,11 @@ sources['scarsdale'] = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 sources['harrison'] = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 sources['greenburgh'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Greenburgh.pdf')
 sources['newcastle'] = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
+sources['mamaroneck'] = poppler.load_from_file('Mamaroneck.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
 re_page_end = '\\*+'
-# New values
 re_hs = 'TAX MAP PARCEL'
 
 ext = pdfproc.as_dict.Extractor(
@@ -50,13 +56,13 @@ lol = pdfproc.as_lines.Extractor(
 
 
 # # Extraction
-# ## Split by text field location
 # 
-# ### Get header location
+# ## Split by entry separators
+# ### Get headers
 # 
 # By block and line number, and assemble it into a new list of the same shape.
 
-# In[5]:
+# In[2]:
 
 
 # Test header extractor
@@ -110,27 +116,32 @@ for test,result in testset:
 # 
 # Detect by separators
 
-# In[6]:
+# In[5]:
 
 
 # Extract data (list of lines)
-data = {
-    'greenburgh':{}
-}
+targets = ['greenburgh','mamaroneck']
+data = {}
 
-failed = []
-for i in range(sources['greenburgh'].pages):
-    page = sources['greenburgh'].create_page(i)
-    page_text = page.text()
-    page_text = page_text.split('\n')
-    try:
-        header = lol.get_header(page_text)
-        data['greenburgh'].update(lol.get_page_data(page_text[header['end']:]))
-    except:
-        failed.append(i+1) # Poppler indexes pages from 0
-        #raise
+def get_data(source):
+    failed = []
+    entries = {}
+    for i in range(source.pages):
+        page = source.create_page(i)
+        page_text = page.text()
+        page_text = page_text.split('\n')
+        try:
+            header = lol.get_header(page_text)
+            entries.update(lol.get_page_data(page_text[header['end']:]))
+        except:
+            failed.append(i+1) # Poppler indexes pages from 0
+    print(f"failed to extract {len(failed)} pages:\n{failed}")
+    return entries
 
-print(f"\nfailed to extract {len(failed)} pages:\n{failed}")
+for t in targets:
+    print(t)
+    data[t] = get_data(sources[t])
+    print()
 
 
 # In[7]:

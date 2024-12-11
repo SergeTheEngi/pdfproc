@@ -22,19 +22,17 @@ For python dependencies, see `requirements.txt`.
 
 ## Current tasks
 
-- [x] Fix greenburgh
-
 Process Mamaroneck:
 - Collect data:
-    - [ ] Get headers
-    - [ ] Collect page data
-    - [ ] Extract entries from pages
+    - [x] Get headers
+    - [x] Collect page data
+    - [x] Extract entries from pages
 - Extract data:
     - [ ] Access owner names
     - [ ] Access owner address
-    - [x] Access property type
-    - [x] Access property address
-    - [x] Access zoning
-    - [x] Access acreage
-    - [x] Access market value
-    - [x] Access taxables
+    - [ ] Access property type
+    - [ ] Access property address
+    - [ ] Access zoning
+    - [ ] Access acreage
+    - [ ] Access market value
+    - [ ] Access taxables
