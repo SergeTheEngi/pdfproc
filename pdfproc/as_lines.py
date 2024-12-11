@@ -54,6 +54,23 @@ class Extractor:
         if verbose: print(start,end)
         return page_data
 
+    def get_data(self,source,verbose=True):
+        ''' Extract entries from a poppler source '''
+        failed = []
+        entries = {}
+        for i in range(source.pages):
+            page = source.create_page(i)
+            page_text = page.text()
+            page_text = page_text.split('\n')
+            try:
+                header = self.get_header(page_text)
+                entries.update(self.get_page_data(page_text[header['end']:]))
+            except:
+                failed.append(i+1) # Poppler indexes pages from 0
+        if verbose:
+            print(f"failed to extract {len(failed)} pages:\n{failed}")
+        return entries
+
     def get_pages(self,list_of_lines,verbose=False):
         ''' Returns list of pages as lists of lines. '''
 

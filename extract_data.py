@@ -116,31 +116,16 @@ for test,result in testset:
 # 
 # Detect by separators
 
-# In[5]:
+# In[3]:
 
 
 # Extract data (list of lines)
 targets = ['greenburgh','mamaroneck']
 data = {}
 
-def get_data(source):
-    failed = []
-    entries = {}
-    for i in range(source.pages):
-        page = source.create_page(i)
-        page_text = page.text()
-        page_text = page_text.split('\n')
-        try:
-            header = lol.get_header(page_text)
-            entries.update(lol.get_page_data(page_text[header['end']:]))
-        except:
-            failed.append(i+1) # Poppler indexes pages from 0
-    print(f"failed to extract {len(failed)} pages:\n{failed}")
-    return entries
-
 for t in targets:
     print(t)
-    data[t] = get_data(sources[t])
+    data[t] = lol.get_data(sources[t])
     print()
 
 
