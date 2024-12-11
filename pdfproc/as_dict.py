@@ -244,6 +244,19 @@ class Extractor:
         
         return results
 
+    def get_generic(self,entry,pattern,verbose=False):
+        entry = copy.deepcopy(entry)
+        for line in entry:
+            result = None
+            if type(line) == list:
+                line = ' '.join(line)
+            result = re.search(pattern,line)
+            if result != None:
+                return result.group()
+            elif verbose:
+                print(line)
+        raise ValueError(f"Cannot find '{pattern}'")
+
     def get_owner_names(self,entry,key):
         ''' Pass entry as list of strings from an appropriate column'''
         entry = list(filter(None,entry))
