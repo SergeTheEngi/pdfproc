@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 
 import time
@@ -53,7 +53,7 @@ lol = pdfproc.as_lines.Extractor(
 # 
 # Get header location by block and line number, assemble it into a new list of the same shape.
 
-# In[2]:
+# In[3]:
 
 
 # Test header extractor
@@ -105,7 +105,7 @@ for test,result in testset:
 
 # Create entries by separators, split entries into columns
 
-# In[3]:
+# In[4]:
 
 
 # Extract data (list of lines)
@@ -128,7 +128,7 @@ for i in range(sources['greenburgh'].pages):
 print(f"\nfailed to extract {len(failed)} pages:\n{failed}")
 
 
-# In[4]:
+# In[5]:
 
 
 # Extract data (pymupdf dictionary)
@@ -158,7 +158,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[5]:
+# In[6]:
 
 
 # Shape data
@@ -376,7 +376,7 @@ for item in all_values:
 
 # #### Get owner names
 
-# In[6]:
+# In[7]:
 
 
 # Test bronxville
@@ -418,7 +418,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[7]:
+# In[8]:
 
 
 # Test cornwall
@@ -456,7 +456,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[9]:
 
 
 # Test scarsdale
@@ -529,7 +529,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[10]:
 
 
 # Test harrison
@@ -550,7 +550,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[35]:
+# In[11]:
 
 
 # Test newcastle
@@ -583,7 +583,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[267]:
+# In[12]:
 
 
 # Test greenburgh
@@ -659,7 +659,7 @@ for key,result in testset_greenburgh:
 
 # #### Get owner address
 
-# In[36]:
+# In[13]:
 
 
 # Test bronxville
@@ -678,8 +678,8 @@ testset_bronxville = [
 
 for key,result in testset_bronxville:
     entry = []
-    data = normalize_data(data_bronxville[key])
-    for block in data:
+    data_temp = normalize_data(data_bronxville[key])
+    for block in data_temp:
         if len(block) > 0:
             if 'PRIOR OWNER' in block[0]: break
             company = re.search('(l ?l ?c)|(L ?L ?C)',block[0])
@@ -692,7 +692,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[37]:
+# In[14]:
 
 
 # Test cornwall
@@ -742,7 +742,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[38]:
+# In[15]:
 
 
 # Test scarsdale
@@ -804,7 +804,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[39]:
+# In[16]:
 
 
 # Test harrison
@@ -825,7 +825,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[135]:
+# In[17]:
 
 
 # Test newcastle
@@ -856,7 +856,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[268]:
+# In[18]:
 
 
 # Test greenburgh
@@ -918,7 +918,7 @@ for key,result in testset_greenburgh:
 
 # #### Get property type
 
-# In[75]:
+# In[19]:
 
 
 def get_property_type(entry,key):
@@ -1023,7 +1023,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[76]:
+# In[20]:
 
 
 # Test greenburgh
@@ -1053,7 +1053,7 @@ for key,result in testset_greenburgh:
 
 # #### Get property address
 
-# In[103]:
+# In[21]:
 
 
 # Mix of function definition and tests
@@ -1183,7 +1183,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[297]:
+# In[22]:
 
 
 # Test greenburgh
@@ -1240,7 +1240,7 @@ for key,result in testset_greenburgh:
 
 # #### Get zoning
 
-# In[136]:
+# In[23]:
 
 
 # Tests and the function definition
@@ -1366,7 +1366,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[137]:
+# In[24]:
 
 
 # Test greenburgh with the new generic function
@@ -1426,7 +1426,7 @@ for key in data['greenburgh']:
 
 # #### Get acreage
 
-# In[138]:
+# In[25]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1516,7 +1516,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[141]:
+# In[26]:
 
 
 # Test greenburgh with the new generic function
@@ -1567,7 +1567,7 @@ for key in data['greenburgh']:
 
 # #### Get full market value
 
-# In[62]:
+# In[27]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -1680,7 +1680,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[176]:
+# In[28]:
 
 
 # Test greenburgh with the new generic function
@@ -1738,7 +1738,7 @@ print(f"Entries without full market value:\n{failed}")
 
 # #### Get taxables
 
-# In[184]:
+# In[29]:
 
 
 def get_taxable(entry,taxable_name):
@@ -1854,7 +1854,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[185]:
+# In[30]:
 
 
 # Test greenburgh
@@ -1896,7 +1896,7 @@ for key,result in testset_greenburgh:
 
 # #### Assemble workbook
 
-# In[318]:
+# In[31]:
 
 
 wb = Workbook()
@@ -1916,7 +1916,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[319]:
+# In[32]:
 
 
 # Extract the data
