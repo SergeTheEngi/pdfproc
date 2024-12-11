@@ -1371,6 +1371,46 @@ assert None not in all_zoning
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
+testset_greenburgh = [
+    ('6.10-1-10.1','ARDSLEY'),
+    ('7.280-125-13','GREENBURGH'),
+    ('7.280-125-3','VALHALLA'),
+    ('8.540-375-12','EDGEMONT'),
+]
+
+re_zoning = 'ARDSLEY|VALHALLA|EDGEMONT|GREENBURGH|DOBBS FERRY|ELMSFORD|HASTINGS|IRVINGTON|TARRYTOWN|POCANTICO'
+
+for key,result in testset_greenburgh:
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry[3],re_zoning)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['greenburgh'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+        
+for key in data['greenburgh']:
+    entry = []
+    verbose = False
+    for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_zoning,verbose)
+    except:
+        print(entry)
+        raise
 
 
 # In[25]:
@@ -2058,6 +2098,13 @@ for key in data['greenburgh']:
     ws[f"E{row}"] = get_property_address(entry,key)
 
     # Zoning
+    re_zoning = 'ARDSLEY|VALHALLA|EDGEMONT|GREENBURGH|DOBBS FERRY|ELMSFORD|HASTINGS|IRVINGTON|TARRYTOWN|POCANTICO'
+    entry = []
+    for line in data['greenburgh'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    zoning = ext.get_generic(entry,re_zoning)
     entry = []
     for line in data['greenburgh'][key]:
         #newline = line.replace('\n','')
@@ -2065,9 +2112,9 @@ for key in data['greenburgh']:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
-    out = ext.get_generic(entry,'ACCT: [0-9]{6,7}')
-    out = out.split()
-    ws[f"F{row}"] = float(out[1])
+    acct = ext.get_generic(entry,'ACCT: [0-9]{6,7}')
+    acct = acct.split()
+    ws[f"F{row}"] = f"{zoning} {acct[1]}"
 
     # Acreage
     entry = []

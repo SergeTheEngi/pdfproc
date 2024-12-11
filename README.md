@@ -22,38 +22,19 @@ For python dependencies, see `requirements.txt`.
 
 ## Current tasks
 
-Process Greenburgh:
-- [x] Inspect the data
-- [x] Find new data extraction method
-    - pdftotext does the job?
-- Collect data:
-    - [x] Get headers
-    - [x] Collect page data
-        - New data layout: one block of line pieces
-    - [x] Extract entries from pages
-- Extract data:
-    - Main elements:
-        - [x] owner names
-        - [x] owner address
-        - [x] property type
-        - [x] property address
-        - [x] zoning
-        - [x] acreage
-        - [x] market value
-        - [x] taxables
-            - [x] County
-            - [x] Town
-            - [x] School
-- [x] Assemble output
-- [x] Review the data, fix the errors
+- [x] Fix greenburgh
 
-- Mamaroneck:
-    - Process data:
-        - [ ] Access owner names
-        - [ ] Access owner address
-        - [x] Access property type
-        - [x] Access property address
-        - [x] Access zoning
-        - [x] Access acreage
-        - [x] Access market value
-        - [x] Access taxables
+Process Mamaroneck:
+- Collect data:
+    - [ ] Get headers
+    - [ ] Collect page data
+    - [ ] Extract entries from pages
+- Extract data:
+    - [ ] Access owner names
+    - [ ] Access owner address
+    - [x] Access property type
+    - [x] Access property address
+    - [x] Access zoning
+    - [x] Access acreage
+    - [x] Access market value
+    - [x] Access taxables
