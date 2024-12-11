@@ -1,6 +1,6 @@
 # pdfproc
 
-This is a toolset for processing final assessment roll data. Currently it is built on top of pymupdf, but it can be quickly adapted to use other pdf processing engines.
+This is a toolset for processing final assessment roll data. Currently it is built to work with pymupdf and poppler, but it can be quickly adapted to use other pdf processing engines.
 
 ## State of the project
 
