@@ -35,4 +35,5 @@ Process Mamaroneck:
     - [x] Access zoning
     - [x] Access acreage
     - [x] Access market value
-    - [ ] Access taxables
+    - [x] Access taxables
+- [ ] Review, fix errors

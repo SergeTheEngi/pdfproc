@@ -1003,7 +1003,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[21]:
+# In[20]:
 
 
 # Test mamaroneck
@@ -1068,7 +1068,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get property type
 
-# In[22]:
+# In[21]:
 
 
 def get_property_type(entry,key):
@@ -1173,7 +1173,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[23]:
+# In[22]:
 
 
 # Test greenburgh
@@ -1201,7 +1201,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[25]:
+# In[23]:
 
 
 # Test mamaroneck
@@ -1229,7 +1229,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get property address
 
-# In[26]:
+# In[24]:
 
 
 # Mix of function definition and tests
@@ -1359,7 +1359,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[27]:
+# In[25]:
 
 
 # Test greenburgh
@@ -1414,7 +1414,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[28]:
+# In[26]:
 
 
 # Test mamaroneck
@@ -1469,7 +1469,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get zoning
 
-# In[29]:
+# In[27]:
 
 
 # Tests and the function definition
@@ -1595,7 +1595,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[30]:
+# In[28]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -1641,7 +1641,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[31]:
+# In[29]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -1686,7 +1686,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[37]:
+# In[30]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -1731,7 +1731,7 @@ for key in data['mamaroneck']:
 
 # ### Get acreage
 
-# In[39]:
+# In[31]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1821,7 +1821,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[40]:
+# In[32]:
 
 
 # Test greenburgh with the new generic function
@@ -1870,7 +1870,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[44]:
+# In[33]:
 
 
 # Test mamaroneck with the new generic function
@@ -1923,7 +1923,7 @@ print(f"Failed to find acreage in {len(failed)} entries")
 
 # ### Get full market value
 
-# In[46]:
+# In[34]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -2036,7 +2036,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[47]:
+# In[35]:
 
 
 # Test greenburgh with the new generic function
@@ -2092,7 +2092,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[49]:
+# In[36]:
 
 
 # Test mamaroneck with the new generic function
@@ -2150,10 +2150,10 @@ print(f"Entries without full market value:\n{failed}")
 
 # ### Get taxables
 
-# In[30]:
+# In[39]:
 
 
-def get_taxable(entry,taxable_name):
+def get_taxable(entry,taxable_name,verbose=False):
     taxable = None
     taxable_line = find_line(entry,taxable_name)
     if taxable_line == 1:
@@ -2165,6 +2165,7 @@ def get_taxable(entry,taxable_name):
         taxable = re.sub(taxable_name + ' ','',taxable.group())
         return float(taxable.replace(',',''))
     else:
+        if verbose: print([taxable_line])
         return None
     #else:
     #    taxable = entry[bn][ln].split()
@@ -2178,10 +2179,10 @@ def get_taxable(entry,taxable_name):
     #return float(taxable.replace(',',''))
 
 
-def get_all_taxables(entry,taxable_names):
+def get_all_taxables(entry,taxable_names,verbose=False):
     taxables = []
     for tn in taxable_names:
-        taxables.append(get_taxable(entry,tn))
+        taxables.append(get_taxable(entry,tn,verbose))
     return taxables
 
 # Tests
@@ -2266,7 +2267,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[31]:
+# In[40]:
 
 
 # Test greenburgh
@@ -2303,6 +2304,45 @@ for key,result in testset_greenburgh:
         print("Data item:")
         for line in data['greenburgh'][key]: print([line])
         print(f"\nEntry:\n{entry}")
+        raise
+
+
+# In[41]:
+
+
+# Test mamaroneck using the new get_generic function
+testset_mamaroneck = [
+    ('7-21-103',[1842000,1842000,1760240]),
+    ('1-32-400.711',[383400,383400,383400]),
+    ('3-13-22',[2200000,2200000,2200000]),
+]
+
+taxable_names = [
+    '(CNTY TAXABLE|COUNTY TAXABLE VALUE) [0-9,]+',
+    '(TOWN TAXABLE( VALUE)?) [0-9,]+',
+    '(SCHOOL TAXABLE( VALUE)?) [0-9,]+'
+]
+
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mamaroneck'][key]: print([line])
+        print("\nEntry:")
+        for line in entry: print([line])
         raise
 
 
