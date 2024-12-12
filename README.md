@@ -36,4 +36,5 @@ Process Mamaroneck:
     - [x] Access acreage
     - [x] Access market value
     - [x] Access taxables
+- [x] Asseble into workbook
 - [ ] Review, fix errors

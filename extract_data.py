@@ -2092,7 +2092,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[36]:
+# In[48]:
 
 
 # Test mamaroneck with the new generic function
@@ -2136,14 +2136,11 @@ for key in data['mamaroneck']:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
     try:
-        ext.get_generic(entry,re_fmv,verbose)
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
     except:
-        try:
-            ext.get_generic(entry,'FULL MKT VAL',verbose)
-            failed.append(key)
-        except:
-            print(entry)
-            raise
+        failed.append(key)
 
 print(f"Entries without full market value:\n{failed}")
 
@@ -2307,7 +2304,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[41]:
+# In[53]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -2345,16 +2342,36 @@ for key,result in testset_mamaroneck:
         for line in entry: print([line])
         raise
 
+failed = []
+for key in data['mamaroneck']:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+    except:
+        failed.append[key]
+
+print(f"failed to find taxables in entries:\n{failed}")
+
 
 # ### Assemble workbook
 
-# In[32]:
+# In[57]:
 
 
 wb = Workbook()
 ws = wb.active
 
-ws.title = "2024 final roll - Greenburgh"
+ws.title = "2024 final roll - Mamaroneck"
 ws['A1'] = 'id'
 ws['B1'] = 'OWNERS NAME'
 ws['C1'] = 'OWNERS ADDRESS'
@@ -2368,27 +2385,35 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[33]:
+# In[58]:
 
 
 # Extract the data
+taxable_names = {
+    'county':'(CNTY TAXABLE|COUNTY TAXABLE VALUE) [0-9,]+',
+    'town':'(TOWN TAXABLE( VALUE)?) [0-9,]+',
+    'school':'(SCHOOL TAXABLE( VALUE)?) [0-9,]+'
+}
+
 row = 2
 a = time.time()
 failed_acreage = []
-for key in data['greenburgh']:
+for key in data['mamaroneck']:
     print(key)
     ws[f"A{row}"] = key
     
     # Owner names
     entry = []
-    for line in data['greenburgh'][key]:
+    for line in data['mamaroneck'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             checks  = [
                 'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
                 'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
                 'EAST-' in entry_line[0],
                 'ACREAGE' in entry_line[0],
                 'add to' in entry_line[0],
@@ -2421,20 +2446,20 @@ for key in data['greenburgh']:
                 entry.append(entry_line[0])
     for ln,line in enumerate(entry):
         entry[ln] = line[0:30]
-    for ln,line in enumerate(entry):
-        entry[ln] = line[0:30]
     ws[f"B{row}"] = ', '.join(ext.get_owner_names(entry,key))
 
     # Owner address
     entry = []
-    for line in data['greenburgh'][key]:
+    for line in data['mamaroneck'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             checks  = [
                 'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
                 'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
                 'EAST-' in entry_line[0],
                 'ACREAGE' in entry_line[0],
                 'add to' in entry_line[0],
@@ -2471,9 +2496,7 @@ for key in data['greenburgh']:
 
     # Property type
     entry = []
-    for line in data['greenburgh'][key]:
-        #newline = line.replace('\n','')
-        #newline = newline.strip()
+    for line in data['mamaroneck'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             #print(entry_line)
@@ -2482,7 +2505,7 @@ for key in data['greenburgh']:
 
     # Property address
     entry = []
-    for line in data['greenburgh'][key]:
+    for line in data['mamaroneck'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
@@ -2516,27 +2539,19 @@ for key in data['greenburgh']:
     ws[f"E{row}"] = get_property_address(entry,key)
 
     # Zoning
-    re_zoning = 'ARDSLEY|VALHALLA|EDGEMONT|GREENBURGH|DOBBS FERRY|ELMSFORD|HASTINGS|IRVINGTON|TARRYTOWN|POCANTICO'
     entry = []
-    for line in data['greenburgh'][key]:
+    for line in data['mamaroneck'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
-    zoning = ext.get_generic(entry,re_zoning)
-    entry = []
-    for line in data['greenburgh'][key]:
-        #newline = line.replace('\n','')
-        #newline = newline.strip()
-        if line != '' and line != None and line != []:
-            entry_line = re.split('  +',line)
-            entry.append(entry_line)
-    acct = ext.get_generic(entry,'ACCT: [0-9]{6,7}')
-    acct = acct.split()
-    ws[f"F{row}"] = f"{zoning} {acct[1]}"
+    ws[f"F{row}"] = ext.get_generic(entry,re_zoning)
 
     # Acreage
+    failed_acreage = []
     entry = []
-    for line in data['greenburgh'][key]:
+    for line in data['mamaroneck'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
@@ -2551,34 +2566,38 @@ for key in data['greenburgh']:
 
     # Full market value
     entry = []
-    for line in data['greenburgh'][key]:
+    for line in data['mamaroneck'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
-    try:
-        out = ext.get_generic(entry,re_fmv,verbose)
-        out = out.split()
-        out = float(out[-1].replace(',',''))
-    except:
-        try:
-            ext.get_generic(entry,'FULL MKT VAL',verbose)
-            out = None
-        except:
-            print(entry)
-            raise
+    out = ext.get_generic(entry,re_fmv)
+    out = out.split()
+    out = float(out[-1].replace(',',''))
     ws[f"H{row}"] = out
 
     # Taxables
     entry = []
-    for line in data['greenburgh'][key]:
+    failed_taxables = []
+    for line in data['mamaroneck'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
-    ws[f"I{row}"] = get_taxable(entry,'CNTY TAXABLE')
-    ws[f"J{row}"] = get_taxable(entry,'SCHOOL TAXABLE')
-    ws[f"K{row}"] = get_taxable(entry,'TOWN TAXABLE')
+    output = {}
+    for t in taxable_names:
+        try:
+            out = ext.get_generic(entry,taxable_names[t])
+            out = re.search('[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output[t] = out
+        except:
+            failed_taxables.append((key,t))
+            output[t] = None
+    ws[f"I{row}"] = output['county']
+    ws[f"J{row}"] = output['school']
+    ws[f"K{row}"] = output['town']
     row += 1
 
 wb.save('extracted_data.xlsx')
