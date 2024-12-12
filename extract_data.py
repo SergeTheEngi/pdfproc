@@ -687,6 +687,8 @@ testset_mamaroneck = [
     ('6-1-1',['Moriwaki Yoshizo','Moriwaki Dawn Crista']),
     ('1-14-213',['Del Sole Robert','Del Sole Janet']),
     ('4-5-264',['Borstein David A','Borstein Jessica']),
+    ('6-2-96',['Village Of Larchmont','Municipal Building']),
+    ('7-14-194',['Breen Adam','Breen Jill']),
 ]
 
 #print(data['greenburgh'].keys())
@@ -715,11 +717,17 @@ for key,result in testset_mamaroneck:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
             if True in checks:
                 continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
             checks = [
                 bool(re.match('SUITE',entry_line[0])),
                 bool(re.match('UNIT',entry_line[0])),
@@ -1037,11 +1045,17 @@ for key,result in testset_mamaroneck:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
             if True in checks:
                 continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
             checks = [
                 bool(re.match('SUITE',entry_line[0])),
                 bool(re.match('UNIT',entry_line[0])),
@@ -2092,7 +2106,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[48]:
+# In[36]:
 
 
 # Test mamaroneck with the new generic function
@@ -2147,7 +2161,7 @@ print(f"Entries without full market value:\n{failed}")
 
 # ### Get taxables
 
-# In[39]:
+# In[37]:
 
 
 def get_taxable(entry,taxable_name,verbose=False):
@@ -2264,7 +2278,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[40]:
+# In[38]:
 
 
 # Test greenburgh
@@ -2304,7 +2318,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[53]:
+# In[39]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -2365,7 +2379,7 @@ print(f"failed to find taxables in entries:\n{failed}")
 
 # ### Assemble workbook
 
-# In[57]:
+# In[40]:
 
 
 wb = Workbook()
@@ -2385,7 +2399,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[58]:
+# In[41]:
 
 
 # Extract the data
@@ -2426,11 +2440,17 @@ for key in data['mamaroneck']:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
             if True in checks:
                 continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
             checks = [
                 bool(re.match('SUITE',entry_line[0])),
                 bool(re.match('UNIT',entry_line[0])),
@@ -2472,11 +2492,17 @@ for key in data['mamaroneck']:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
             if True in checks:
                 continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
             checks = [
                 bool(re.match('SUITE',entry_line[0])),
                 bool(re.match('UNIT',entry_line[0])),
