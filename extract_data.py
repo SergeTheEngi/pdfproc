@@ -1923,7 +1923,7 @@ print(f"Failed to find acreage in {len(failed)} entries")
 
 # ### Get full market value
 
-# In[28]:
+# In[46]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -2036,7 +2036,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[29]:
+# In[47]:
 
 
 # Test greenburgh with the new generic function
@@ -2074,6 +2074,62 @@ for key in data['greenburgh']:
     entry = []
     verbose = False
     for line in data['greenburgh'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_fmv,verbose)
+    except:
+        try:
+            ext.get_generic(entry,'FULL MKT VAL',verbose)
+            failed.append(key)
+        except:
+            print(entry)
+            raise
+
+print(f"Entries without full market value:\n{failed}")
+
+
+# In[49]:
+
+
+# Test mamaroneck with the new generic function
+testset_mamaroneck = [
+    ('7-21-103',1842000),
+    ('9-55-105',4494000),
+    ('1-34-PO.9',7700),
+]
+
+re_fmv = 'FULL MKT VAL [0-9,]+|FULL MARKET VALUE [0-9,]+'
+
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mamaroneck'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+failed = []
+for key in data['mamaroneck']:
+    entry = []
+    verbose = False
+    for line in data['mamaroneck'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
