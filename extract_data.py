@@ -1229,7 +1229,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get property address
 
-# In[21]:
+# In[26]:
 
 
 # Mix of function definition and tests
@@ -1359,7 +1359,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[22]:
+# In[27]:
 
 
 # Test greenburgh
@@ -1410,6 +1410,59 @@ for key,result in testset_greenburgh:
     except:
         print("Data item:")
         for line in data['greenburgh'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        raise
+
+
+# In[28]:
+
+
+# Test mamaroneck
+testset_mamaroneck = [
+    ('8-26-208','714-16 Waverly Ave'),
+    ('2-17-835','104 W Garden Rd'),
+    ('2-25-1.2','Weaver St'),
+]
+
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    del entry[0]
+    nentry = []
+    for line in entry[0]:
+        checks = [
+            not bool(re.fullmatch('[0-9]+',line)),
+            not bool(re.search('ACCT:',line)),
+        ]
+        if False not in checks:
+            nentry.append(line)
+    entry[0] = nentry
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        while len(entry[0]) > 2:
+            if 'ACCT' not in entry[0][2]:
+                entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                del entry[0][2]
+            else:
+                break
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
+    try:
+        output = get_property_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mamaroneck'][key]: print([line])
         print(f"\nEntry:\n{entry}")
         raise
 
