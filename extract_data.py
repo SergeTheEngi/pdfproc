@@ -702,6 +702,7 @@ for key,result in testset_mamaroneck:
                 'FULL MKT VAL' in entry_line[0],
                 'FULL MARKET VALUE' in entry_line[0],
                 'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
                 'EAST-' in entry_line[0],
                 'ACREAGE' in entry_line[0],
                 'add to' in entry_line[0],
@@ -745,7 +746,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get owner address
 
-# In[13]:
+# In[16]:
 
 
 # Test bronxville
@@ -778,7 +779,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[14]:
+# In[17]:
 
 
 # Test cornwall
@@ -828,7 +829,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[15]:
+# In[18]:
 
 
 # Test scarsdale
@@ -890,7 +891,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[19]:
 
 
 # Test harrison
@@ -911,7 +912,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[17]:
+# In[20]:
 
 
 # Test newcastle
@@ -942,7 +943,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[18]:
+# In[21]:
 
 
 # Test greenburgh
@@ -998,6 +999,69 @@ for key,result in testset_greenburgh:
         assert output == result, f"{key}, {result} != {output}"
     except:
         for line in data['greenburgh'][key]: print([line])
+        print(entry)
+        raise
+
+
+# In[23]:
+
+
+# Test mamaroneck
+
+testset_mamaroneck = [
+    ('6-8-307','17 Hall Ave, Larchmont, NY 10538'),
+    ('1-14-314','121 N Chatsworth Ave, Larchmont, NY 10538'),
+    ('2-19-311','19 Lansdowne Dr, Larchmont, NY 10538'),
+]
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK CODE' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
+    try:
+        output = ext.get_owner_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['mamaroneck'][key]: print([line])
         print(entry)
         raise
 

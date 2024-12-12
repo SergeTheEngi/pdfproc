@@ -29,7 +29,7 @@ Process Mamaroneck:
     - [x] Extract entries from pages
 - Extract data:
     - [x] Access owner names
-    - [ ] Access owner address
+    - [x] Access owner address
     - [ ] Access property type
     - [ ] Access property address
     - [ ] Access zoning
