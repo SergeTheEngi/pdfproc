@@ -1469,7 +1469,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get zoning
 
-# In[23]:
+# In[29]:
 
 
 # Tests and the function definition
@@ -1595,7 +1595,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[24]:
+# In[30]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -1641,7 +1641,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[25]:
+# In[31]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -1681,6 +1681,49 @@ for key in data['greenburgh']:
             entry.append(entry_line)
     try:
         ext.get_generic(entry,'ACCT: [0-9]{6,7}',verbose)
+    except:
+        print(entry)
+        raise
+
+
+# In[36]:
+
+
+# Test mamaroneck with the generic function (SCHOOL DISTRICT)
+testset_mamaroneck = [
+    ('2-28-78','Mamaroneck 553201'),
+    ('8-29-226','Mamaroneck 553201'),
+    ('6-4-315','Mamaroneck 553201'),
+]
+
+re_zoning = '(Mamaroneck|Scarsdale) [0-9]{6,7}'
+
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_zoning)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mamaroneck'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+for key in data['mamaroneck']:
+    entry = []
+    verbose = False
+    for line in data['mamaroneck'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_zoning,verbose)
     except:
         print(entry)
         raise

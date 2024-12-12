@@ -32,7 +32,7 @@ Process Mamaroneck:
     - [x] Access owner address
     - [x] Access property type
     - [x] Access property address
-    - [ ] Access zoning
+    - [x] Access zoning
     - [ ] Access acreage
     - [ ] Access market value
     - [ ] Access taxables
