@@ -28,7 +28,7 @@ Process Mamaroneck:
     - [x] Collect page data
     - [x] Extract entries from pages
 - Extract data:
-    - [ ] Access owner names
+    - [x] Access owner names
     - [ ] Access owner address
     - [ ] Access property type
     - [ ] Access property address
