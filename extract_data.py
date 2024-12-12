@@ -1686,7 +1686,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[36]:
+# In[37]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -1731,7 +1731,7 @@ for key in data['mamaroneck']:
 
 # ### Get acreage
 
-# In[26]:
+# In[39]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1821,7 +1821,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[27]:
+# In[40]:
 
 
 # Test greenburgh with the new generic function
@@ -1868,6 +1868,57 @@ for key in data['greenburgh']:
     except:
         print(entry)
         raise
+
+
+# In[44]:
+
+
+# Test mamaroneck with the new generic function
+testset_mamaroneck = [
+    ('2-1-1',0.56),
+    ('2-25-1.1./2',9.00),
+    ('4-8-154',0.09),
+]
+
+re_acreage = 'ACRES ?[0-9.]{,7}'
+
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_acreage)
+        output = output.split()
+        output = float(output[1])
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mamaroneck'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+failed = []
+for key in data['mamaroneck']:
+    entry = []
+    verbose = False
+    for line in data['mamaroneck'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_acreage,verbose)
+    except:
+        failed.append(key)
+
+print(f"Failed to find acreage in {len(failed)} entries")
 
 
 # ### Get full market value
