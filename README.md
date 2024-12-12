@@ -30,7 +30,7 @@ Process Mamaroneck:
 - Extract data:
     - [x] Access owner names
     - [x] Access owner address
-    - [ ] Access property type
+    - [x] Access property type
     - [ ] Access property address
     - [ ] Access zoning
     - [ ] Access acreage

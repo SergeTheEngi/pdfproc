@@ -679,7 +679,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[15]:
+# In[13]:
 
 
 # Test mamaroneck
@@ -746,7 +746,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get owner address
 
-# In[16]:
+# In[14]:
 
 
 # Test bronxville
@@ -779,7 +779,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[17]:
+# In[15]:
 
 
 # Test cornwall
@@ -829,7 +829,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[18]:
+# In[16]:
 
 
 # Test scarsdale
@@ -891,7 +891,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[19]:
+# In[17]:
 
 
 # Test harrison
@@ -912,7 +912,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[20]:
+# In[18]:
 
 
 # Test newcastle
@@ -943,7 +943,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[21]:
+# In[19]:
 
 
 # Test greenburgh
@@ -1003,7 +1003,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[23]:
+# In[21]:
 
 
 # Test mamaroneck
@@ -1068,7 +1068,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get property type
 
-# In[19]:
+# In[22]:
 
 
 def get_property_type(entry,key):
@@ -1173,7 +1173,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[20]:
+# In[23]:
 
 
 # Test greenburgh
@@ -1197,6 +1197,32 @@ for key,result in testset_greenburgh:
         assert output == result, f"{key}, {result} != {output}"
     except:
         for line in data['greenburgh'][key]: print([line])
+        print(entry)
+        raise
+
+
+# In[25]:
+
+
+# Test mamaroneck
+testset_mamaroneck = [
+    ('8-26-61','714 Lite Ind Man'),
+    ('1-33-599.65','411 Apartment'),
+    ('2-19-341','210 1 Family Res'),
+]
+
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            #print(entry_line)
+            entry.append(entry_line)
+    try:
+        output = get_property_type(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['mamaroneck'][key]: print([line])
         print(entry)
         raise
 
