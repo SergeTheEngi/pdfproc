@@ -7,11 +7,13 @@ class Extractor:
     def __init__(self,
                  re_id = '[0-9\\.\\-/A-Z]+',
                  re_separator = f"\\*+ [0-9\\.\\-/A-Z]+ \\*+",
+                 re_page_end = "\\*+",
                  re_hs = 'STATE OF NEW YORK|TAX MAP PARCEL'):
         ''' Cretate a new list of lines extractor instance '''
 
         self.re_id = re_id
         self.re_separator = re_separator
+        self.re_page_end = re_page_end
         self.re_hs = re_hs
 
     def get_header(self,list_of_lines,verbose=False):
@@ -47,6 +49,9 @@ class Extractor:
                 entry_id = re.search(self.re_id,separator.group()).group()
                 page_data[entry_id] = [[]]
                 harvest = True
+            if harvest and bool(re.fullmatch(self.re_page_end,line)):
+                harvest = False
+                continue
             if harvest and strip_lines:
                 page_data[entry_id].append(line.strip())
             elif harvest and not strip_lines:
