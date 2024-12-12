@@ -49,9 +49,9 @@ ext = pdfproc.as_dict.Extractor(
 )
 
 lol = pdfproc.as_lines.Extractor(
-    re_id,
-    re_separator,
-    re_hs,
+    re_id=re_id,
+    re_separator=re_separator,
+    re_hs=re_hs,
 )
 
 
@@ -120,16 +120,37 @@ for test,result in testset:
 
 
 # Extract data (list of lines)
+import multiprocessing as mp
+
 targets = ['greenburgh','mamaroneck']
 data = {}
 
-for t in targets:
-    print(t)
-    data[t] = lol.get_data(sources[t])
-    print()
+def worker(q,source,name):
+    q.put((name,lol.get_data(source)))
+
+with mp.Manager() as m:
+    q = m.Queue()
+    processes = []
+
+    for t in targets:
+        a = [q,sources[t],t]
+        p = mp.Process(target = worker, args=a)
+        p.start()
+        processes.append(p)
+
+    for p in processes:
+        p.join()
+
+    while not q.empty():
+        t,result = q.get()
+        data[t] = result
+
+for line in data['mamaroneck']['1-14-213']:
+    if type(line) == str and bool(re.fullmatch('\\*+',line)):
+        raise ValueError("Algorithm misses the page end delimiter!")
 
 
-# In[7]:
+# In[4]:
 
 
 # Extract data (pymupdf dictionary)
@@ -377,7 +398,7 @@ for key in data_scarsdale:
 
 # ### Get owner names
 
-# In[7]:
+# In[6]:
 
 
 # Test bronxville
@@ -419,7 +440,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[7]:
 
 
 # Test cornwall
@@ -457,7 +478,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[8]:
 
 
 # Test scarsdale
@@ -530,7 +551,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[10]:
+# In[9]:
 
 
 # Test harrison
@@ -551,7 +572,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[11]:
+# In[10]:
 
 
 # Test newcastle
@@ -584,7 +605,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[12]:
+# In[11]:
 
 
 # Test greenburgh
@@ -654,6 +675,69 @@ for key,result in testset_greenburgh:
         assert output == result, f"{key}, {result} != {output}"
     except:
         for line in data['greenburgh'][key]: print([line])
+        print(entry)
+        raise
+
+
+# In[12]:
+
+
+# Test mamaroneck
+testset_mamaroneck = [
+    ('6-1-1',['Moriwaki Yoshizo','Moriwaki Dawn Crista']),
+    ('1-14-213',['Del Sole Robert','Del Sole Janet']),
+]
+
+#print(data['greenburgh'].keys())
+#print(data['greenburgh']['6.10-1-10.1'])
+for key,result in testset_mamaroneck:
+    entry = []
+    for line in data['mamaroneck'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK CODE' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
+    try:
+        output = ext.get_owner_names(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['mamaroneck'][key]: print([line])
         print(entry)
         raise
 
