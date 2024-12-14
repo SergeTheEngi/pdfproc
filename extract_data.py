@@ -35,7 +35,7 @@ sources['scarsdale'] = pymupdf.open('pdfproc/testing_data:2024FA_Scarsdale.pdf')
 sources['harrison'] = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 sources['greenburgh'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Greenburgh.pdf')
 sources['newcastle'] = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
-sources['mamaroneck'] = poppler.load_from_file('Mamaroneck.pdf')
+sources['mamaroneck'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Mamaroneck.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
