@@ -554,7 +554,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[63]:
+# In[13]:
 
 
 # Test bedford
@@ -564,13 +564,9 @@ testset_bedford = [
     ('84.13-1-3',['Chace Helen Clay','Chace Minturn V Trust','c/o H Chace, M Baker, et., all','as trustees']),
 ]
 
-#print(data['greenburgh'].keys())
-#print(data['greenburgh']['6.10-1-10.1'])
 for key,result in testset_bedford:
     entry = []
     for line in data['bedford'][key]:
-        #newline = line.replace('\n','')
-        #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry_line[0] = str(entry_line[0][:31])
@@ -614,8 +610,6 @@ for key,result in testset_bedford:
                 entry.append(temp)
             else:
                 entry.append(entry_line[0])
-    for ln,line in enumerate(entry):
-        entry[ln] = line[0:30]
     try:
         output = ext.get_owner_names(entry,key)
         assert output == result, f"{key}, {result} != {output}"
@@ -627,7 +621,7 @@ for key,result in testset_bedford:
 
 # ### Get owner address
 
-# In[13]:
+# In[14]:
 
 
 # Test bronxville
@@ -660,7 +654,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[14]:
+# In[15]:
 
 
 # Test cornwall
@@ -710,7 +704,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[15]:
+# In[16]:
 
 
 # Test scarsdale
@@ -772,7 +766,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[17]:
 
 
 # Test harrison
@@ -793,7 +787,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[17]:
+# In[18]:
 
 
 # Test newcastle
@@ -824,7 +818,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[18]:
+# In[19]:
 
 
 # Test greenburgh
@@ -884,7 +878,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[19]:
+# In[20]:
 
 
 # Test mamaroneck
@@ -953,7 +947,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[64]:
+# In[21]:
 
 
 # Test bedford
@@ -1013,8 +1007,6 @@ for key,result in testset_bedford:
                 entry.append(temp)
             else:
                 entry.append(entry_line[0])
-    for ln,line in enumerate(entry):
-        entry[ln] = line[0:30]
     try:
         output = ext.get_owner_address(entry,key)
         assert output == result, f"{key}, {result} != {output}"
@@ -1026,7 +1018,7 @@ for key,result in testset_bedford:
 
 # ### Get property type
 
-# In[65]:
+# In[22]:
 
 
 def get_property_type(entry,key):
@@ -1131,7 +1123,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[66]:
+# In[23]:
 
 
 # Test greenburgh
@@ -1159,7 +1151,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[67]:
+# In[24]:
 
 
 # Test mamaroneck
@@ -1185,7 +1177,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[70]:
+# In[25]:
 
 
 # Test bedford
@@ -1213,7 +1205,7 @@ for key,result in testset_bedford:
 
 # ### Get property address
 
-# In[71]:
+# In[26]:
 
 
 # Mix of function definition and tests
@@ -1343,7 +1335,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[72]:
+# In[27]:
 
 
 # Test greenburgh
@@ -1398,7 +1390,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[25]:
+# In[28]:
 
 
 # Test mamaroneck
@@ -1451,7 +1443,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[73]:
+# In[29]:
 
 
 # Test bedford
@@ -1506,7 +1498,7 @@ for key,result in testset_bedford:
 
 # ### Get zoning
 
-# In[74]:
+# In[30]:
 
 
 # Tests and the function definition
@@ -1632,7 +1624,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[75]:
+# In[31]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -1678,7 +1670,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[76]:
+# In[32]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -1723,7 +1715,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[77]:
+# In[33]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -1766,7 +1758,7 @@ for key in data['mamaroneck']:
         raise
 
 
-# In[80]:
+# In[34]:
 
 
 # Test bedford with the generic function (SCHOOL DISTRICT)
@@ -1811,7 +1803,7 @@ for key in data['bedford']:
 
 # ### Get acreage
 
-# In[81]:
+# In[35]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1901,7 +1893,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[82]:
+# In[36]:
 
 
 # Test greenburgh with the new generic function
@@ -1950,7 +1942,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[32]:
+# In[37]:
 
 
 # Test mamaroneck with the new generic function
@@ -2001,7 +1993,7 @@ for key in data['mamaroneck']:
 print(f"Failed to find acreage in {len(failed)} entries")
 
 
-# In[86]:
+# In[38]:
 
 
 # Test bedford with the new generic function
@@ -2056,7 +2048,7 @@ print(f"\nFailed to find acreage in {len(failed)} entries")
 
 # ### Get full market value
 
-# In[33]:
+# In[39]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -2169,7 +2161,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[34]:
+# In[40]:
 
 
 # Test greenburgh with the new generic function
@@ -2225,7 +2217,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[35]:
+# In[41]:
 
 
 # Test mamaroneck with the new generic function
@@ -2278,9 +2270,62 @@ for key in data['mamaroneck']:
 print(f"Entries without full market value:\n{failed}")
 
 
+# In[42]:
+
+
+# Test bedford with the new generic function
+testset_bedford = [
+    ('49.14-2-30',769643),
+    ('73.12-1-2',5178571),
+    ('84.16-2-29',2832020),
+]
+
+re_fmv = 'FULL MKT VAL [0-9,]+|FULL MARKET VALUE [0-9,]+'
+
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['bedford'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+failed = []
+for key in data['bedford']:
+    entry = []
+    verbose = False
+    for line in data['bedford'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+    except:
+        failed.append(key)
+
+print(f"Entries without full market value:\n{failed}")
+
+
 # ### Get taxables
 
-# In[36]:
+# In[43]:
 
 
 def get_taxable(entry,taxable_name,verbose=False):
@@ -2397,7 +2442,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[37]:
+# In[44]:
 
 
 # Test greenburgh
@@ -2437,7 +2482,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[38]:
+# In[45]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -2496,15 +2541,74 @@ for key in data['mamaroneck']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
+# In[46]:
+
+
+# Test bedford using the new get_generic function
+testset_bedford = [
+    ('49.10-2-4',[61345,61345,39355]),
+    ('60.18-1-10',[45525,45525,45525]),
+    ('84.15-1-20',[98095,98095,98095]),
+]
+
+taxable_names = [
+    '(CNTY TAXABLE|COUNTY TAXABLE VALUE) [0-9,]+',
+    '(TOWN TAXABLE( VALUE)?) [0-9,]+',
+    '(SCHOOL TAXABLE( VALUE)?) [0-9,]+'
+]
+
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['bedford'][key]: print([line])
+        print("\nEntry:")
+        for line in entry: print([line])
+        raise
+
+failed = []
+for key in data['bedford']:
+    entry = []
+    for line in data['bedford'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+    except:
+        failed.append[key]
+
+print(f"failed to find taxables in entries:\n{failed}")
+
+
 # ### Assemble workbook
 
-# In[39]:
+# In[47]:
 
 
 wb = Workbook()
 ws = wb.active
 
-ws.title = "2024 final roll - Mamaroneck"
+ws.title = "2024 final roll - Bedford"
 ws['A1'] = 'id'
 ws['B1'] = 'OWNERS NAME'
 ws['C1'] = 'OWNERS ADDRESS'
@@ -2518,7 +2622,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[40]:
+# In[48]:
 
 
 # Extract the data
@@ -2531,33 +2635,31 @@ taxable_names = {
 row = 2
 a = time.time()
 failed_acreage = []
-for key in data['mamaroneck']:
+for key in data['bedford']:
     print(key)
     ws[f"A{row}"] = key
     
     # Owner names
     entry = []
-    for line in data['mamaroneck'][key]:
-        #newline = line.replace('\n','')
-        #newline = newline.strip()
+    for line in data['bedford'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:31])
             checks  = [
                 'FULL MKT VAL' in entry_line[0],
                 'FULL MARKET VALUE' in entry_line[0],
                 'DEED BK' in entry_line[0],
                 'DEED BOOK' in entry_line[0],
                 'EAST-' in entry_line[0],
-                'ACREAGE' in entry_line[0],
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
                 'add to' in entry_line[0],
                 'add map' in entry_line[0],
                 bool(re.search('\bMAP\b',entry_line[0])),
                 'TAXABLE' in entry_line[0],
                 'CONTIGUOUS PARCEL' in entry_line[0],
-                'BANK CODE' in entry_line[0],
+                'BANK' in entry_line[0],
                 bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
                 bool(re.search('@ [0-9]',entry_line[0])),
-                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
                 bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
                 'ATTM' in entry_line[0],
@@ -2583,33 +2685,31 @@ for key in data['mamaroneck']:
                 entry.append(temp)
             else:
                 entry.append(entry_line[0])
-    for ln,line in enumerate(entry):
-        entry[ln] = line[0:30]
     ws[f"B{row}"] = ', '.join(ext.get_owner_names(entry,key))
 
     # Owner address
     entry = []
-    for line in data['mamaroneck'][key]:
+    for line in data['bedford'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:31])
             checks  = [
                 'FULL MKT VAL' in entry_line[0],
                 'FULL MARKET VALUE' in entry_line[0],
                 'DEED BK' in entry_line[0],
                 'DEED BOOK' in entry_line[0],
                 'EAST-' in entry_line[0],
-                'ACREAGE' in entry_line[0],
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
                 'add to' in entry_line[0],
                 'add map' in entry_line[0],
                 bool(re.search('\bMAP\b',entry_line[0])),
                 'TAXABLE' in entry_line[0],
                 'CONTIGUOUS PARCEL' in entry_line[0],
-                'BANK CODE' in entry_line[0],
+                'BANK' in entry_line[0],
                 bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
                 bool(re.search('@ [0-9]',entry_line[0])),
-                bool(re.fullmatch('BANK [0-9]{2,3}',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
                 bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
                 'ATTM' in entry_line[0],
@@ -2635,13 +2735,11 @@ for key in data['mamaroneck']:
                 entry.append(temp)
             else:
                 entry.append(entry_line[0])
-    for ln,line in enumerate(entry):
-        entry[ln] = line[0:30]
     ws[f"C{row}"] = ext.get_owner_address(entry,key)
 
     # Property type
     entry = []
-    for line in data['mamaroneck'][key]:
+    for line in data['bedford'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             #print(entry_line)
@@ -2650,7 +2748,7 @@ for key in data['mamaroneck']:
 
     # Property address
     entry = []
-    for line in data['mamaroneck'][key]:
+    for line in data['bedford'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
@@ -2685,7 +2783,7 @@ for key in data['mamaroneck']:
 
     # Zoning
     entry = []
-    for line in data['mamaroneck'][key]:
+    for line in data['bedford'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
@@ -2694,7 +2792,7 @@ for key in data['mamaroneck']:
     # Acreage
     failed_acreage = []
     entry = []
-    for line in data['mamaroneck'][key]:
+    for line in data['bedford'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
@@ -2711,7 +2809,7 @@ for key in data['mamaroneck']:
 
     # Full market value
     entry = []
-    for line in data['mamaroneck'][key]:
+    for line in data['bedford'][key]:
         #newline = line.replace('\n','')
         #newline = newline.strip()
         if line != '' and line != None and line != []:
@@ -2725,7 +2823,7 @@ for key in data['mamaroneck']:
     # Taxables
     entry = []
     failed_taxables = []
-    for line in data['mamaroneck'][key]:
+    for line in data['bedford'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
