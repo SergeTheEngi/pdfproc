@@ -24,9 +24,9 @@ For python dependencies, see `requirements.txt`.
 
 Process Bedford:
 - Collect data:
-    - [ ] Get headers
-    - [ ] Collect page data
-    - [ ] Extract entries from pages
+    - [x] Get headers
+    - [x] Collect page data
+    - [x] Extract entries from pages
 - Extract data:
     - [ ] Access owner names
     - [ ] Access owner address

@@ -36,6 +36,7 @@ sources['harrison'] = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 sources['greenburgh'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Greenburgh.pdf')
 sources['newcastle'] = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
 sources['mamaroneck'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Mamaroneck.pdf')
+sources['bedford'] = poppler.load_from_file('Town of Bedford.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
@@ -122,7 +123,7 @@ for test,result in testset:
 # Extract data (list of lines)
 import multiprocessing as mp
 
-targets = ['greenburgh','mamaroneck']
+targets = ['greenburgh','mamaroneck','bedford']
 data = {}
 
 def worker(q,source,name):
@@ -195,210 +196,11 @@ for key in data_scarsdale:
     data_scarsdale[key] = break_lines(data_scarsdale[key])
 
 
-# In[6]:
-
-
-## Version of sus_all from Mamaroneck developments, but for list of lines data
-#def sus_all(data,key):
-#    values = {
-#        # Target values
-#        'id':None,
-#        'owner_names':None, 'owner_address':None,
-#        'property_type':None, 'property_address':None,'zoning':None,'acreage':None,'fmv':None,
-#        'county_taxable':None, 'town_taxable':None, 'school_taxable':None,
-#        # Other values
-#        'delim':None,
-#        'account':None,
-#        'exemptions':[],
-#        'village_taxable':None,
-#        'coord':None,
-#        'deed_book':None,
-#        'districts':[],
-#        'dist_tax_values':[],
-#    }
-#    patterns = {
-#        'id':key,
-#        'zoning':'Mamaroneck +[0-9]{6}','acreage':'ACREAGE',
-#        'county_taxable':'CNTY +TAXABLE','town_taxable':'TOWN +TAXABLE','school_taxable':'SCHOOL +TAXABLE','village_taxable':'VILLAGE +TAXABLE',
-#        'fmv':'FULL MKT VAL',
-#        'delim':re_separator,'account':'ACCT:',
-#        'exemptions':'[A-Z]{3} STAR',
-#        'coord':'EAST-[0-9]{7} NRTH-[0-9]{7}','deed_book':'DEED BK [0-9]{5}?',
-#        'districts':'[A-Z]{2}[0-9]{3}','dist_tax_values':'[0-9,]+ TO( C)?'
-#    }
-#    lines = list(filter(None,copy.deepcopy(data[key])))
-#    i = 0
-#    print("### pre-processing\n",lines)
-#    while i < len(values):
-#        # TODO: Get nested loop back
-#        # TODO: If there are multiple matches, add functionality to cut everything that is not the match we're looking for out of the string
-#        # and put it back instead of just deleting the element.
-#        j = 0
-#        while j < len(lines):
-#            line = lines[j]
-#            matches = {
-#                'delim':values['delim'] == None and bool(re.search(patterns['delim'],line)),
-#                'account':values['account'] == None and bool(re.search(patterns['account'],line)),
-#                'id':values['id'] == None and bool(re.search(patterns['id'],line)),
-#                'zoning':values['zoning'] == None and bool(re.search(patterns['zoning'],line)),
-#                'county_taxable':values['county_taxable'] == None and bool(re.search(patterns['county_taxable'],line)),
-#                'town_taxable':values['town_taxable'] == None and bool(re.search(patterns['town_taxable'],line)),
-#                'school_taxable':values['school_taxable'] == None and bool(re.search(patterns['school_taxable'],line)),
-#                'village_taxable':values['village_taxable'] == None and bool(re.search(patterns['village_taxable'],line)),
-#                'fmv':values['fmv'] == None and bool(re.search(patterns['fmv'],line)),
-#                'acreage':values['acreage'] == None and bool(re.search(patterns['acreage'],line)),
-#                'exemptions':bool(re.search(patterns['exemptions'],line)),
-#                'coord':values['coord'] == None and bool(re.search(patterns['coord'],line)),
-#                'deed_book':values['deed_book'] == None and bool(re.search(patterns['deed_book'],line)),
-#                'districts':bool(re.search(patterns['districts'],line)),
-#                'dist_tax_values':bool(re.search(patterns['dist_tax_values'],line)),
-#            }
-#            # do delim before id so id in the delim doesn't get detected
-#            if matches.get('delim'):
-#                values['delim'] = line
-#                del lines[j]
-#                continue
-#            if matches.get('account'):
-#                if bool(re.fullmatch('[0-9]+',lines[j-1])):
-#                    values['account'] = ' '.join([line,lines[j-1]])
-#                    for n in range(1,5):
-#                        if bool(re.search('[0-9]{3} [A-Z][a-z]+',lines[j+n])):
-#                            values['property_type'] = lines[j+n]
-#                            del lines[j+n]
-#                            del lines[j-1:j+1]
-#                            break
-#                    if values['property_type'] == None:
-#                        print(f"{lines[j+3]}")
-#                        raise ValueError(f"Cannot find property type of {key}")
-#                        del lines[j-1:j+1]
-#                    continue
-#                else:
-#                    raise ValueError(f"Value before {patterns['account']} isn't a number")
-#                continue
-#            elif matches.get('id'):
-#                values['id'] = line
-#                del lines[j]
-#                continue
-#            elif matches.get('zoning'):
-#                values['zoning'] = line
-#                del lines[j]
-#                continue
-#            elif matches.get('fmv'):
-#                # Check if `line` contains the vaule or only header
-#                if bool(re.search(patterns['fmv']+' +[0-9]+',line)):
-#                    values['fmv'] = line
-#                    del lines[j]
-#                else:
-#                    values['fmv'] = [line, lines[j+1]]
-#                    del lines[j:j+2]
-#                continue
-#            elif matches.get('acreage'):
-#                # Check if `line` contains the vaule or only header
-#                if bool(re.search(patterns['acreage']+' +[0-9.]+',line)):
-#                    values['acreage'] = line
-#                    del lines[j]
-#                else:
-#                    values['acreage'] = [line, lines[j+1]]
-#                    del lines[j:j+2]
-#                continue
-#            elif matches.get('county_taxable'):
-#                # Check if `line` contains the vaule or only header
-#                if bool(re.search(patterns['county_taxable']+' +[0-9,]+',line)):
-#                    values['county_taxable'] = line
-#                    del lines[j]
-#                else:
-#                    values['county_taxable'] = [line, lines[j+1]]
-#                    del lines[j:j+2]
-#                continue
-#            elif matches.get('town_taxable'):
-#                # Check if `line` contains the vaule or only header
-#                if bool(re.search(patterns['town_taxable']+' +[0-9,]+',line)):
-#                    values['town_taxable'] = line
-#                    del lines[j]
-#                else:
-#                    values['town_taxable'] = [line, lines[j+1]]
-#                    del lines[j:j+2]
-#                continue
-#            elif matches.get('school_taxable'):
-#                # Check if `line` contains the vaule or only header
-#                if bool(re.search(patterns['school_taxable']+' +[0-9,]+',line)):
-#                    values['school_taxable'] = line
-#                    del lines[j]
-#                elif bool(re.search('[0-9,]+',lines[j+1])) and ',' in lines[j+1]:
-#                    values['school_taxable'] = [line, lines[j+1]]
-#                    del lines[j:j+2]
-#                else:
-#                    values['school_taxable'] = [line]
-#                    del lines[j]
-#                continue
-#            elif matches.get('village_taxable'):
-#                if bool(re.search(patterns['village_taxable']+' +[0-9,]+',line)):
-#                    values['village_taxable'] = line
-#                    del lines[j]
-#                elif bool(re.search('[0-9,]+',lines[j+1])) and ',' in lines[j+1]:
-#                    values['village_taxable'] = [line, lines[j+1]]
-#                    del lines[j:j+2]
-#                else:
-#                    values['village_taxable'] = [line]
-#                    del lines[j]
-#                continue
-#            elif matches.get('exemptions'):
-#                # Check if `line` contains exemption code and values
-#                if bool(re.search(patterns['exemptions']+' +[0-9]{5} +[0-9,]+ +[0-9,]+ +[0-9,]+',line)):
-#                    print('found full exemption')
-#                    values['exemptions'].append(line)
-#                    del lines[j]
-#                    continue
-#                # Try to assemble exemption
-#                exemption = line
-#                for n in range(1,5):
-#                    if bool(re.fullmatch('[0-9, ]+',lines[j+n])):
-#                        exemption = exemption + ' ' + lines[j+n]
-#                    else:
-#                        assert bool(re.fullmatch(patterns['exemptions']+' +[0-9]{5} +[0-9,]+ +[0-9,]+ +[0-9,]+',exemption))
-#                        values['exemptions'].append(exemption)
-#                        del lines[j:j+n]
-#                        continue
-#                continue
-#            elif matches.get('coord'):
-#                values['coord'] = line
-#                del lines[j]
-#                continue
-#            elif matches.get('deed_book'):
-#                if bool(re.search('[A-Z]{2} [0-9]{3,4}',lines[j-1])):
-#                    values['deed_book'] = ' '.join([line,lines[j-1]])
-#                    del lines[j-1:j+1]
-#                else: 
-#                    values['deed_book'] = line
-#                    print(f"WARN: no value next to {pattern['deed_book']} in {key}")
-#                    del lines[j]
-#                continue
-#            elif matches.get('districts'):
-#                values['districts'].append(line)
-#                del lines[j]
-#                continue
-#            elif matches.get('dist_tax_values'):
-#                values['dist_tax_values'].append(line)
-#                del lines[j]
-#                continue
-#            j += 1
-#        if i == len(values)-1: print("### post-processing\n",lines)
-#        i+=1
-#
-#    return values
-#
-#all_values = sus_all(data_grb,'6.10-1-10.1')
-#print("\n### all values")
-#for item in all_values: print(f"{item} : {all_values[item]}")
-#for item in all_values:
-#    assert all_values[item] != None and all_values[item] != [], f"Failed to find {item}"
-
-
 # ## Extraction functions & tests
 
 # ### Get owner names
 
-# In[7]:
+# In[6]:
 
 
 # Test bronxville
@@ -440,7 +242,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[7]:
 
 
 # Test cornwall
@@ -478,7 +280,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[8]:
 
 
 # Test scarsdale
@@ -551,7 +353,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[10]:
+# In[9]:
 
 
 # Test harrison
@@ -572,7 +374,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[11]:
+# In[10]:
 
 
 # Test newcastle
@@ -605,7 +407,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[12]:
+# In[11]:
 
 
 # Test greenburgh
@@ -679,7 +481,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[13]:
+# In[12]:
 
 
 # Test mamaroneck
@@ -754,7 +556,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get owner address
 
-# In[14]:
+# In[13]:
 
 
 # Test bronxville
@@ -787,7 +589,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[15]:
+# In[14]:
 
 
 # Test cornwall
@@ -837,7 +639,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[15]:
 
 
 # Test scarsdale
@@ -899,7 +701,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[17]:
+# In[16]:
 
 
 # Test harrison
@@ -920,7 +722,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[18]:
+# In[17]:
 
 
 # Test newcastle
@@ -951,7 +753,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[19]:
+# In[18]:
 
 
 # Test greenburgh
@@ -1011,7 +813,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[20]:
+# In[19]:
 
 
 # Test mamaroneck
@@ -1082,7 +884,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get property type
 
-# In[21]:
+# In[20]:
 
 
 def get_property_type(entry,key):
@@ -1187,7 +989,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[22]:
+# In[21]:
 
 
 # Test greenburgh
@@ -1215,7 +1017,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[23]:
+# In[22]:
 
 
 # Test mamaroneck
@@ -1243,7 +1045,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get property address
 
-# In[24]:
+# In[23]:
 
 
 # Mix of function definition and tests
@@ -1373,7 +1175,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[25]:
+# In[24]:
 
 
 # Test greenburgh
@@ -1428,7 +1230,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[26]:
+# In[25]:
 
 
 # Test mamaroneck
@@ -1483,7 +1285,7 @@ for key,result in testset_mamaroneck:
 
 # ### Get zoning
 
-# In[27]:
+# In[26]:
 
 
 # Tests and the function definition
@@ -1609,7 +1411,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[28]:
+# In[27]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -1655,7 +1457,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[29]:
+# In[28]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -1700,7 +1502,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[30]:
+# In[29]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -1745,7 +1547,7 @@ for key in data['mamaroneck']:
 
 # ### Get acreage
 
-# In[31]:
+# In[30]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1835,7 +1637,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[32]:
+# In[31]:
 
 
 # Test greenburgh with the new generic function
@@ -1884,7 +1686,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[33]:
+# In[32]:
 
 
 # Test mamaroneck with the new generic function
@@ -1937,7 +1739,7 @@ print(f"Failed to find acreage in {len(failed)} entries")
 
 # ### Get full market value
 
-# In[34]:
+# In[33]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -2050,7 +1852,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[35]:
+# In[34]:
 
 
 # Test greenburgh with the new generic function
@@ -2106,7 +1908,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[36]:
+# In[35]:
 
 
 # Test mamaroneck with the new generic function
@@ -2161,7 +1963,7 @@ print(f"Entries without full market value:\n{failed}")
 
 # ### Get taxables
 
-# In[37]:
+# In[36]:
 
 
 def get_taxable(entry,taxable_name,verbose=False):
@@ -2278,7 +2080,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[38]:
+# In[37]:
 
 
 # Test greenburgh
@@ -2318,7 +2120,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[39]:
+# In[38]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -2379,7 +2181,7 @@ print(f"failed to find taxables in entries:\n{failed}")
 
 # ### Assemble workbook
 
-# In[40]:
+# In[39]:
 
 
 wb = Workbook()
@@ -2399,7 +2201,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[41]:
+# In[40]:
 
 
 # Extract the data
