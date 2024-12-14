@@ -554,6 +554,77 @@ for key,result in testset_mamaroneck:
         raise
 
 
+# In[63]:
+
+
+# Test bedford
+testset_bedford = [
+    ('38.20-1-1',['Mckenzie Michael']),
+    ('60.11-3-43',['Bancroft Robert W']),
+    ('84.13-1-3',['Chace Helen Clay','Chace Minturn V Trust','c/o H Chace, M Baker, et., all','as trustees']),
+]
+
+#print(data['greenburgh'].keys())
+#print(data['greenburgh']['6.10-1-10.1'])
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:31])
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
+    try:
+        output = ext.get_owner_names(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['bedford'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get owner address
 
 # In[13]:
@@ -882,9 +953,80 @@ for key,result in testset_mamaroneck:
         raise
 
 
+# In[64]:
+
+
+# Test bedford
+testset_bedford = [
+    ('38.20-1-1','171 Goldens Bridge Rd, Katonah, NY 10536'),
+    ('60.11-3-43','10 Franklin Ave, Bedford Hills, NY 10507'),
+    ('84.13-1-3','20 Bayberry Ln, Bedford Corners, NY 10549'),
+]
+
+#print(data['greenburgh'].keys())
+#print(data['greenburgh']['6.10-1-10.1'])
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:31])
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    for ln,line in enumerate(entry):
+        entry[ln] = line[0:30]
+    try:
+        output = ext.get_owner_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['bedford'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get property type
 
-# In[20]:
+# In[65]:
 
 
 def get_property_type(entry,key):
@@ -989,7 +1131,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[21]:
+# In[66]:
 
 
 # Test greenburgh
@@ -1017,7 +1159,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[22]:
+# In[67]:
 
 
 # Test mamaroneck
@@ -1043,9 +1185,35 @@ for key,result in testset_mamaroneck:
         raise
 
 
+# In[70]:
+
+
+# Test bedford
+testset_bedford = [
+    ('60.5-2-17','210 1 Family Res'),
+    ('60.13-1-152','210 1 Family Res - CONDO'),
+    ('84.12-2-7','210 1 Family Res'),
+]
+
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            #print(entry_line)
+            entry.append(entry_line)
+    try:
+        output = get_property_type(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['bedford'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get property address
 
-# In[23]:
+# In[71]:
 
 
 # Mix of function definition and tests
@@ -1175,7 +1343,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[24]:
+# In[72]:
 
 
 # Test greenburgh
@@ -1283,9 +1451,62 @@ for key,result in testset_mamaroneck:
         raise
 
 
+# In[73]:
+
+
+# Test bedford
+testset_bedford = [
+    ('60.5-2-17','67 Lily Pond Ln'),
+    ('60.13-1-152','14 Lake Marie Ln'),
+    ('84.12-2-7','189 Pound Ridge Rd'),
+]
+
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    del entry[0]
+    nentry = []
+    for line in entry[0]:
+        checks = [
+            not bool(re.fullmatch('[0-9]+',line)),
+            not bool(re.search('ACCT:',line)),
+        ]
+        if False not in checks:
+            nentry.append(line)
+    entry[0] = nentry
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        while len(entry[0]) > 2:
+            if 'ACCT' not in entry[0][2]:
+                entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                del entry[0][2]
+            else:
+                break
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
+    try:
+        output = get_property_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['bedford'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        raise
+
+
 # ### Get zoning
 
-# In[26]:
+# In[74]:
 
 
 # Tests and the function definition
@@ -1411,7 +1632,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[27]:
+# In[75]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -1457,7 +1678,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[28]:
+# In[76]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -1502,7 +1723,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[29]:
+# In[77]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -1545,9 +1766,52 @@ for key in data['mamaroneck']:
         raise
 
 
+# In[80]:
+
+
+# Test bedford with the generic function (SCHOOL DISTRICT)
+testset_bedford = [
+    ('49.11-2-13','Katonah Lewisbo 552001'),
+    ('72.5-2-2','Bedford Central 552002'),
+    ('84.10-2-8','Bedford Central 552002'),
+]
+
+re_zoning = '(Bedford Central|Katonah Lewisbo|Byram Hills Cnt) [0-9]{6,7}'
+
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_zoning)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['bedford'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+for key in data['bedford']:
+    entry = []
+    verbose = False
+    for line in data['bedford'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_zoning,verbose)
+    except:
+        print(entry)
+        raise
+
+
 # ### Get acreage
 
-# In[30]:
+# In[81]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1637,7 +1901,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[31]:
+# In[82]:
 
 
 # Test greenburgh with the new generic function
@@ -1735,6 +1999,59 @@ for key in data['mamaroneck']:
         failed.append(key)
 
 print(f"Failed to find acreage in {len(failed)} entries")
+
+
+# In[86]:
+
+
+# Test bedford with the new generic function
+testset_bedford = [
+    ('49.10-3-5',None),
+    ('60.14-3-27',0.34),
+    ('72.5-1-9',1.03),
+]
+
+re_acreage = 'ACRES ?[0-9.]{,7}'
+
+for key,result in testset_bedford:
+    entry = []
+    for line in data['bedford'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_acreage)
+        output = output.split()
+        output = float(output[1])
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Failed to get acreage!")
+        print("Data item:")
+        for line in data['bedford'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        output = None
+        assert output == result, f"{key}, {result} != {output}"
+
+failed = []
+for key in data['bedford']:
+    entry = []
+    verbose = False
+    for line in data['bedford'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_acreage,verbose)
+    except:
+        failed.append(key)
+
+print(f"\nFailed to find acreage in {len(failed)} entries")
 
 
 # ### Get full market value
