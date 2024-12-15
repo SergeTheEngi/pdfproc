@@ -3,7 +3,7 @@
 
 # # Init
 
-# In[50]:
+# In[1]:
 
 
 # Monitoring
@@ -64,7 +64,7 @@ lol = pdfproc.as_lines.Extractor(
 # 
 # By block and line number, and assemble it into a new list of the same shape.
 
-# In[51]:
+# In[2]:
 
 
 # Test header extractor
@@ -118,7 +118,7 @@ for test,result in testset:
 # 
 # Detect by separators
 
-# In[56]:
+# In[3]:
 
 
 # Extract data (list of lines)
@@ -152,7 +152,7 @@ for line in data['mamaroneck']['1-14-213']:
         raise ValueError("Algorithm misses the page end delimiter!")
 
 
-# In[57]:
+# In[4]:
 
 
 # Extract data (pymupdf dictionary)
@@ -182,7 +182,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[58]:
+# In[5]:
 
 
 # Shape data
@@ -201,7 +201,7 @@ for key in data_scarsdale:
 
 # ### Get owner names
 
-# In[7]:
+# In[6]:
 
 
 # Test bronxville
@@ -243,7 +243,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[7]:
 
 
 # Test cornwall
@@ -281,7 +281,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[8]:
 
 
 # Test scarsdale
@@ -354,7 +354,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[10]:
+# In[9]:
 
 
 # Test harrison
@@ -375,7 +375,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[11]:
+# In[10]:
 
 
 # Test newcastle
@@ -408,7 +408,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[12]:
+# In[11]:
 
 
 # Test greenburgh
@@ -482,7 +482,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[13]:
+# In[12]:
 
 
 # Test mamaroneck
@@ -620,9 +620,77 @@ for key,result in testset_bedford:
         raise
 
 
+# In[38]:
+
+
+# Test mtpleasant
+testset_mtpleasant = [
+    ('110.11-1-4',['GUPTA AKSHAY','YANISKO ANNA']),
+    ('106.13-1-29',['ANSARI-EZABADI AMIR','MOAZEN HALEH TBTE']),
+    ('112.13-3-61',['GAMBINO LISA']),
+]
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:26])
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                bool(re.search('EAST [0-9]{6}',entry_line[0])),
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
+                bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
+                bool(re.fullmatch('[0-9]-[0-9A-Z]{2,3}-[0-9]{,2}',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    try:
+        output = ext.get_owner_names(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['mtpleasant'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get owner address
 
-# In[15]:
+# In[39]:
 
 
 # Test bronxville
@@ -655,7 +723,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[40]:
 
 
 # Test cornwall
@@ -705,7 +773,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[17]:
+# In[41]:
 
 
 # Test scarsdale
@@ -767,7 +835,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[18]:
+# In[42]:
 
 
 # Test harrison
@@ -788,7 +856,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[19]:
+# In[43]:
 
 
 # Test newcastle
@@ -819,7 +887,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[20]:
+# In[44]:
 
 
 # Test greenburgh
@@ -879,7 +947,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[21]:
+# In[45]:
 
 
 # Test mamaroneck
@@ -948,7 +1016,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[22]:
+# In[46]:
 
 
 # Test bedford
@@ -1013,6 +1081,74 @@ for key,result in testset_bedford:
         assert output == result, f"{key}, {result} != {output}"
     except:
         for line in data['bedford'][key]: print([line])
+        print(entry)
+        raise
+
+
+# In[48]:
+
+
+# Test mtpleasant
+testset_mtpleasant = [
+    ('106.9-1-59','579 BEDFORD ROAD, PLEASANTVILLE NY 10570'),
+    ('105.8-2-26','18 WOODFIELD ROAD, BRIARCLIFF MANOR NY 10510'),
+    ('112.13-3-61','230 BRADY AVE, HAWTHORNE NY 10532'),
+]
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:26])
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                bool(re.search('EAST [0-9]{6}',entry_line[0])),
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{5,7} EX',entry_line[0])),
+                bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
+                bool(re.fullmatch('[0-9]-[0-9A-Z]{2,3}-[0-9]{,2}',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    try:
+        output = ext.get_owner_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['mtpleasant'][key]: print([line])
         print(entry)
         raise
 

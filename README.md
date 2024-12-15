@@ -28,8 +28,8 @@ Process Mount Pleasant:
     - [x] Collect page data
     - [x] Extract entries from pages
 - Extract data:
-    - [ ] Access owner names
-    - [ ] Access owner address
+    - [x] Access owner names
+    - [x] Access owner address
     - [ ] Access property type
     - [ ] Access property address
     - [ ] Access zoning
