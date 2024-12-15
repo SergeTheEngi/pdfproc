@@ -3,7 +3,7 @@
 
 # # Init
 
-# In[1]:
+# In[50]:
 
 
 # Monitoring
@@ -36,7 +36,8 @@ sources['harrison'] = pymupdf.open('pdfproc/testing_data:2024FA_Harrison.pdf')
 sources['greenburgh'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Greenburgh.pdf')
 sources['newcastle'] = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
 sources['mamaroneck'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Mamaroneck.pdf')
-sources['bedford'] = poppler.load_from_file('Town of Bedford.pdf')
+sources['bedford'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Bedford.pdf')
+sources['mtpleasant'] = poppler.load_from_file('Mount Pleasant.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
@@ -63,7 +64,7 @@ lol = pdfproc.as_lines.Extractor(
 # 
 # By block and line number, and assemble it into a new list of the same shape.
 
-# In[2]:
+# In[51]:
 
 
 # Test header extractor
@@ -117,13 +118,13 @@ for test,result in testset:
 # 
 # Detect by separators
 
-# In[3]:
+# In[56]:
 
 
 # Extract data (list of lines)
 import multiprocessing as mp
 
-targets = ['greenburgh','mamaroneck','bedford']
+targets = ['greenburgh','mamaroneck','bedford','mtpleasant']
 data = {}
 
 def worker(q,source,name):
@@ -151,7 +152,7 @@ for line in data['mamaroneck']['1-14-213']:
         raise ValueError("Algorithm misses the page end delimiter!")
 
 
-# In[4]:
+# In[57]:
 
 
 # Extract data (pymupdf dictionary)
@@ -181,7 +182,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[5]:
+# In[58]:
 
 
 # Shape data
@@ -200,7 +201,7 @@ for key in data_scarsdale:
 
 # ### Get owner names
 
-# In[6]:
+# In[7]:
 
 
 # Test bronxville
@@ -242,7 +243,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[7]:
+# In[8]:
 
 
 # Test cornwall
@@ -280,7 +281,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[8]:
+# In[9]:
 
 
 # Test scarsdale
@@ -353,7 +354,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[9]:
+# In[10]:
 
 
 # Test harrison
@@ -374,7 +375,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[10]:
+# In[11]:
 
 
 # Test newcastle
@@ -407,7 +408,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[11]:
+# In[12]:
 
 
 # Test greenburgh
@@ -481,7 +482,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[12]:
+# In[13]:
 
 
 # Test mamaroneck
@@ -554,7 +555,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[13]:
+# In[14]:
 
 
 # Test bedford
@@ -621,7 +622,7 @@ for key,result in testset_bedford:
 
 # ### Get owner address
 
-# In[14]:
+# In[15]:
 
 
 # Test bronxville
@@ -654,7 +655,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[15]:
+# In[16]:
 
 
 # Test cornwall
@@ -704,7 +705,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[16]:
+# In[17]:
 
 
 # Test scarsdale
@@ -766,7 +767,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[17]:
+# In[18]:
 
 
 # Test harrison
@@ -787,7 +788,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[18]:
+# In[19]:
 
 
 # Test newcastle
@@ -818,7 +819,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[19]:
+# In[20]:
 
 
 # Test greenburgh
@@ -878,7 +879,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[20]:
+# In[21]:
 
 
 # Test mamaroneck
@@ -947,7 +948,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[21]:
+# In[22]:
 
 
 # Test bedford
@@ -1018,7 +1019,7 @@ for key,result in testset_bedford:
 
 # ### Get property type
 
-# In[22]:
+# In[23]:
 
 
 def get_property_type(entry,key):
@@ -1123,7 +1124,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[23]:
+# In[24]:
 
 
 # Test greenburgh
@@ -1151,7 +1152,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[24]:
+# In[25]:
 
 
 # Test mamaroneck
@@ -1177,7 +1178,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[25]:
+# In[26]:
 
 
 # Test bedford
@@ -1205,7 +1206,7 @@ for key,result in testset_bedford:
 
 # ### Get property address
 
-# In[26]:
+# In[27]:
 
 
 # Mix of function definition and tests
@@ -1335,7 +1336,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[27]:
+# In[28]:
 
 
 # Test greenburgh
@@ -1390,7 +1391,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[28]:
+# In[29]:
 
 
 # Test mamaroneck
@@ -1443,7 +1444,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[29]:
+# In[30]:
 
 
 # Test bedford
@@ -1498,7 +1499,7 @@ for key,result in testset_bedford:
 
 # ### Get zoning
 
-# In[30]:
+# In[31]:
 
 
 # Tests and the function definition
@@ -1624,7 +1625,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[31]:
+# In[32]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -1670,7 +1671,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[32]:
+# In[33]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -1715,7 +1716,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[33]:
+# In[34]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -1758,7 +1759,7 @@ for key in data['mamaroneck']:
         raise
 
 
-# In[34]:
+# In[35]:
 
 
 # Test bedford with the generic function (SCHOOL DISTRICT)
@@ -1803,7 +1804,7 @@ for key in data['bedford']:
 
 # ### Get acreage
 
-# In[35]:
+# In[36]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -1893,7 +1894,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[36]:
+# In[37]:
 
 
 # Test greenburgh with the new generic function
@@ -1942,7 +1943,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[37]:
+# In[38]:
 
 
 # Test mamaroneck with the new generic function
@@ -1993,7 +1994,7 @@ for key in data['mamaroneck']:
 print(f"Failed to find acreage in {len(failed)} entries")
 
 
-# In[38]:
+# In[39]:
 
 
 # Test bedford with the new generic function
@@ -2048,7 +2049,7 @@ print(f"\nFailed to find acreage in {len(failed)} entries")
 
 # ### Get full market value
 
-# In[39]:
+# In[40]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -2161,7 +2162,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[40]:
+# In[41]:
 
 
 # Test greenburgh with the new generic function
@@ -2217,7 +2218,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[41]:
+# In[42]:
 
 
 # Test mamaroneck with the new generic function
@@ -2270,7 +2271,7 @@ for key in data['mamaroneck']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[42]:
+# In[43]:
 
 
 # Test bedford with the new generic function
@@ -2325,7 +2326,7 @@ print(f"Entries without full market value:\n{failed}")
 
 # ### Get taxables
 
-# In[43]:
+# In[44]:
 
 
 def get_taxable(entry,taxable_name,verbose=False):
@@ -2442,7 +2443,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[44]:
+# In[45]:
 
 
 # Test greenburgh
@@ -2482,7 +2483,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[45]:
+# In[46]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -2541,7 +2542,7 @@ for key in data['mamaroneck']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[46]:
+# In[47]:
 
 
 # Test bedford using the new get_generic function
@@ -2602,7 +2603,7 @@ print(f"failed to find taxables in entries:\n{failed}")
 
 # ### Assemble workbook
 
-# In[47]:
+# In[48]:
 
 
 wb = Workbook()
@@ -2622,7 +2623,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[48]:
+# In[49]:
 
 
 # Extract the data
