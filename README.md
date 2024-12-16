@@ -30,8 +30,8 @@ Process Mount Pleasant:
 - Extract data:
     - [x] Access owner names
     - [x] Access owner address
-    - [ ] Access property type
-    - [ ] Access property address
+    - [x] Access property type
+    - [x] Access property address
     - [ ] Access zoning
     - [ ] Access acreage
     - [ ] Access market value

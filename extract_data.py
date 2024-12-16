@@ -555,7 +555,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[14]:
+# In[13]:
 
 
 # Test bedford
@@ -620,7 +620,7 @@ for key,result in testset_bedford:
         raise
 
 
-# In[38]:
+# In[14]:
 
 
 # Test mtpleasant
@@ -690,7 +690,7 @@ for key,result in testset_mtpleasant:
 
 # ### Get owner address
 
-# In[39]:
+# In[15]:
 
 
 # Test bronxville
@@ -723,7 +723,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[40]:
+# In[16]:
 
 
 # Test cornwall
@@ -773,7 +773,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[41]:
+# In[17]:
 
 
 # Test scarsdale
@@ -835,7 +835,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[42]:
+# In[18]:
 
 
 # Test harrison
@@ -856,7 +856,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[43]:
+# In[19]:
 
 
 # Test newcastle
@@ -887,7 +887,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[44]:
+# In[20]:
 
 
 # Test greenburgh
@@ -947,7 +947,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[45]:
+# In[21]:
 
 
 # Test mamaroneck
@@ -1016,7 +1016,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[46]:
+# In[22]:
 
 
 # Test bedford
@@ -1085,7 +1085,7 @@ for key,result in testset_bedford:
         raise
 
 
-# In[48]:
+# In[23]:
 
 
 # Test mtpleasant
@@ -1155,7 +1155,7 @@ for key,result in testset_mtpleasant:
 
 # ### Get property type
 
-# In[23]:
+# In[24]:
 
 
 def get_property_type(entry,key):
@@ -1260,7 +1260,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[24]:
+# In[25]:
 
 
 # Test greenburgh
@@ -1288,7 +1288,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[25]:
+# In[26]:
 
 
 # Test mamaroneck
@@ -1314,7 +1314,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[26]:
+# In[27]:
 
 
 # Test bedford
@@ -1340,9 +1340,39 @@ for key,result in testset_bedford:
         raise
 
 
+# In[30]:
+
+
+# Test mtpleasant
+testset_mtpleasant = [
+    ('110.11-1-3','641 HOSPITALS'),
+    ('112.6-4-59','210 1 FAMILY RES'),
+    ('112.16-1-67','210 1 FAMILY RES'),
+]
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            for sn, substring in enumerate(entry_line):
+                if substring == key and bool(re.fullmatch('[A-Z]{2}',entry_line[sn+1])):
+                    del entry_line[sn+1]
+                    break
+            #print(entry_line)
+            entry.append(entry_line)
+    try:
+        output = get_property_type(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['mtpleasant'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get property address
 
-# In[27]:
+# In[31]:
 
 
 # Mix of function definition and tests
@@ -1472,7 +1502,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[28]:
+# In[32]:
 
 
 # Test greenburgh
@@ -1527,7 +1557,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[29]:
+# In[33]:
 
 
 # Test mamaroneck
@@ -1580,7 +1610,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[30]:
+# In[34]:
 
 
 # Test bedford
@@ -1633,9 +1663,62 @@ for key,result in testset_bedford:
         raise
 
 
+# In[36]:
+
+
+# Test mtpleasant
+testset_mtpleasant = [
+    ('106.7-1-66','21 WILLOW ST'),
+    ('106.13-3-26','PARK ST'),
+    ('106.20-3-42.12','7 COTTAGE GROVE'),
+]
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    del entry[0]
+    nentry = []
+    for line in entry[0]:
+        checks = [
+            not bool(re.fullmatch('[0-9]+',line)),
+            not bool(re.search('ACCT:',line)),
+        ]
+        if False not in checks:
+            nentry.append(line)
+    entry[0] = nentry
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        while len(entry[0]) > 2:
+            if 'ACCT' not in entry[0][2]:
+                entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                del entry[0][2]
+            else:
+                break
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
+    try:
+        output = get_property_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mtpleasant'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        raise
+
+
 # ### Get zoning
 
-# In[31]:
+# In[37]:
 
 
 # Tests and the function definition
@@ -1761,7 +1844,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[32]:
+# In[38]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -1807,7 +1890,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[33]:
+# In[39]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -1852,7 +1935,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[34]:
+# In[40]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -1895,7 +1978,7 @@ for key in data['mamaroneck']:
         raise
 
 
-# In[35]:
+# In[41]:
 
 
 # Test bedford with the generic function (SCHOOL DISTRICT)
@@ -1928,6 +2011,49 @@ for key in data['bedford']:
     entry = []
     verbose = False
     for line in data['bedford'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_zoning,verbose)
+    except:
+        print(entry)
+        raise
+
+
+# In[42]:
+
+
+# Test mtpleasant with the generic function (SCHOOL DISTRICT)
+testset_mtpleasant = [
+    ('104.15-1-3','NORTH TARRYTOWN'),
+    ('106.20-1-67','MOUNT PLEASANT'),
+    ('117.6-1-8','VALHALLA'),
+]
+
+re_zoning = '(NORTH TARRYTOWN|MOUNT PLEASANT|VALHALLA) [0-9]{6,7}'
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_zoning)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mtpleasant'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+for key in data['mtpleasant']:
+    entry = []
+    verbose = False
+    for line in data['mtpleasant'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
