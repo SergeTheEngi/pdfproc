@@ -32,9 +32,9 @@ Process Mount Pleasant:
     - [x] Access owner address
     - [x] Access property type
     - [x] Access property address
-    - [ ] Access zoning
-    - [ ] Access acreage
-    - [ ] Access market value
-    - [ ] Access taxables
+    - [x] Access zoning
+    - [x] Access acreage
+    - [x] Access market value
+    - [x] Access taxables
 - [ ] Asseble into workbook
 - [ ] Review, fix errors

@@ -2021,7 +2021,7 @@ for key in data['bedford']:
         raise
 
 
-# In[42]:
+# In[51]:
 
 
 # Test mtpleasant with the generic function (SCHOOL DISTRICT)
@@ -2031,7 +2031,7 @@ testset_mtpleasant = [
     ('117.6-1-8','VALHALLA'),
 ]
 
-re_zoning = '(NORTH TARRYTOWN|MOUNT PLEASANT|VALHALLA) [0-9]{6,7}'
+re_zoning = '(NORTH TARRYTOWN|MOUNT PLEASANT|VALHALLA|POCANTICO HILLS|PLEASANTVILLE|BYRAM HILLS CENTRL|BRIARCLIFF MANOR|CHAPPAQUA CENTRAL|HAWTHORNE KNOLL)'
 
 for key,result in testset_mtpleasant:
     entry = []
@@ -2066,7 +2066,7 @@ for key in data['mtpleasant']:
 
 # ### Get acreage
 
-# In[36]:
+# In[52]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -2156,7 +2156,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[37]:
+# In[53]:
 
 
 # Test greenburgh with the new generic function
@@ -2205,7 +2205,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[38]:
+# In[54]:
 
 
 # Test mamaroneck with the new generic function
@@ -2256,7 +2256,7 @@ for key in data['mamaroneck']:
 print(f"Failed to find acreage in {len(failed)} entries")
 
 
-# In[39]:
+# In[55]:
 
 
 # Test bedford with the new generic function
@@ -2309,9 +2309,62 @@ for key in data['bedford']:
 print(f"\nFailed to find acreage in {len(failed)} entries")
 
 
+# In[58]:
+
+
+# Test mtpleasant with the new generic function
+testset_mtpleasant = [
+    ('115.15-1-16',0.05),
+    ('106.9-4-18',0.55),
+    ('122.7-4-7',0.11),
+]
+
+re_acreage = '(ACREAGE|ACRES) ?[0-9.]{,7}'
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_acreage)
+        output = output.split()
+        output = float(output[1])
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Failed to get acreage!")
+        print("Data item:")
+        for line in data['mtpleasant'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        output = None
+        assert output == result, f"{key}, {result} != {output}"
+
+failed = []
+for key in data['mtpleasant']:
+    entry = []
+    verbose = False
+    for line in data['mtpleasant'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_acreage,verbose)
+    except:
+        failed.append(key)
+
+print(f"\nFailed to find acreage in {len(failed)} entries")
+
+
 # ### Get full market value
 
-# In[40]:
+# In[59]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -2424,7 +2477,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[41]:
+# In[60]:
 
 
 # Test greenburgh with the new generic function
@@ -2480,7 +2533,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[42]:
+# In[62]:
 
 
 # Test mamaroneck with the new generic function
@@ -2533,7 +2586,7 @@ for key in data['mamaroneck']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[43]:
+# In[63]:
 
 
 # Test bedford with the new generic function
@@ -2586,9 +2639,62 @@ for key in data['bedford']:
 print(f"Entries without full market value:\n{failed}")
 
 
+# In[65]:
+
+
+# Test mtpleasant with the new generic function
+testset_mtpleasant = [
+    ('106.10-6-67',349557),
+    ('106.18-2-61',380530),
+    ('112.18-1-32',601769),
+]
+
+re_fmv = 'FULL MKT VAL [0-9,]+|FULL MARKET VALUE [0-9,]+'
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mtpleasant'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+failed = []
+for key in data['mtpleasant']:
+    entry = []
+    verbose = False
+    for line in data['mtpleasant'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+    except:
+        failed.append(key)
+
+print(f"Entries without full market value:\n{failed}")
+
+
 # ### Get taxables
 
-# In[44]:
+# In[66]:
 
 
 def get_taxable(entry,taxable_name,verbose=False):
@@ -2705,7 +2811,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[45]:
+# In[67]:
 
 
 # Test greenburgh
@@ -2745,7 +2851,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[46]:
+# In[68]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -2804,7 +2910,7 @@ for key in data['mamaroneck']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[47]:
+# In[69]:
 
 
 # Test bedford using the new get_generic function
@@ -2858,6 +2964,67 @@ for key in data['bedford']:
             out = float(out)
             output.append(out)
     except:
+        failed.append[key]
+
+print(f"failed to find taxables in entries:\n{failed}")
+
+
+# In[76]:
+
+
+# Test mtpleasant using the new get_generic function
+testset_mtpleasant = [
+    ('115.11-5-54',[5200,5200,4150]),
+    ('106.15-3-9',[6550,6550,6550]),
+    ('112.11-1-4',[10000,10000,10000]),
+    ('112.16-1-1',[-44118,-44118,-44118]),
+]
+
+taxable_names = [
+    '(CNTY TAXABLE|COUNTY TAXABLE( VALUE)?) -?[0-9,]+',
+    '(TOWN TAXABLE( VALUE)?) -?[0-9,]+',
+    '(SCHOOL TAXABLE( VALUE)?) -?[0-9,]+'
+]
+
+for key,result in testset_mtpleasant:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('-?[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['mtpleasant'][key]: print([line])
+        print("\nEntry:")
+        for line in entry: print([line])
+        raise
+
+failed = []
+for key in data['mtpleasant']:
+    entry = []
+    for line in data['mtpleasant'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('-?[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+    except:
+        print(key)
         failed.append[key]
 
 print(f"failed to find taxables in entries:\n{failed}")
