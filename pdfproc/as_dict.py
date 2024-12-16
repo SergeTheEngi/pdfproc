@@ -274,6 +274,8 @@ class Extractor:
             if company:
                 owner_names.append(item.strip())
                 company = None
+        if len(owner_names) == 0 and len(entry[entry_id+1:]) > 0:
+            owner_names.append(entry[entry_id+1])
         return owner_names
     
     def get_owner_address(self,entry,key=None):
