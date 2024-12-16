@@ -257,10 +257,15 @@ class Extractor:
                 print(line)
         raise ValueError(f"Cannot find '{pattern}'")
 
-    def get_owner_names(self,entry,key):
+    def get_owner_names(self,entry,key,verbose=False):
         ''' Pass entry as list of strings from an appropriate column'''
         entry = list(filter(None,entry))
-        entry_id = max([i for i,item in enumerate(entry) if key in item])
+        try:
+            entry_id = max([i for i,item in enumerate(entry) if key in item])
+        except:
+            # If there is no key, print a warning and take the best guess
+            if verbose: print(f"WARN: {key} has no entry id in the first column")
+            entry_id = 2
         owner_names = []
         for item in entry[entry_id + 1:-2]:
             owner_names.append(item.strip())
