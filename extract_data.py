@@ -38,7 +38,8 @@ sources['newcastle'] = pymupdf.open('pdfproc/testing_data:2024FA_Newcastle.pdf')
 sources['mamaroneck'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Mamaroneck.pdf')
 sources['bedford'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Bedford.pdf')
 sources['mtpleasant'] = poppler.load_from_file('pdfproc/testing_data:2024FA_MtPleasant.pdf')
-sources['rye'] = poppler.load_from_file('Rye.pdf')
+sources['rye'] = poppler.load_from_file('pdfproc/testing_data:2024FA_Rye.pdf')
+sources['yonkers'] = poppler.load_from_file('Yonkers.pdf')
 
 re_id = '[0-9\\.\\-/A-Z]+'
 re_separator = f"\\*+ ?{re_id} ?\\*+"
@@ -65,7 +66,7 @@ lol = pdfproc.as_lines.Extractor(
 # 
 # By block and line number, and assemble it into a new list of the same shape.
 
-# In[2]:
+# In[65]:
 
 
 # Test header extractor
@@ -119,13 +120,13 @@ for test,result in testset:
 # 
 # Detect by separators
 
-# In[3]:
+# In[66]:
 
 
 # Extract data (list of lines)
 import multiprocessing as mp
 
-targets = ['greenburgh','mamaroneck','bedford','mtpleasant','rye']
+targets = ['greenburgh','mamaroneck','bedford','mtpleasant','rye','yonkers']
 data = {}
 
 def worker(q,source,name):
@@ -153,7 +154,7 @@ for line in data['mamaroneck']['1-14-213']:
         raise ValueError("Algorithm misses the page end delimiter!")
 
 
-# In[4]:
+# In[67]:
 
 
 # Extract data (pymupdf dictionary)
@@ -183,7 +184,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[5]:
+# In[68]:
 
 
 # Shape data
