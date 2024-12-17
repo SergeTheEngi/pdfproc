@@ -783,6 +783,7 @@ testset_yonkers = [
     ('1.-1-2',['iPark Riverdale LLC']),
     ('3.-3570-744',['Rubenstein Benjamin','Rubenstein Gloria']),
     ('4.-4760-102',['Magliari Patrick','Magliari Nancy I']),
+    ('1.-16-1',['Valentine Gardens Coop','c/o Stillman Management']),
 ]
 
 for key,result in testset_yonkers:
@@ -811,9 +812,11 @@ for key,result in testset_yonkers:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
                 bool(re.search('[0-9,]{1,7} EX',entry_line[0])),
+                bool(re.search('[0-9\.]{1,7} UN',entry_line[0])),
                 bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
                 bool(re.search('TX[A-Z]{3}',entry_line[0])),
                 bool(re.fullmatch('[0-9]{,2}-[0-9A-Z]{2,3}-[0-9]{,3}(.[A-Z])?',entry_line[0])),
+                bool(re.fullmatch('CITY',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
@@ -1428,9 +1431,11 @@ for key,result in testset_yonkers:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
                 bool(re.search('[0-9,]{1,7} EX',entry_line[0])),
+                bool(re.search('[0-9\.]{1,7} UN',entry_line[0])),
                 bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
                 bool(re.search('TX[A-Z]{3}',entry_line[0])),
                 bool(re.fullmatch('[0-9]{,2}-[0-9A-Z]{2,3}-[0-9]{,3}(.[A-Z])?',entry_line[0])),
+                bool(re.fullmatch('CITY',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
@@ -2971,7 +2976,7 @@ for key in data['rye']:
 print(f"\nFailed to find acreage in {len(failed)} entries")
 
 
-# In[57]:
+# In[56]:
 
 
 # Test yonkers with the new generic function
@@ -3024,7 +3029,7 @@ print(f"\nFailed to find acreage in {len(failed)} entries")
 
 # ### Get full market value
 
-# In[58]:
+# In[57]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -3137,7 +3142,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[59]:
+# In[58]:
 
 
 # Test greenburgh with the new generic function
@@ -3193,7 +3198,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[60]:
+# In[59]:
 
 
 # Test mamaroneck with the new generic function
@@ -3246,7 +3251,7 @@ for key in data['mamaroneck']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[61]:
+# In[60]:
 
 
 # Test bedford with the new generic function
@@ -3299,7 +3304,7 @@ for key in data['bedford']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[62]:
+# In[61]:
 
 
 # Test mtpleasant with the new generic function
@@ -3350,7 +3355,7 @@ for key in data['mtpleasant']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[63]:
+# In[62]:
 
 
 # Test rye with the new generic function
@@ -3401,7 +3406,7 @@ for key in data['rye']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[65]:
+# In[63]:
 
 
 # Test yonkers with the new generic function
@@ -3454,7 +3459,7 @@ print(f"Entries without full market value:\n{failed}")
 
 # ### Get taxables
 
-# In[66]:
+# In[64]:
 
 
 def get_taxable(entry,taxable_name,verbose=False):
@@ -3571,7 +3576,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[67]:
+# In[65]:
 
 
 # Test greenburgh
@@ -3611,7 +3616,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[68]:
+# In[66]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -3670,7 +3675,7 @@ for key in data['mamaroneck']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[69]:
+# In[67]:
 
 
 # Test bedford using the new get_generic function
@@ -3729,7 +3734,7 @@ for key in data['bedford']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[70]:
+# In[68]:
 
 
 # Test mtpleasant using the new get_generic function
@@ -3790,7 +3795,7 @@ for key in data['mtpleasant']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[71]:
+# In[69]:
 
 
 # Test rye using the new get_generic function
@@ -3850,7 +3855,7 @@ for key in data['rye']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[72]:
+# In[70]:
 
 
 # Test yonkers using the new get_generic function
@@ -3912,7 +3917,7 @@ print(f"failed to find taxables in entries:\n{failed}")
 
 # ### Assemble workbook
 
-# In[81]:
+# In[71]:
 
 
 wb = Workbook()
@@ -3932,7 +3937,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[82]:
+# In[72]:
 
 
 # Extract the data
@@ -3975,9 +3980,11 @@ for key in data['yonkers']:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
                 bool(re.search('[0-9,]{1,7} EX',entry_line[0])),
+                bool(re.search('[0-9\.]{1,7} UN',entry_line[0])),
                 bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
                 bool(re.search('TX[A-Z]{3}',entry_line[0])),
                 bool(re.fullmatch('[0-9]{,2}-[0-9A-Z]{2,3}-[0-9]{,3}(.[A-Z])?',entry_line[0])),
+                bool(re.fullmatch('CITY',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
@@ -4032,9 +4039,11 @@ for key in data['yonkers']:
                 bool(re.search('@ [0-9]',entry_line[0])),
                 bool(re.fullmatch('#[0-9]+',entry_line[0])),
                 bool(re.search('[0-9,]{1,7} EX',entry_line[0])),
+                bool(re.search('[0-9\.]{1,7} UN',entry_line[0])),
                 bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
                 bool(re.search('TX[A-Z]{3}',entry_line[0])),
                 bool(re.fullmatch('[0-9]{,2}-[0-9A-Z]{2,3}-[0-9]{,3}(.[A-Z])?',entry_line[0])),
+                bool(re.fullmatch('CITY',entry_line[0])),
                 'ATTM' in entry_line[0],
                 'ATTN:' in entry_line[0],
             ]
