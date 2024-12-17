@@ -33,8 +33,8 @@ Process Yonkers:
     - [x] Access property type
     - [x] Access property address
     - [x] Access zoning
-    - [ ] Access acreage
-    - [ ] Access market value
-    - [ ] Access taxables
-- [ ] Asseble into workbook
+    - [x] Access acreage
+    - [x] Access market value
+    - [x] Access taxables
+- [x] Asseble into workbook
 - [ ] Review, fix errors

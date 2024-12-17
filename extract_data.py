@@ -2624,7 +2624,7 @@ for key in data['yonkers']:
 
 # ### Get acreage
 
-# In[45]:
+# In[50]:
 
 
 def get_acreage(entry,keyword='ACRES'):
@@ -2714,7 +2714,7 @@ assert '' in ['', 'test']
 assert '' not in all_acreage
 
 
-# In[46]:
+# In[51]:
 
 
 # Test greenburgh with the new generic function
@@ -2763,7 +2763,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[47]:
+# In[52]:
 
 
 # Test mamaroneck with the new generic function
@@ -2814,7 +2814,7 @@ for key in data['mamaroneck']:
 print(f"Failed to find acreage in {len(failed)} entries")
 
 
-# In[48]:
+# In[53]:
 
 
 # Test bedford with the new generic function
@@ -2867,7 +2867,7 @@ for key in data['bedford']:
 print(f"\nFailed to find acreage in {len(failed)} entries")
 
 
-# In[49]:
+# In[54]:
 
 
 # Test mtpleasant with the new generic function
@@ -2920,7 +2920,7 @@ for key in data['mtpleasant']:
 print(f"\nFailed to find acreage in {len(failed)} entries")
 
 
-# In[50]:
+# In[55]:
 
 
 # Test rye with the new generic function
@@ -2971,9 +2971,60 @@ for key in data['rye']:
 print(f"\nFailed to find acreage in {len(failed)} entries")
 
 
+# In[57]:
+
+
+# Test yonkers with the new generic function
+testset_yonkers = [
+    ('2.-2161-56',0.25),
+    ('4.-4457-19',0.13),
+    ('5.-5032-115',0.11),
+]
+
+re_acreage = '(ACREAGE|ACRES) ?[0-9.]{,7}'
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_acreage)
+        output = output.split()
+        output = float(output[1])
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Failed to get acreage!")
+        print("Data item:")
+        for line in data['yonkers'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        output = None
+        assert output == result, f"{key}, {result} != {output}"
+
+failed = []
+for key in data['yonkers']:
+    entry = []
+    verbose = False
+    for line in data['yonkers'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_acreage,verbose)
+    except:
+        failed.append(key)
+
+print(f"\nFailed to find acreage in {len(failed)} entries")
+
+
 # ### Get full market value
 
-# In[51]:
+# In[58]:
 
 
 def get_full_market_value(entry,keywords=['FULL MARKET VALUE','VALUE']):
@@ -3086,7 +3137,7 @@ assert '' not in all_market_values
 assert None not in all_market_values
 
 
-# In[52]:
+# In[59]:
 
 
 # Test greenburgh with the new generic function
@@ -3142,7 +3193,7 @@ for key in data['greenburgh']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[53]:
+# In[60]:
 
 
 # Test mamaroneck with the new generic function
@@ -3195,7 +3246,7 @@ for key in data['mamaroneck']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[54]:
+# In[61]:
 
 
 # Test bedford with the new generic function
@@ -3248,7 +3299,7 @@ for key in data['bedford']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[55]:
+# In[62]:
 
 
 # Test mtpleasant with the new generic function
@@ -3299,7 +3350,7 @@ for key in data['mtpleasant']:
 print(f"Entries without full market value:\n{failed}")
 
 
-# In[56]:
+# In[63]:
 
 
 # Test rye with the new generic function
@@ -3350,9 +3401,60 @@ for key in data['rye']:
 print(f"Entries without full market value:\n{failed}")
 
 
+# In[65]:
+
+
+# Test yonkers with the new generic function
+testset_yonkers = [
+    ('2.-2374-25',561800),
+    ('4.-4715-25',764000),
+    ('5.-5587-39',924700),
+]
+
+re_fmv = 'FULL MKT VAL [0-9,]+|FULL MARKET VALUE [0-9,]+'
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['yonkers'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+failed = []
+for key in data['yonkers']:
+    entry = []
+    verbose = False
+    for line in data['yonkers'][key]:
+        #newline = line.replace('\n','')
+        #newline = newline.strip()
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_fmv)
+        output = output.split()
+        output = float(output[-1].replace(',',''))
+    except:
+        failed.append(key)
+
+print(f"Entries without full market value:\n{failed}")
+
+
 # ### Get taxables
 
-# In[57]:
+# In[66]:
 
 
 def get_taxable(entry,taxable_name,verbose=False):
@@ -3469,7 +3571,7 @@ assert ['','',''] not in all_taxables
 assert None not in all_taxables
 
 
-# In[58]:
+# In[67]:
 
 
 # Test greenburgh
@@ -3509,7 +3611,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[59]:
+# In[68]:
 
 
 # Test mamaroneck using the new get_generic function
@@ -3568,7 +3670,7 @@ for key in data['mamaroneck']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[60]:
+# In[69]:
 
 
 # Test bedford using the new get_generic function
@@ -3627,7 +3729,7 @@ for key in data['bedford']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[61]:
+# In[70]:
 
 
 # Test mtpleasant using the new get_generic function
@@ -3688,7 +3790,7 @@ for key in data['mtpleasant']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
-# In[62]:
+# In[71]:
 
 
 # Test rye using the new get_generic function
@@ -3748,15 +3850,75 @@ for key in data['rye']:
 print(f"failed to find taxables in entries:\n{failed}")
 
 
+# In[72]:
+
+
+# Test yonkers using the new get_generic function
+testset_yonkers = [
+    ('2.-2148-239',[4811,3891,3891]),
+    ('4.-4863-38.39',[7581,5011,5011]),
+    ('5.-5445-19',[11100,10180,10180]),
+]
+
+taxable_names = [
+    '(CNTY TAXABLE|COUNTY TAXABLE( VALUE)?) -?[0-9,]+',
+    '(TOWN TAXABLE|CITY TAXABLE( VALUE)?) -?[0-9,]+',
+    '(SCHOOL TAXABLE( VALUE)?) -?[0-9,]+'
+]
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('-?[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['yonkers'][key]: print([line])
+        print("\nEntry:")
+        for line in entry: print([line])
+        raise
+
+failed = []
+for key in data['yonkers']:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = []
+        for t in taxable_names:
+            out = ext.get_generic(entry,t)
+            out = re.search('-?[0-9,]+',out).group()
+            out = out.replace(',','')
+            out = float(out)
+            output.append(out)
+    except:
+        print(key)
+        failed.append[key]
+
+print(f"failed to find taxables in entries:\n{failed}")
+
+
 # ### Assemble workbook
 
-# In[63]:
+# In[81]:
 
 
 wb = Workbook()
 ws = wb.active
 
-ws.title = "2024 final roll - Rye"
+ws.title = "2024 final roll - Yonkers"
 ws['A1'] = 'id'
 ws['B1'] = 'OWNERS NAME'
 ws['C1'] = 'OWNERS ADDRESS'
@@ -3770,7 +3932,7 @@ ws['J1'] = 'SCHOOL TAXABLE'
 ws['K1'] = 'TOWN TAXABLE'
 
 
-# In[64]:
+# In[82]:
 
 
 # Extract the data
@@ -3783,13 +3945,13 @@ taxable_names = {
 row = 2
 a = time.time()
 failed_acreage = []
-for key in data['rye']:
+for key in data['yonkers']:
     print(key)
     ws[f"A{row}"] = key
     
     # Owner names
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry_line[0] = str(entry_line[0][:26])
@@ -3846,7 +4008,7 @@ for key in data['rye']:
 
     # Owner address
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry_line[0] = str(entry_line[0][:26])
@@ -3900,7 +4062,7 @@ for key in data['rye']:
 
     # Property type
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             for sn, substring in enumerate(entry_line):
@@ -3913,7 +4075,7 @@ for key in data['rye']:
 
     # Property address
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
@@ -3946,7 +4108,7 @@ for key in data['rye']:
 
     # Zoning
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
@@ -3954,7 +4116,7 @@ for key in data['rye']:
 
     # Acreage
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
@@ -3968,20 +4130,24 @@ for key in data['rye']:
     ws[f"G{row}"] = out
 
     # Full market value
+    failed_fmv = []
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
-    out = ext.get_generic(entry,re_fmv)
-    out = out.split()
-    out = float(out[-1].replace(',',''))
+    try:
+        out = ext.get_generic(entry,re_fmv)
+        out = out.split()
+        out = float(out[-1].replace(',',''))
+    except:
+        failed_fmv.append(key)
     ws[f"H{row}"] = out
 
     # Taxables
     failed_taxables=[]
     entry = []
-    for line in data['rye'][key]:
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
