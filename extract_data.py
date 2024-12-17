@@ -66,7 +66,7 @@ lol = pdfproc.as_lines.Extractor(
 # 
 # By block and line number, and assemble it into a new list of the same shape.
 
-# In[65]:
+# In[2]:
 
 
 # Test header extractor
@@ -120,7 +120,7 @@ for test,result in testset:
 # 
 # Detect by separators
 
-# In[66]:
+# In[3]:
 
 
 # Extract data (list of lines)
@@ -153,8 +153,10 @@ for line in data['mamaroneck']['1-14-213']:
     if type(line) == str and bool(re.fullmatch('\\*+',line)):
         raise ValueError("Algorithm misses the page end delimiter!")
 
+assert data['yonkers']['4.-4655-60'] != [['******************************************************************************************************* 4.-4655-60 *****************']]
 
-# In[67]:
+
+# In[4]:
 
 
 # Extract data (pymupdf dictionary)
@@ -184,7 +186,7 @@ data_newcastle = copy.deepcopy(alldata['newcastle'])
 del alldata
 
 
-# In[68]:
+# In[5]:
 
 
 # Shape data
@@ -773,9 +775,83 @@ for key,result in testset_rye:
         raise
 
 
+# In[16]:
+
+
+# Test yonkers
+testset_yonkers = [
+    ('1.-1-2',['iPark Riverdale LLC']),
+    ('3.-3570-744',['Rubenstein Benjamin','Rubenstein Gloria']),
+    ('4.-4760-102',['Magliari Patrick','Magliari Nancy I']),
+]
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:26])
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                bool(re.search('EAST [0-9]{6}',entry_line[0])),
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK' in entry_line[0],
+                'MAY BE SUBJECT TO PAYMENT' in entry_line[0],
+                'UNDER AGDIST TIL' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{1,7} EX',entry_line[0])),
+                bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
+                bool(re.search('TX[A-Z]{3}',entry_line[0])),
+                bool(re.fullmatch('[0-9]{,2}-[0-9A-Z]{2,3}-[0-9]{,3}(.[A-Z])?',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            unique_checks = [ # Checks unique to owner name, not present in owner address
+                'PO BOX' in entry_line[0],
+            ]
+            if True in checks or True in unique_checks:
+                continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    try:
+        output = ext.get_owner_names(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['yonkers'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get owner address
 
-# In[16]:
+# In[17]:
 
 
 # Test bronxville
@@ -808,7 +884,7 @@ for key,result in testset_bronxville:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[17]:
+# In[18]:
 
 
 # Test cornwall
@@ -858,7 +934,7 @@ for key,result in testset_cornwall:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[18]:
+# In[19]:
 
 
 # Test scarsdale
@@ -920,7 +996,7 @@ for key,result in testset_scarsdale:
     assert output == result, f"{key}, {result} != {output}"
 
 
-# In[19]:
+# In[20]:
 
 
 # Test harrison
@@ -941,7 +1017,7 @@ for key,result in testset_harrison:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[20]:
+# In[21]:
 
 
 # Test newcastle
@@ -972,7 +1048,7 @@ for key,result in testset_newcastle:
     assert output == result, f"{key}, {[result]} != {[output]}"
 
 
-# In[21]:
+# In[22]:
 
 
 # Test greenburgh
@@ -1032,7 +1108,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[22]:
+# In[23]:
 
 
 # Test mamaroneck
@@ -1101,7 +1177,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[23]:
+# In[24]:
 
 
 # Test bedford
@@ -1170,7 +1246,7 @@ for key,result in testset_bedford:
         raise
 
 
-# In[24]:
+# In[25]:
 
 
 # Test mtpleasant
@@ -1243,7 +1319,7 @@ for key,result in testset_mtpleasant:
         raise
 
 
-# In[25]:
+# In[26]:
 
 
 # Test rye
@@ -1316,9 +1392,80 @@ for key,result in testset_rye:
         raise
 
 
+# In[27]:
+
+
+# Test yonkers
+testset_yonkers = [
+    ('2.-2323-22','50 Buckingham Rd, Yonkers, NY 10701'),
+    ('3.-3236-29.31','188 Hoover Rd, Yonkers, NY 10710-3409'),
+    ('6.-6359-37','128 Ridgewood Ave, Yonkers, NY 10704-2306'),
+]
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry_line[0] = str(entry_line[0][:26])
+            checks  = [
+                'FULL MKT VAL' in entry_line[0],
+                'FULL MARKET VALUE' in entry_line[0],
+                'DEED BK' in entry_line[0],
+                'DEED BOOK' in entry_line[0],
+                'EAST-' in entry_line[0],
+                bool(re.search('EAST [0-9]{6}',entry_line[0])),
+                'ACREAGE' in entry_line[0] or 'ACRES' in entry_line[0],
+                'add to' in entry_line[0],
+                'add map' in entry_line[0],
+                bool(re.search('\bMAP\b',entry_line[0])),
+                'TAXABLE' in entry_line[0],
+                'CONTIGUOUS PARCEL' in entry_line[0],
+                'BANK' in entry_line[0],
+                'MAY BE SUBJECT TO PAYMENT' in entry_line[0],
+                'UNDER AGDIST TIL' in entry_line[0],
+                bool(re.search('[A-Z]{2}[0-9]{3}',entry_line[0])),
+                bool(re.search('@ [0-9]',entry_line[0])),
+                bool(re.fullmatch('#[0-9]+',entry_line[0])),
+                bool(re.search('[0-9,]{1,7} EX',entry_line[0])),
+                bool(re.fullmatch('[0-9.]{4} [A-Z]{2} [A-Z]{1}',entry_line[0])),
+                bool(re.search('TX[A-Z]{3}',entry_line[0])),
+                bool(re.fullmatch('[0-9]{,2}-[0-9A-Z]{2,3}-[0-9]{,3}(.[A-Z])?',entry_line[0])),
+                'ATTM' in entry_line[0],
+                'ATTN:' in entry_line[0],
+            ]
+            if True in checks:
+                continue
+            checks = [
+                'PRIOR OWNER' in entry_line[0],
+            ]
+            if True in checks:
+                break
+            checks = [
+                bool(re.match('SUITE',entry_line[0])),
+                bool(re.match('UNIT',entry_line[0])),
+                bool(re.match('(1ST|2ND|3RD|[0-9]+TH) FLOOR',entry_line[0])),
+            ]
+            if True in checks:
+                entry[-1] = entry[-1] + ' ' + entry_line[0]
+            elif 'C/O' in entry_line[0]:
+                temp = entry[-1]
+                entry[-1] = entry_line[0]
+                entry.append(temp)
+            else:
+                entry.append(entry_line[0])
+    try:
+        output = ext.get_owner_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['yonkers'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get property type
 
-# In[26]:
+# In[28]:
 
 
 def get_property_type(entry,key):
@@ -1423,7 +1570,7 @@ assert '' in ['', 'test']
 assert '' not in all_types
 
 
-# In[27]:
+# In[29]:
 
 
 # Test greenburgh
@@ -1451,7 +1598,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[28]:
+# In[30]:
 
 
 # Test mamaroneck
@@ -1477,7 +1624,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[29]:
+# In[31]:
 
 
 # Test bedford
@@ -1503,7 +1650,7 @@ for key,result in testset_bedford:
         raise
 
 
-# In[30]:
+# In[32]:
 
 
 # Test mtpleasant
@@ -1533,7 +1680,7 @@ for key,result in testset_mtpleasant:
         raise
 
 
-# In[31]:
+# In[33]:
 
 
 # Test rye
@@ -1563,9 +1710,39 @@ for key,result in testset_rye:
         raise
 
 
+# In[34]:
+
+
+# Test yonkers
+testset_yonkers = [
+    ('1.-478-79','330 Vacant comm'),
+    ('4.-4471-41','210 1 Family Res'),
+    ('4.-4863-34.35','210 1 Family Res'),
+]
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            for sn, substring in enumerate(entry_line):
+                if substring == key and bool(re.fullmatch('[A-Z]{2}',entry_line[sn+1])):
+                    del entry_line[sn+1]
+                    break
+            #print(entry_line)
+            entry.append(entry_line)
+    try:
+        output = get_property_type(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        for line in data['yonkers'][key]: print([line])
+        print(entry)
+        raise
+
+
 # ### Get property address
 
-# In[32]:
+# In[35]:
 
 
 # Mix of function definition and tests
@@ -1695,7 +1872,7 @@ for key,result in testset_newcastle:
     run_test(entry,key,result,get_property_address)
 
 
-# In[33]:
+# In[36]:
 
 
 # Test greenburgh
@@ -1750,7 +1927,7 @@ for key,result in testset_greenburgh:
         raise
 
 
-# In[34]:
+# In[37]:
 
 
 # Test mamaroneck
@@ -1803,7 +1980,7 @@ for key,result in testset_mamaroneck:
         raise
 
 
-# In[35]:
+# In[38]:
 
 
 # Test bedford
@@ -1856,7 +2033,7 @@ for key,result in testset_bedford:
         raise
 
 
-# In[36]:
+# In[39]:
 
 
 # Test mtpleasant
@@ -1909,7 +2086,7 @@ for key,result in testset_mtpleasant:
         raise
 
 
-# In[37]:
+# In[40]:
 
 
 # Test rye
@@ -1960,9 +2137,60 @@ for key,result in testset_rye:
         raise
 
 
+# In[41]:
+
+
+# Test yonkers
+testset_yonkers = [
+    ('2.-2140-241','28 Jody Ln'),
+    ('4.-4445-375','1853 Central Park Ave'),
+    ('4.-4814-35','28 Agnola St'),
+]
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    del entry[0]
+    nentry = []
+    for line in entry[0]:
+        checks = [
+            not bool(re.fullmatch('[0-9]+',line)),
+            not bool(re.search('ACCT:',line)),
+        ]
+        if False not in checks:
+            nentry.append(line)
+    entry[0] = nentry
+    for n,e in enumerate(entry):
+        entry[n] = list(filter(None,e))
+    if len(entry[0]) > 1:
+        last_item = entry[0].pop()
+        entry[0].insert(0,last_item)
+    if len(entry[0]) > 2:
+        while len(entry[0]) > 2:
+            if 'ACCT' not in entry[0][2]:
+                entry[0][1] = entry[0][1] + ' ' + entry[0][2]
+                del entry[0][2]
+            else:
+                break
+        entry[0] = entry[0][0:2]
+    if len(entry[0]) == 1:
+        entry[0].insert(0,'')
+    try:
+        output = get_property_address(entry,key)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['yonkers'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        raise
+
+
 # ### Get zoning
 
-# In[38]:
+# In[42]:
 
 
 # Tests and the function definition
@@ -2088,7 +2316,7 @@ assert '' not in all_zoning
 assert None not in all_zoning
 
 
-# In[39]:
+# In[43]:
 
 
 # Test greenburgh with the generic function (SCHOOL DISTRICT)
@@ -2134,7 +2362,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[40]:
+# In[44]:
 
 
 # Test greenburgh with the generic function (ACCT)
@@ -2179,7 +2407,7 @@ for key in data['greenburgh']:
         raise
 
 
-# In[41]:
+# In[45]:
 
 
 # Test mamaroneck with the generic function (SCHOOL DISTRICT)
@@ -2222,7 +2450,7 @@ for key in data['mamaroneck']:
         raise
 
 
-# In[42]:
+# In[46]:
 
 
 # Test bedford with the generic function (SCHOOL DISTRICT)
@@ -2265,7 +2493,7 @@ for key in data['bedford']:
         raise
 
 
-# In[43]:
+# In[47]:
 
 
 # Test mtpleasant with the generic function (SCHOOL DISTRICT)
@@ -2308,7 +2536,7 @@ for key in data['mtpleasant']:
         raise
 
 
-# In[44]:
+# In[48]:
 
 
 # Test rye with the generic function (SCHOOL DISTRICT)
@@ -2341,6 +2569,49 @@ for key in data['rye']:
     entry = []
     verbose = False
     for line in data['rye'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        ext.get_generic(entry,re_zoning,verbose)
+    except:
+        print(entry)
+        raise
+
+
+# In[49]:
+
+
+# Test yonkers with the generic function (SCHOOL DISTRICT)
+testset_yonkers = [
+    ('2.-2351-7.9','Yonkers City Sc 551800'),
+    ('4.-4463-19','Yonkers City Sc 551800'),
+    ('5.-5093-10','Yonkers City Sc 551800'),
+]
+
+re_zoning = '(Yonkers City Sc [0-9]{6})'
+
+for key,result in testset_yonkers:
+    entry = []
+    for line in data['yonkers'][key]:
+        if line != '' and line != None and line != []:
+            entry_line = re.split('  +',line)
+            entry.append(entry_line)
+    try:
+        output = ext.get_generic(entry,re_zoning)
+        assert output == result, f"{key}, {result} != {output}"
+    except:
+        print("Data item:")
+        for line in data['yonkers'][key]: print([line])
+        print(f"\nEntry:\n{entry}")
+        print(entry[1])
+        print(entry[2])
+        raise
+
+for key in data['yonkers']:
+    entry = []
+    verbose = False
+    for line in data['yonkers'][key]:
         if line != '' and line != None and line != []:
             entry_line = re.split('  +',line)
             entry.append(entry_line)
