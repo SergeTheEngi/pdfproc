@@ -6,7 +6,9 @@ This is a toolset for processing final assessment roll data. Currently it is bui
 
 Currently this is in early beta. A ton of functionality haven't been expressed in the module yet and is scattered around in scripts.
 
-Development goal right now is to create a codebase big enough to confidently process most pdfs. Upon noticing a somewhat reliable generic function I pack it into the module. So I'm just figuring out how to process specific datasets from the state of NY.
+~~Development goal right now is to create a codebase big enough to confidently process most pdfs. Upon noticing a somewhat reliable generic function I pack it into the module. So I'm just figuring out how to process specific datasets from the state of NY.~~
+
+I consider this hot mess of code a reliable enough proof of concept. Next step is to completely rewrite the code to ditch all inefficient and redundant bits, minimize the requirements, and undo some weird design choices. Maybe I'll upload it as an independent repository later.
 
 The module itself consists of submodules for processing data in different forms. Presently, `as_dict` is the most developed one. It processes data returned by pymupdf's `.get_text('dict')` function.
 
@@ -20,21 +22,3 @@ On the other hand, right now the project is pretty small. You probably can figur
 
 For python dependencies, see `requirements.txt`.
 
-## Current tasks
-
-Process Yonkers:
-- Collect data:
-    - [x] Get headers
-    - [x] Collect page data
-    - [x] Extract entries from pages
-- Extract data:
-    - [x] Access owner names
-    - [x] Access owner address
-    - [x] Access property type
-    - [x] Access property address
-    - [x] Access zoning
-    - [x] Access acreage
-    - [x] Access market value
-    - [x] Access taxables
-- [x] Asseble into workbook
-- [x] Review, fix errors
