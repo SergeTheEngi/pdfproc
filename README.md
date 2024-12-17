@@ -36,5 +36,5 @@ Process Rye:
     - [x] Access acreage
     - [x] Access market value
     - [x] Access taxables
-- [ ] Asseble into workbook
-- [ ] Review, fix errors
+- [x] Asseble into workbook
+- [x] Review, fix errors
