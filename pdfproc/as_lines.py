@@ -44,7 +44,7 @@ class Extractor:
         collect = False
         for line in list_of_lines:
             separator = None
-            separator = re.search(self.re_separator,line)
+            separator = re.fullmatch(self.re_separator,line)
             if separator:
                 entry_id = re.search(self.re_id,separator.group()).group()
                 page_data[entry_id] = [[]]
