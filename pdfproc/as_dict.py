@@ -282,11 +282,13 @@ class Extractor:
         ''' Pass entry as list of strings from an appropriate column '''
         company = None
         entry = list(filter(None,entry))
+        out = []
         owner_addr = entry[-2:]
+        if len(entry) > 2 and 'PO BOX' in entry[-3]:
+            out.append(entry[-3])
         for i,name in enumerate(owner_addr):
             if '   ' in owner_addr[i]:
                 owner_addr[i] = name.split('   ')[0]
-        out = []
         for name in owner_addr:
             if name == key: continue
             else: out.append(' '.join(name.split()))
